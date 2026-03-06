@@ -29,6 +29,4 @@ Keys.xcscheme
 
 # Tuist generated
 Derived/
-*.xcodeproj/
-*.xcworkspace/
 .mcp.json
