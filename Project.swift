@@ -38,6 +38,7 @@ let project = Project(
             bundleId: "org.ncmud.wammer",
             deploymentTargets: .iOS("26.0"),
             infoPlist: .extendingDefault(with: [
+                "CFBundleDisplayName": .string("MUDWammer"),
                 "UIAppFonts": .array([
                     .string("AndaleMono.ttf"),
                     .string("AnonymousProMinusB.ttf"),
