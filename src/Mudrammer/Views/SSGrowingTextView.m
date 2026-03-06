@@ -71,13 +71,15 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
 #pragma mark - Auto Layout
 
 - (CGSize)currentContentSize {
-    if ([self.text length] == 0) {
-        return CGSizeMake(CGRectGetWidth(self.bounds), self.minHeight);
+    CGFloat boundsWidth = CGRectGetWidth(self.bounds);
+
+    if ([self.text length] == 0 || boundsWidth <= 0) {
+        return CGSizeMake(boundsWidth, self.minHeight);
     }
 
     NSString *str = [self.text copy];
 
-    CGRect rect = [str boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.bounds) - self.textContainerInset.left - self.textContainerInset.right,
+    CGRect rect = [str boundingRectWithSize:CGSizeMake(boundsWidth - self.textContainerInset.left - self.textContainerInset.right,
                                                        CGFLOAT_MAX)
                                     options:NSStringDrawingUsesLineFragmentOrigin
                                  attributes:@{ NSFontAttributeName : self.font,
