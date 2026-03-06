@@ -48,6 +48,12 @@ UIEdgeInsets const kTextInsets = (UIEdgeInsets) { 0, 2, 0, 5 };
     }];
 }
 
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    _textView.delegate = nil;
+    _textView.text = nil;
+}
+
 - (void)dealloc {
     _textView.delegate = nil;
 }
