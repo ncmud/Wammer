@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix libtelnet missing HAVE_ZLIB define causing MCCP2 gibberish (#56)
 
 ### Changed
+- Fix miscellaneous warnings in app source (#64)
+- Fix ObjC designated initializer warnings (#63)
+- Fix deprecated API warnings in app source (#62)
+- Fix implicit self-retain warnings in blocks (#61)
+- Suppress warnings in vendored libraries (#60)
 - Configure test target for modern simulator (#49)
 - Fix test code for API changes (#48)
 - Verify Core Data / MagicalRecord compatibility (#46)
