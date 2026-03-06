@@ -656,7 +656,9 @@ NSUInteger const kMaxLineQueueSize = (kMaxLineHistory * 2);
 
     // If we are writing a newline, clear to the end of the line
     if (item.line.length == 0 && item.endsInNewLine) {
-        [existingItem.line deleteCharactersInRange:NSMakeRange(columnIndex, existingItem.line.length - columnIndex)];
+        if (existingItem.line.length > columnIndex) {
+            [existingItem.line deleteCharactersInRange:NSMakeRange(columnIndex, existingItem.line.length - columnIndex)];
+        }
         existingItem.endsInNewLine = YES;
     } else if (existingItem.line.length == columnIndex) {
         // Now equal, perhaps after having just added spaces
