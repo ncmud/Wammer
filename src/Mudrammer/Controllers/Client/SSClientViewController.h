@@ -11,8 +11,7 @@
 @protocol SSClientDelegate;
 @class SSMudView, SSMUDSocket;
 
-@interface SSClientViewController : UIViewController <UINavigationControllerDelegate,
-                                                      NSFetchedResultsControllerDelegate>
+@interface SSClientViewController : UIViewController <UINavigationControllerDelegate>
 
 @property (nonatomic, copy) NSString *hostname;
 @property (nonatomic, copy) NSNumber *port;
@@ -38,7 +37,7 @@
 + (instancetype) client;
 
 // Create a client for a particular world.
-+ (instancetype) clientWithWorld:(NSManagedObjectID *)world;
++ (instancetype) clientWithWorld:(NSString *)worldIdentifier;
 
 // Connect, assuming we have both a hostname and a port.
 - (void) connect;
@@ -55,7 +54,7 @@
 // Force resign first-responder
 - (void) hideKeyboard;
 
-- (void) updateCurrentWorld:(NSManagedObjectID *)newWorld connectAfterUpdate:(BOOL)connectAfterUpdate;
+- (void) updateCurrentWorld:(NSString *)worldIdentifier connectAfterUpdate:(BOOL)connectAfterUpdate;
 
 // Description for current world
 @property (nonatomic, readonly, copy) NSString *currentWorldDescription;

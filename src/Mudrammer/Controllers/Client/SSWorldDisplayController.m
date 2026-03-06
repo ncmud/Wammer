@@ -332,30 +332,16 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 
     BOOL isFirstWorld = [self numberOfClients] == 0;
 
-    // Bridge: look up Core Data object by matching hostname until SSClientViewController is migrated (task 80)
-    NSManagedObjectID *worldId = nil;
-    if (worldIdentifier) {
-        MUDWorldBridge *mudWorld = [WorldStoreBridge worldForIdentifier:worldIdentifier];
-        if (mudWorld) {
-            World *cdWorld = [World MR_findFirstWithPredicate:
-                [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
-                    mudWorld.hostname, mudWorld.port]
-                inContext:[NSManagedObjectContext MR_defaultContext]];
-            worldId = [cdWorld objectID];
-        }
+    NSString *resolvedIdentifier = worldIdentifier;
+
+    if (!resolvedIdentifier) {
+        resolvedIdentifier = [WorldStoreBridge defaultWorldIdentifier];
     }
 
-    if (!worldId) {
-        World *defaultWorld = [World defaultWorldInContext:[NSManagedObjectContext MR_defaultContext]];
-
-        if (defaultWorld)
-            worldId = [defaultWorld objectID];
-    }
-
-    if (!worldId) {
+    if (!resolvedIdentifier) {
         DLog(@"**** no default world");
     } else {
-        [newClient updateCurrentWorld:worldId
+        [newClient updateCurrentWorld:resolvedIdentifier
                    connectAfterUpdate:[[NSUserDefaults standardUserDefaults]
                                        boolForKey:kPrefConnectOnStartup]];
     }

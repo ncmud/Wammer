@@ -2,18 +2,17 @@
 //  WorldStoreBridge.h
 //  Wammer
 //
-//  ObjC-visible interface for WorldStore Swift types.
 //  Hand-written header matching the @objc classes in WorldStoreBridge.swift.
 //  This avoids the Wammer-Swift.h header generation issue.
 //
 
 @import Foundation;
+@import UIKit;
 
 NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - MUDWorldBridge
 
-/// Opaque reference to a MUDWorld instance, bridged from Swift.
 @interface MUDWorldBridge : NSObject
 
 @property (nonatomic, readonly, copy) NSString *identifier;
@@ -23,6 +22,16 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) BOOL isDefault;
 @property (nonatomic, readonly) BOOL isSecure;
 @property (nonatomic, readonly, copy, nullable) NSString *connectCommand;
+
+@end
+
+#pragma mark - MUDTriggerResultBridge
+
+@interface MUDTriggerResultBridge : NSObject
+
+@property (nonatomic, readonly, nullable) NSArray<NSString *> *commands;
+@property (nonatomic, readonly, nullable) NSDictionary<NSNumber *, UIColor *> *lineColors;
+@property (nonatomic, readonly, copy, nullable) NSString *soundName;
 
 @end
 
@@ -37,6 +46,15 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)addWorldWithHostname:(NSString *)hostname name:(NSString *)name port:(int16_t)port;
 + (NSString *)addEmptyWorld;
 + (void)removeWorldWithIdentifier:(NSString *)identifier;
+
++ (void)setDefaultWorldWithIdentifier:(NSString *)identifier;
++ (nullable NSString *)defaultWorldIdentifier;
++ (nullable NSString *)worldDescriptionForIdentifier:(NSString *)identifier;
+
+// Alias / Gag / Trigger matching
++ (nullable NSArray<NSString *> *)commandsIfMatchingAliasForIdentifier:(NSString *)identifier input:(NSString *)input;
++ (NSIndexSet *)filteredIndexesByMatchingGagsForIdentifier:(NSString *)identifier lines:(NSArray<NSString *> *)lines;
++ (nullable MUDTriggerResultBridge *)runTriggersForIdentifier:(NSString *)identifier lines:(NSArray<NSString *> *)lines;
 
 @end
 

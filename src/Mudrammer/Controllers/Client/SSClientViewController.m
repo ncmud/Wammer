@@ -21,6 +21,7 @@
 #import "SSWorldListViewController.h"
 #import "SSWorldDisplayController.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
+#import "WorldStoreBridge.h"
 
 @import Masonry;
 #import "SPLWorldTickerManager.h"
@@ -90,10 +91,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 {
 
     // world access
-    World *currentWorld;
-
-    // solely to fade in/out the edit world button
-    NSFetchedResultsController *defaultWorldFetcher;
+    NSString *currentWorldIdentifier;
 
     // logging
     NSString *logFileName;
@@ -142,6 +140,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                                      name:UIAccessibilityVoiceOverStatusDidChangeNotification
                                                    object:nil];
 
+        // World store changes
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(worldStoreDidChange:)
+                                                     name:WorldStoreBridge.didChangeNotification
+                                                   object:nil];
+
         // font changes cause NAWS
         for (NSString *observed in kObservedProperties) {
             [self.kvoController observe:[SSThemes sharedThemer].currentTheme
@@ -163,10 +167,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
     return client;
 }
 
-+ (SSClientViewController *)clientWithWorld:(NSManagedObjectID *)world {
++ (SSClientViewController *)clientWithWorld:(NSString *)worldIdentifier {
     SSClientViewController *client = [SSClientViewController client];
 
-    [client updateCurrentWorld:world
+    [client updateCurrentWorld:worldIdentifier
             connectAfterUpdate:[[NSUserDefaults standardUserDefaults]
                                 boolForKey:kPrefConnectOnStartup]];
 
@@ -217,7 +221,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     _delegate = nil;
     _hostname = nil;
-    defaultWorldFetcher = nil;
+    currentWorldIdentifier = nil;
 
     self.mudView.delegate = nil;
     [self.mudView removeFromSuperview];
@@ -280,7 +284,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     [leftItems addObject:self.settingsButton];
 
-    if (currentWorld) {
+    if (currentWorldIdentifier) {
         if ([[UIDevice currentDevice] isIPad]) {
             [leftItems addObjectsFromArray:@[
                 [UIBarButtonItem fixedWidthBarButtonItemWithWidth:50.0f],
@@ -496,19 +500,14 @@ typedef void (^SPLSettingsCloseBlock) (void);
         }
     }
 
-    if( !currentWorld )
-        return;
-
-    NSManagedObjectID *currentId = [currentWorld objectID];
-
-    if( !currentId )
+    if( !currentWorldIdentifier )
         return;
 
     [self.mudView endEditing:YES];
 
     @weakify(self);
 
-    SSWorldEditViewController *editor = [SSWorldEditViewController editorForWorld:currentId];
+    SSWorldEditViewController *editor = [SSWorldEditViewController editorForWorldIdentifier:currentWorldIdentifier];
     editor.saveCompletionBlock = ^(BOOL didSave) {
         @strongify(self);
         [self closeSettingsWithCompletion:nil];
@@ -547,8 +546,11 @@ typedef void (^SPLSettingsCloseBlock) (void);
 #pragma mark - current world
 
 - (NSString *)currentWorldDescription {
-    if( currentWorld )
-        return [currentWorld worldDescription];
+    if (currentWorldIdentifier) {
+        NSString *desc = [WorldStoreBridge worldDescriptionForIdentifier:currentWorldIdentifier];
+        if (desc)
+            return desc;
+    }
 
     if( self.hostname && self.port )
         return [NSString stringWithFormat:@"%@:%@",
@@ -558,36 +560,26 @@ typedef void (^SPLSettingsCloseBlock) (void);
     return @"Nowhere at all";
 }
 
-- (void)updateCurrentWorld:(NSManagedObjectID *)newWorld connectAfterUpdate:(BOOL)connectAfterUpdate {
+- (void)updateCurrentWorld:(NSString *)worldIdentifier connectAfterUpdate:(BOOL)connectAfterUpdate {
     [self closeSettingsWithCompletion:^{
-        World *world = [World existingObjectWithId:newWorld
-                                         inContext:[NSManagedObjectContext MR_defaultContext]];
+        MUDWorldBridge *world = [WorldStoreBridge worldForIdentifier:worldIdentifier];
 
         if (!world) {
             return;
         }
 
-        [world setDefaultWorld];
+        [WorldStoreBridge setDefaultWorldWithIdentifier:worldIdentifier];
 
         self->logFileName = [SSSessionLogger logFileNameForHost:world.hostname];
 
-        if (![self->currentWorld isEqual:world]) {
-            self->currentWorld = world;
-
-            self->defaultWorldFetcher.delegate = nil;
-            self->defaultWorldFetcher = nil;
-            // default world
-            self->defaultWorldFetcher = [World MR_fetchAllGroupedBy:nil
-                                                withPredicate:[NSPredicate predicateWithFormat:@"(self = %@)", self->currentWorld]
-                                                     sortedBy:[World defaultSortField]
-                                                    ascending:[World defaultSortAscending]
-                                                     delegate:self];
+        if (![self->currentWorldIdentifier isEqualToString:worldIdentifier]) {
+            self->currentWorldIdentifier = [worldIdentifier copy];
         }
 
         [self updateWorldToolbar];
 
-        self.hostname = self->currentWorld.hostname;
-        self.port = self->currentWorld.port;
+        self.hostname = world.hostname;
+        self.port = @(world.port);
 
         if ([self isConnected]) {
             [self disconnect];
@@ -815,9 +807,19 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (void)mudView:(SSMudView *)mudView shouldCreateRecordWithText:(NSString *)text type:(Class)recordType {
-    if (!currentWorld) {
+    if (!currentWorldIdentifier) {
         return;
     }
+
+    // Bridge: look up Core Data object until SSTGAEditor is migrated (task 82)
+    MUDWorldBridge *bridgeWorld = [WorldStoreBridge worldForIdentifier:currentWorldIdentifier];
+    if (!bridgeWorld) return;
+    World *cdWorld = [World MR_findFirstWithPredicate:
+        [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
+            bridgeWorld.hostname, bridgeWorld.port]
+        inContext:[NSManagedObjectContext MR_defaultContext]];
+    if (!cdWorld) return;
+    NSManagedObjectID *cdWorldID = [cdWorld objectID];
 
     if (recordType == [Trigger class]) {
         [Trigger createObjectWithCompletion:^(NSManagedObjectID *objectID) {
@@ -827,7 +829,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
                 trigger.trigger = text;
             } completion:^(BOOL didSave, NSError *error) {
                 SSTGAEditor *editor = [SSTGAEditor editorForRecord:objectID
-                                                           inWorld:self->currentWorld.objectID
+                                                           inWorld:cdWorldID
                                                      parentContext:[NSManagedObjectContext MR_defaultContext]];
 
                 UINavigationController *nav = [editor wrappedNavigationController];
@@ -847,7 +849,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
                 gag.gag = text;
             } completion:^(BOOL didSave, NSError *error) {
                 SSTGAEditor *editor = [SSTGAEditor editorForRecord:objectID
-                                                           inWorld:self->currentWorld.objectID
+                                                           inWorld:cdWorldID
                                                      parentContext:[NSManagedObjectContext MR_defaultContext]];
 
                 UINavigationController *nav = [editor wrappedNavigationController];
@@ -865,7 +867,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 #pragma mark - socket actions
 
 - (void)sendText:(NSString *)text appendToHistory:(BOOL)appendToHistory {
-    NSManagedObjectID *currentID = [currentWorld objectID];
+    NSString *worldId = [currentWorldIdentifier copy];
 
     @weakify(self);
 
@@ -876,59 +878,51 @@ typedef void (^SPLSettingsCloseBlock) (void);
             return;
         }
 
-        [MagicalRecord saveWithBlockAndWait:^(NSManagedObjectContext *localContext) {
+        NSMutableArray *commands = [NSMutableArray array];
+        BOOL didPrint = NO;
 
-            NSMutableArray *commands = [NSMutableArray array];
-            BOOL didPrint = NO;
+        // Match aliases
+        if (worldId) {
+            NSArray *aliasCommands = [WorldStoreBridge commandsIfMatchingAliasForIdentifier:worldId input:text];
 
-            // Match aliases
-            if (currentID) {
-                World *bgWorld = [World existingObjectWithId:currentID
-                                                   inContext:localContext];
-
-                if( [operation isCancelled] )
-                    return;
-
-                if (bgWorld) {
-                    NSArray *aliasCommands = [bgWorld commandsIfMatchingAliasForInput:text];
-
-                    if( aliasCommands ) {
-                        [commands addObjectsFromArray:aliasCommands];
-
-                        [self appendText:[NSString stringWithFormat:@"(%@)%@",
-                                              NSLocalizedString(@"ALIAS", @"Alias"),
-                                              text]
-                             isUserInput:YES];
-
-                        didPrint = YES;
-                    }
-                }
-            }
-
-            if( [operation isCancelled] )
+            if ([operation isCancelled])
                 return;
 
-            if ([commands count] == 0) {
-                [commands addObject:text];
-            }
+            if (aliasCommands) {
+                [commands addObjectsFromArray:aliasCommands];
 
-            if (!didPrint && [self.socket shouldEchoText]) {
-                [self appendText:text
+                [self appendText:[NSString stringWithFormat:@"(%@)%@",
+                                      NSLocalizedString(@"ALIAS", @"Alias"),
+                                      text]
                      isUserInput:YES];
+
+                didPrint = YES;
+            }
+        }
+
+        if ([operation isCancelled])
+            return;
+
+        if ([commands count] == 0) {
+            [commands addObject:text];
+        }
+
+        if (!didPrint && [self.socket shouldEchoText]) {
+            [self appendText:text
+                 isUserInput:YES];
+        }
+
+        [self.socket sendUserCommands:commands];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self setNavVisible:NO];
+
+            if (appendToHistory) {
+                [self.mudView addHistoryCommand:text];
             }
 
-            [self.socket sendUserCommands:commands];
-
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self setNavVisible:NO];
-
-                if (appendToHistory) {
-                    [self.mudView addHistoryCommand:text];
-                }
-
-                [self.mudView.tableView scrollToBottom];
-            });
-        }];
+            [self.mudView.tableView scrollToBottom];
+        });
     };
 
     [self.writeQueue ss_addBlockOperationWithBlock:writeBlock];
@@ -966,8 +960,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self appendText:[NSLocalizedString(@"CONNECTED", @"Connected") stringByAppendingString:@"\n"]
                  isUserInput:NO];
 
-            if( [[self->currentWorld worldDescription] length] > 0 )
-                [self updateTitle:[self->currentWorld worldDescription]];
+            NSString *desc = [WorldStoreBridge worldDescriptionForIdentifier:self->currentWorldIdentifier];
+            if ([desc length] > 0)
+                [self updateTitle:desc];
             else
                 [self updateTitle:[NSString stringWithFormat:@"%@:%@",
                                    self.hostname,
@@ -982,43 +977,57 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self.mudView setEditable:YES];
             [self.mudView setKeyboardPanningEnabled:YES];
 
-            self.tickerIdentifier = [self.tickerManager enableAndObserveTickersForWorld:self->currentWorld
-                                                                            tickerBlock:^(NSManagedObjectID *tickerId)
-            {
-                @strongify(self);
+            // Bridge: ticker manager still uses Core Data World (task 81)
+            MUDWorldBridge *bridgeWorld = [WorldStoreBridge worldForIdentifier:self->currentWorldIdentifier];
+            World *cdWorld = nil;
+            if (bridgeWorld) {
+                cdWorld = [World MR_findFirstWithPredicate:
+                    [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
+                        bridgeWorld.hostname, bridgeWorld.port]
+                    inContext:[NSManagedObjectContext MR_defaultContext]];
+            }
 
-                Ticker *ticker = [Ticker existingObjectWithId:tickerId];
+            if (cdWorld) {
+                self.tickerIdentifier = [self.tickerManager enableAndObserveTickersForWorld:cdWorld
+                                                                                tickerBlock:^(NSManagedObjectID *tickerId)
+                {
+                    @strongify(self);
 
-                if (!ticker) {
-                    return;
-                }
+                    Ticker *ticker = [Ticker existingObjectWithId:tickerId];
 
-                if ([ticker.commands length] > 0) {
-                    [self sendText:ticker.commands
-                   appendToHistory:YES];
-                }
-
-                if ([ticker.soundFileName length] > 0 && ![ticker.soundFileName isEqualToString:@"None"]) {
-                    SSSound *sound = [JSQSystemSoundPlayer soundForFileName:ticker.soundFileName];
-
-                    if (sound) {
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            [JSQSystemSoundPlayer playSound:sound
-                                                 completion:nil];
-                        });
-                    }
-                }
-            }];
-
-            // Connect command
-            if ([self->currentWorld.connectCommand length] > 0) {
-                DLog(@"Scheduling connect commands");
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kConnectCommandsDelay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    if (![self isConnected] || [self->currentWorld.connectCommand length] == 0) {
+                    if (!ticker) {
                         return;
                     }
 
-                    [self mudView:self.mudView didReceiveUserCommand:self->currentWorld.connectCommand];
+                    if ([ticker.commands length] > 0) {
+                        [self sendText:ticker.commands
+                       appendToHistory:YES];
+                    }
+
+                    if ([ticker.soundFileName length] > 0 && ![ticker.soundFileName isEqualToString:@"None"]) {
+                        SSSound *sound = [JSQSystemSoundPlayer soundForFileName:ticker.soundFileName];
+
+                        if (sound) {
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                [JSQSystemSoundPlayer playSound:sound
+                                                     completion:nil];
+                            });
+                        }
+                    }
+                }];
+            }
+
+            // Connect command
+            MUDWorldBridge *connectWorld = [WorldStoreBridge worldForIdentifier:self->currentWorldIdentifier];
+            if ([connectWorld.connectCommand length] > 0) {
+                NSString *connectCmd = [connectWorld.connectCommand copy];
+                DLog(@"Scheduling connect commands");
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kConnectCommandsDelay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    if (![self isConnected] || [connectCmd length] == 0) {
+                        return;
+                    }
+
+                    [self mudView:self.mudView didReceiveUserCommand:connectCmd];
                 });
             }
 
@@ -1084,7 +1093,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (void)mudsocket:(SSMUDSocket *)sock didReceiveAttributedLineGroup:(SSAttributedLineGroup *)group {
-    NSManagedObjectID *worldID = [currentWorld objectID];
+    NSString *worldId = [currentWorldIdentifier copy];
 
     @weakify(self);
 
@@ -1095,59 +1104,42 @@ typedef void (^SPLSettingsCloseBlock) (void);
             return;
         }
 
-        [MagicalRecord saveWithBlockAndWait:^(NSManagedObjectContext *localContext) {
-
-            // grab our world in a background context for this operation
-            World *bgWorld = nil;
-
-            if (worldID) {
-                bgWorld = [World existingObjectWithId:worldID
-                                            inContext:localContext];
-                [bgWorld refreshObject];
-            }
-
-            NSArray *allCleanLines = [group cleanTextLinesWithCommands:YES];
-            NSIndexSet *cleanIndexes = [NSIndexSet indexSetWithIndexesInRange:
-                                        NSMakeRange(0, [allCleanLines count])];
+        NSArray *allCleanLines = [group cleanTextLinesWithCommands:YES];
+        NSIndexSet *cleanIndexes = [NSIndexSet indexSetWithIndexesInRange:
+                                    NSMakeRange(0, [allCleanLines count])];
 
 #ifdef __PARSE_ECHO__
-            DLog(@"%@", cleanIndexes);
+        DLog(@"%@", cleanIndexes);
 #endif
 
-            // Indexes of lines passing gag checks
-            if (bgWorld) {
-                cleanIndexes = [bgWorld filteredIndexesByMatchingGagsInLines:allCleanLines];
-            }
+        // Indexes of lines passing gag checks
+        if (worldId) {
+            cleanIndexes = [WorldStoreBridge filteredIndexesByMatchingGagsForIdentifier:worldId lines:allCleanLines];
+        }
 
 #ifdef __PARSE_ECHO__
-            DLog(@"%@", cleanIndexes);
+        DLog(@"%@", cleanIndexes);
 #endif
 
-            if ([operation isCancelled]) {
-                return;
-            }
+        if ([operation isCancelled]) {
+            return;
+        }
 
-            NSArray *cleanLines = [allCleanLines objectsAtIndexes:cleanIndexes];
-            NSMutableArray *attributedLines = [NSMutableArray arrayWithArray:
-                                               [group.lines objectsAtIndexes:cleanIndexes]];
+        NSArray *cleanLines = [allCleanLines objectsAtIndexes:cleanIndexes];
+        NSMutableArray *attributedLines = [NSMutableArray arrayWithArray:
+                                           [group.lines objectsAtIndexes:cleanIndexes]];
 
 #ifdef __PARSE_ECHO__
-            DLog(@"%@", cleanLines);
+        DLog(@"%@", cleanLines);
 #endif
 
-            // Fire triggers
-            if (bgWorld) {
-                NSArray *commands;
-                NSDictionary *lineBGColors;
-                NSString *soundName;
+        // Fire triggers
+        if (worldId) {
+            MUDTriggerResultBridge *triggerResult = [WorldStoreBridge runTriggersForIdentifier:worldId lines:cleanLines];
 
-                [bgWorld runTriggersForLines:cleanLines
-                                 outCommands:&commands
-                                   outColors:&lineBGColors
-                                outSoundName:&soundName];
-
-                if ([soundName length] > 0 && ![soundName isEqualToString:@"None"]) {
-                    SSSound *sound = [JSQSystemSoundPlayer soundForFileName:soundName];
+            if (triggerResult) {
+                if ([triggerResult.soundName length] > 0 && ![triggerResult.soundName isEqualToString:@"None"]) {
+                    SSSound *sound = [JSQSystemSoundPlayer soundForFileName:triggerResult.soundName];
 
                     if (sound) {
                         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1157,16 +1149,16 @@ typedef void (^SPLSettingsCloseBlock) (void);
                     }
                 }
 
-                if (commands) {
-                    for (NSString *cmd in commands) {
+                if (triggerResult.commands) {
+                    for (NSString *cmd in triggerResult.commands) {
                         [self sendText:cmd appendToHistory:NO];
                     }
                 }
 
-                if (lineBGColors) {
-                    [lineBGColors enumerateKeysAndObjectsUsingBlock:^(NSNumber *line,
-                                                                      UIColor *color,
-                                                                      BOOL *stop) {
+                if (triggerResult.lineColors) {
+                    [triggerResult.lineColors enumerateKeysAndObjectsUsingBlock:^(NSNumber *line,
+                                                                                  UIColor *color,
+                                                                                  BOOL *stop) {
                         if (!color || [color isEqual:[UIColor clearColor]]) {
                             return;
                         }
@@ -1187,65 +1179,59 @@ typedef void (^SPLSettingsCloseBlock) (void);
                     }];
                 }
             }
+        }
 
-            if ([operation isCancelled] || attributedLines.count == 0) {
-                return;
-            }
+        if ([operation isCancelled] || attributedLines.count == 0) {
+            return;
+        }
 
-            SSAttributedLineGroup *newGroup = [SSAttributedLineGroup lineGroupWithItems:attributedLines];
+        SSAttributedLineGroup *newGroup = [SSAttributedLineGroup lineGroupWithItems:attributedLines];
 
-            // Append to log
-            [self appendTextToLog:[[newGroup cleanTextLinesWithCommands:NO] componentsJoinedByString:@"\n"]];
+        // Append to log
+        [self appendTextToLog:[[newGroup cleanTextLinesWithCommands:NO] componentsJoinedByString:@"\n"]];
 
-            // pass lines to the tableview
-            [self.mudView appendAttributedLineGroup:newGroup speak:[self isViewVisible]];
+        // pass lines to the tableview
+        [self.mudView appendAttributedLineGroup:newGroup speak:[self isViewVisible]];
 
-            id del = self.delegate;
+        id del = self.delegate;
 
-            if ([del respondsToSelector:@selector(clientDidReceiveText:)]) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [del clientDidReceiveText:self];
-                });
-            }
-        }];
+        if ([del respondsToSelector:@selector(clientDidReceiveText:)]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [del clientDidReceiveText:self];
+            });
+        }
     }];
 }
 
 - (BOOL)mudsocketShouldAttemptSSL:(SSMUDSocket *)socket {
-    return currentWorld && [currentWorld.isSecure boolValue];
+    if (!currentWorldIdentifier) return NO;
+    MUDWorldBridge *w = [WorldStoreBridge worldForIdentifier:currentWorldIdentifier];
+    return w != nil && w.isSecure;
 }
 
 - (void)mudsocket:(SSMUDSocket *)socket receivedMSSPData:(NSDictionary *)MSSPData {
     [self.titleView setMSSPData:MSSPData];
 }
 
-#pragma mark - default world fetching
+#pragma mark - world store observation
 
-- (void)controller:(NSFetchedResultsController *)controller
-   didChangeObject:(id)anObject
-       atIndexPath:(NSIndexPath *)indexPath
-     forChangeType:(NSFetchedResultsChangeType)type
-      newIndexPath:(NSIndexPath *)newIndexPath {
+- (void)worldStoreDidChange:(NSNotification *)notification {
+    if (!currentWorldIdentifier) return;
 
-    if (type == NSFetchedResultsChangeDelete) {
-        currentWorld = nil;
-        defaultWorldFetcher = nil;
+    MUDWorldBridge *w = [WorldStoreBridge worldForIdentifier:currentWorldIdentifier];
+
+    if (!w) {
+        // World was deleted
+        currentWorldIdentifier = nil;
         [self updateWorldToolbar];
         [self.tickerManager disableTickersForIdentifier:self.tickerIdentifier];
     } else {
-        if ([anObject isKindOfClass:[World class]]) {
-            currentWorld = (World *)anObject;
-        }
-
-        self.hostname = currentWorld.hostname;
-        self.port = currentWorld.port;
+        self.hostname = w.hostname;
+        self.port = @(w.port);
+        [self performSelectorOnMainThread:@selector(updateWorldToolbar)
+                               withObject:nil
+                            waitUntilDone:NO];
     }
-}
-
-- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller {
-    [self performSelectorOnMainThread:@selector(updateWorldToolbar)
-                           withObject:nil
-                        waitUntilDone:NO];
 }
 
 #pragma mark - Logging

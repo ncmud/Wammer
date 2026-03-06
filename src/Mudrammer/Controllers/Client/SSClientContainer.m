@@ -178,32 +178,23 @@
         return;
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        // Bridge: look up Core Data object by matching hostname until SSClientViewController is migrated (task 80)
         MUDWorldBridge *mudWorld = [WorldStoreBridge worldForIdentifier:worldIdentifier];
         if (!mudWorld)
             return;
 
-        World *w = [World MR_findFirstWithPredicate:
-            [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
-                mudWorld.hostname, mudWorld.port]
-            inContext:[NSManagedObjectContext MR_defaultContext]];
-
-        if( !w )
-            return;
-
-        NSManagedObjectID *worldId = [w objectID];
         NSInteger currentClient = [[SSClientContainer worldDisplayDrawer] selectedIndex];
 
         void (^WorldChangeBlock)(void) = ^{
-            [[[SSClientContainer worldDisplayDrawer] clientAtIndex:currentClient] updateCurrentWorld:worldId
+            [[[SSClientContainer worldDisplayDrawer] clientAtIndex:currentClient] updateCurrentWorld:worldIdentifier
                                                                                   connectAfterUpdate:YES];
         };
 
         SSClientViewController *client = [[SSClientContainer worldDisplayDrawer] currentVisibleClient];
 
         if ([client isConnected]) {
+            NSString *desc = [WorldStoreBridge worldDescriptionForIdentifier:worldIdentifier];
             [SPLAlerts SPLShowAlertViewWithTitle:[NSString stringWithFormat:NSLocalizedString(@"CONNECTING_TO_%@", nil),
-                                                  [w worldDescription]]
+                                                  desc ?: worldIdentifier]
                                          message:[NSString stringWithFormat:NSLocalizedString(@"DISCONNECT_FROM_%@", @"Disconnect from"),
                                                   client.hostname]
                                      cancelTitle:NSLocalizedString(@"CANCEL", @"Cancel")
