@@ -40,13 +40,13 @@
 }
 
 + (void)createObjectWithCompletion:(CreateCompletionBlock)completion {
-    __block SSMagicManagedObject *object;
-    
+    __block NSManagedObjectID *objectId;
+
     [MagicalRecord saveWithBlock:^(NSManagedObjectContext *context) {
-        object = [self createObjectInContext:context];
+        SSMagicManagedObject *object = [self createObjectInContext:context];
+        [context obtainPermanentIDsForObjects:@[object] error:nil];
+        objectId = [object objectID];
     } completion:^(BOOL didSave, NSError *error) {
-        NSManagedObjectID *objectId = [object objectID];
-        
         if (completion) {
             dispatch_async( dispatch_get_main_queue(), ^{
                 completion( objectId );
