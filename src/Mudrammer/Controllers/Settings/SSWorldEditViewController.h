@@ -11,16 +11,18 @@
 
 typedef void (^SSWorldSaveCompletionBlock) (BOOL);
 
-@interface SSWorldEditViewController : SSQuickDialogController <NSFetchedResultsControllerDelegate>
+@interface SSWorldEditViewController : SSQuickDialogController
 
 @property (nonatomic, copy) SSWorldSaveCompletionBlock saveCompletionBlock;
 
 // Edit world
-+ (instancetype) editorForWorld:(NSManagedObjectID *)world;
 + (instancetype) editorForWorldIdentifier:(NSString *)worldIdentifier;
 
 // New actions
-- (void) editRecord:(NSManagedObjectID *)TGARecordId;
+- (void) editTrigger:(NSString *)triggerIdentifier;
+- (void) editAlias:(NSString *)aliasIdentifier;
+- (void) editGag:(NSString *)gagIdentifier;
+- (void) editTicker:(NSString *)tickerIdentifier;
 - (void) newTrigger;
 - (void) newAlias;
 - (void) newGag;

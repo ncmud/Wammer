@@ -8,8 +8,10 @@
 
 #import "SSBaseForm.h"
 
+@class MUDAlias;
+
 @interface SSAliasForm : SSBaseForm
 
-+ (instancetype) formForAlias:(Alias *)alias;
++ (instancetype) formForAlias:(MUDAlias *)alias;
 
 @end

@@ -8,10 +8,12 @@
 
 #import "SSBaseForm.h"
 
+@class MUDTrigger;
+
 extern NSString * const kSoundElement;
 
 @interface SSTriggerForm : SSBaseForm
 
-+ (instancetype) formForTrigger:(Trigger *)trigger;
++ (instancetype) formForTrigger:(MUDTrigger *)trigger;
 
 @end

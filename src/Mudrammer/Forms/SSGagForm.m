@@ -9,13 +9,14 @@
 #import "SSGagForm.h"
 #import "SSTGAEditor.h"
 #import "SSFormAppearance.h"
+#import "MUDModels.h"
 
 @implementation SSGagForm
 
-+ (instancetype)formForGag:(Gag *)gag {
++ (instancetype)formForGag:(MUDGag *)gag {
     SSGagForm *form = [[SSGagForm alloc] init];
 
-    BOOL isNewRecord = [gag.isHidden boolValue];
+    BOOL isNewRecord = gag.isHidden;
 
     form.title = ( isNewRecord
                   ? NSLocalizedString(@"NEW_GAG", @"New Gag")
@@ -34,8 +35,8 @@
     gagPattern.autocorrectionType = UITextAutocorrectionTypeNo;
     [section addElement:gagPattern];
 
-    QRadioElement *gagType = [[QRadioElement alloc] initWithItems:[Gag gagTypeLabelArray]
-                                                         selected:[gag.gagType integerValue]
+    QRadioElement *gagType = [[QRadioElement alloc] initWithItems:[MUDGag gagTypeLabelArray]
+                                                         selected:(NSInteger)gag.gagType
                                                             title:NSLocalizedString(@"TYPE", @"Gag Type")];
     gagType.key = @"gagType";
     gagType.presentationMode = QPresentationModeNormal;

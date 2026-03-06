@@ -9,11 +9,11 @@
 @import Foundation;
 @import FXForms;
 
-@class Ticker;
+@class MUDTicker;
 
 @interface SPLTickerForm : NSObject <FXForm>
 
-+ (instancetype) formForTicker:(Ticker *)ticker;
++ (instancetype) formForTicker:(MUDTicker *)ticker;
 
 @property (nonatomic, copy) NSString *commands;
 @property (nonatomic, copy) NSNumber *interval;
@@ -21,6 +21,6 @@
 @property (nonatomic, assign) BOOL isEnabled;
 
 // Non-form
-@property (nonatomic, strong) Ticker *ticker;
+@property (nonatomic, strong) MUDTicker *ticker;
 
 @end

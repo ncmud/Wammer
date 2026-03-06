@@ -15,7 +15,7 @@
 #import "SPLFXWorldEditor.h"
 
 @interface SSWorldEditViewController ()
-- (SSWorldEditViewController *) initWithWorld:(NSManagedObjectID *)w;
+- (SSWorldEditViewController *) initWithWorldIdentifier:(NSString *)identifier;
 
 - (void) saveWorld:(id)sender;
 - (void) cancelEditing:(id)sender;
@@ -23,20 +23,17 @@
 
 @implementation SSWorldEditViewController
 {
-    World *currentWorld;
+    MUDWorld *currentWorld;
 
     UIBarButtonItem *saveButton;
-
-    NSManagedObjectContext *editContext;
 }
 
-- (SSWorldEditViewController *) initWithWorld:(NSManagedObjectID *)w {
+- (SSWorldEditViewController *) initWithWorldIdentifier:(NSString *)identifier {
 
-    NSManagedObjectContext *context = [NSManagedObjectContext MR_contextWithParent:[NSManagedObjectContext MR_defaultContext]];
-    World *world = [World existingObjectWithId:w inContext:context];
+    MUDWorld *world = [WorldStoreBridge mudWorldForIdentifier:identifier];
+    if (!world) return nil;
 
     if( ( self = [self initWithRoot:[SSWorldForm formForWorld:world]] ) ) {
-        editContext = context;
         currentWorld = world;
 
         [SSThemes configureTable:self.quickDialogTableView];
@@ -57,23 +54,8 @@
     return self;
 }
 
-+ (instancetype)editorForWorld:(NSManagedObjectID *)world {
-    return [[SSWorldEditViewController alloc] initWithWorld:world];
-}
-
 + (instancetype)editorForWorldIdentifier:(NSString *)worldIdentifier {
-    // Bridge: look up Core Data object by matching hostname until this controller is migrated (task 82)
-    MUDWorldBridge *mudWorld = [WorldStoreBridge worldForIdentifier:worldIdentifier];
-    if (!mudWorld) return nil;
-
-    World *cdWorld = [World MR_findFirstWithPredicate:
-        [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
-            mudWorld.hostname, mudWorld.port]
-        inContext:[NSManagedObjectContext MR_defaultContext]];
-
-    if (!cdWorld) return nil;
-
-    return [[SSWorldEditViewController alloc] initWithWorld:[cdWorld objectID]];
+    return [[SSWorldEditViewController alloc] initWithWorldIdentifier:worldIdentifier];
 }
 
 - (CGSize)preferredContentSize {
@@ -82,6 +64,12 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+
+    // Reload world from store in case sub-editors made changes
+    MUDWorld *refreshed = [WorldStoreBridge mudWorldForIdentifier:currentWorld.identifier];
+    if (refreshed) {
+        currentWorld = refreshed;
+    }
 
     [(SSWorldForm *)self.root refreshWorldFormForController:self];
     [self.quickDialogTableView reloadData];
@@ -107,64 +95,77 @@
     [self.root fetchValueIntoObject:currentWorld];
 
     // hostname parsing
-    currentWorld.hostname = [World cleanedHostNameForWorldWithHost:currentWorld.hostname];
+    currentWorld.hostname = [MUDWorld cleanedHostNameFor:currentWorld.hostname];
 
     if( ![currentWorld canSave] )
         return;
 
-    currentWorld.isHidden = @(NO);
-    [currentWorld saveObjectWithCompletion:^{
-        if( self.saveCompletionBlock )
-            self.saveCompletionBlock(YES);
-        else
-            [self.navigationController popViewControllerAnimated:YES];
-    } fail:nil];;
+    currentWorld.isHidden = NO;
+    [WorldStoreBridge updateMUDWorld:currentWorld];
+
+    if( self.saveCompletionBlock )
+        self.saveCompletionBlock(YES);
+    else
+        [self.navigationController popViewControllerAnimated:YES];
 }
 
 #pragma mark - Form actions
 
 - (void)newTrigger {
-    [Trigger createObjectWithCompletion:^(NSManagedObjectID *objectId) {
-        [self.navigationController pushViewController:
-         [SSTGAEditor editorForRecord:objectId
-                              inWorld:[self->currentWorld objectID]
-                        parentContext:self->editContext]
-                                                 animated:YES];
-    }];
+    MUDTrigger *trigger = [[MUDTrigger alloc] init];
+    [WorldStoreBridge addTrigger:trigger toWorldIdentifier:currentWorld.identifier];
+
+    [self.navigationController pushViewController:
+     [SSTGAEditor editorForTrigger:trigger.identifier
+                   worldIdentifier:currentWorld.identifier]
+                                         animated:YES];
 }
 
 - (void)newAlias {
-    [Alias createObjectWithCompletion:^(NSManagedObjectID *objectId) {
-        [self.navigationController pushViewController:
-         [SSTGAEditor editorForRecord:objectId
-                              inWorld:[self->currentWorld objectID]
-                        parentContext:self->editContext]
-                                             animated:YES];
-    }];
+    MUDAlias *alias = [[MUDAlias alloc] init];
+    [WorldStoreBridge addAlias:alias toWorldIdentifier:currentWorld.identifier];
+
+    [self.navigationController pushViewController:
+     [SSTGAEditor editorForAlias:alias.identifier
+                 worldIdentifier:currentWorld.identifier]
+                                         animated:YES];
 }
 
 - (void)newGag {
-    [Gag createObjectWithCompletion:^(NSManagedObjectID *objectId) {
-        [self.navigationController pushViewController:
-         [SSTGAEditor editorForRecord:objectId
-                              inWorld:[self->currentWorld objectID]
-                        parentContext:self->editContext]
-                                             animated:YES];
-    }];
+    MUDGag *gag = [[MUDGag alloc] init];
+    [WorldStoreBridge addGag:gag toWorldIdentifier:currentWorld.identifier];
+
+    [self.navigationController pushViewController:
+     [SSTGAEditor editorForGag:gag.identifier
+               worldIdentifier:currentWorld.identifier]
+                                         animated:YES];
 }
 
 - (void)newTicker {
-    [Ticker createObjectWithCompletion:^(NSManagedObjectID *objectId) {
+    MUDTicker *ticker = [[MUDTicker alloc] init];
+    [WorldStoreBridge addTickerToWorldIdentifier:currentWorld.identifier
+                                        commands:ticker.commands
+                                        interval:ticker.interval
+                                       isEnabled:ticker.isEnabled];
+
+    // Reload world to get the ticker that was just added
+    MUDWorld *refreshed = [WorldStoreBridge mudWorldForIdentifier:currentWorld.identifier];
+    if (refreshed) {
+        currentWorld = refreshed;
+    }
+
+    MUDTicker *addedTicker = currentWorld.tickers.lastObject;
+    if (addedTicker) {
         [self.navigationController pushViewController:
-         [SPLFXWorldEditor editorForRecord:objectId
-                                   inWorld:[self->currentWorld objectID]
-                             parentContext:self->editContext]
+         [SPLFXWorldEditor editorForTicker:addedTicker.identifier
+                           worldIdentifier:currentWorld.identifier]
                                              animated:YES];
-    }];
+    }
 }
 
 - (void)deepClone {
-    [currentWorld deepCloneWithCompletion:nil];
+    MUDWorld *clone = [currentWorld deepClone];
+    [WorldStoreBridge addMUDWorld:clone];
     if (self.saveCompletionBlock) {
         self.saveCompletionBlock(YES);
     } else {
@@ -172,20 +173,31 @@
     }
 }
 
-- (void)editRecord:(NSManagedObjectID *)TGARecordId {
-    UIViewController *editor;
+- (void)editTrigger:(NSString *)triggerIdentifier {
+    [self.navigationController pushViewController:
+     [SSTGAEditor editorForTrigger:triggerIdentifier
+                   worldIdentifier:currentWorld.identifier]
+                                         animated:YES];
+}
 
-    if ([TGARecordId.entity isEqual:[Ticker MR_entityDescription]]) {
-        editor = [SPLFXWorldEditor editorForRecord:TGARecordId
-                                           inWorld:[currentWorld objectID]
-                                     parentContext:editContext];
-    } else {
-        editor = [SSTGAEditor editorForRecord:TGARecordId
-                                      inWorld:[currentWorld objectID]
-                                parentContext:editContext];
-    }
+- (void)editAlias:(NSString *)aliasIdentifier {
+    [self.navigationController pushViewController:
+     [SSTGAEditor editorForAlias:aliasIdentifier
+                 worldIdentifier:currentWorld.identifier]
+                                         animated:YES];
+}
 
-    [self.navigationController pushViewController:editor
+- (void)editGag:(NSString *)gagIdentifier {
+    [self.navigationController pushViewController:
+     [SSTGAEditor editorForGag:gagIdentifier
+               worldIdentifier:currentWorld.identifier]
+                                         animated:YES];
+}
+
+- (void)editTicker:(NSString *)tickerIdentifier {
+    [self.navigationController pushViewController:
+     [SPLFXWorldEditor editorForTicker:tickerIdentifier
+                       worldIdentifier:currentWorld.identifier]
                                          animated:YES];
 }
 

@@ -71,6 +71,18 @@ final class WorldStoreBridge: NSObject {
         WorldStore.shared.worlds.first { $0.isDefault }?.identifier
     }
 
+    @objc static func mudWorld(forIdentifier identifier: String) -> MUDWorld? {
+        WorldStore.shared.world(forIdentifier: identifier)
+    }
+
+    @objc static func updateMUDWorld(_ world: MUDWorld) {
+        WorldStore.shared.updateWorld(world)
+    }
+
+    @objc static func addMUDWorld(_ world: MUDWorld) {
+        WorldStore.shared.addWorld(world)
+    }
+
     @objc static func worldDescription(forIdentifier identifier: String) -> String? {
         WorldStore.shared.world(forIdentifier: identifier)?.worldDescription
     }
@@ -94,6 +106,50 @@ final class WorldStoreBridge: NSObject {
         guard let world = WorldStore.shared.world(forIdentifier: worldIdentifier) else { return nil }
         guard let ticker = world.tickers.first(where: { $0.identifier == tickerIdentifier }) else { return nil }
         return MUDTickerBridge(swiftTicker: ticker)
+    }
+
+    // MARK: - Record Editing
+
+    @objc static func addTrigger(_ trigger: MUDTrigger, toWorldIdentifier identifier: String) {
+        guard let world = WorldStore.shared.world(forIdentifier: identifier) else { return }
+        world.triggers.append(trigger)
+        WorldStore.shared.updateWorld(world)
+    }
+
+    @objc static func addAlias(_ alias: MUDAlias, toWorldIdentifier identifier: String) {
+        guard let world = WorldStore.shared.world(forIdentifier: identifier) else { return }
+        world.aliases.append(alias)
+        WorldStore.shared.updateWorld(world)
+    }
+
+    @objc static func addGag(_ gag: MUDGag, toWorldIdentifier identifier: String) {
+        guard let world = WorldStore.shared.world(forIdentifier: identifier) else { return }
+        world.gags.append(gag)
+        WorldStore.shared.updateWorld(world)
+    }
+
+    @objc static func removeTrigger(identifier triggerIdentifier: String, fromWorldIdentifier worldIdentifier: String) {
+        guard let world = WorldStore.shared.world(forIdentifier: worldIdentifier) else { return }
+        world.triggers.removeAll { $0.identifier == triggerIdentifier }
+        WorldStore.shared.updateWorld(world)
+    }
+
+    @objc static func removeAlias(identifier aliasIdentifier: String, fromWorldIdentifier worldIdentifier: String) {
+        guard let world = WorldStore.shared.world(forIdentifier: worldIdentifier) else { return }
+        world.aliases.removeAll { $0.identifier == aliasIdentifier }
+        WorldStore.shared.updateWorld(world)
+    }
+
+    @objc static func removeGag(identifier gagIdentifier: String, fromWorldIdentifier worldIdentifier: String) {
+        guard let world = WorldStore.shared.world(forIdentifier: worldIdentifier) else { return }
+        world.gags.removeAll { $0.identifier == gagIdentifier }
+        WorldStore.shared.updateWorld(world)
+    }
+
+    @objc static func removeTicker(identifier tickerIdentifier: String, fromWorldIdentifier worldIdentifier: String) {
+        guard let world = WorldStore.shared.world(forIdentifier: worldIdentifier) else { return }
+        world.tickers.removeAll { $0.identifier == tickerIdentifier }
+        WorldStore.shared.updateWorld(world)
     }
 
     // MARK: - Alias / Gag / Trigger Matching

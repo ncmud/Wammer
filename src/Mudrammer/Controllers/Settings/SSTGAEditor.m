@@ -7,6 +7,7 @@
 //
 
 #import "SSTGAEditor.h"
+#import "WorldStoreBridge.h"
 
 #import "SSSoundPickerViewController.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
@@ -17,61 +18,102 @@
 
 #import "SPLAlerts.h"
 
+typedef NS_ENUM(NSUInteger, SSTGARecordType) {
+    SSTGARecordTypeTrigger,
+    SSTGARecordTypeAlias,
+    SSTGARecordTypeGag,
+};
+
 @interface SSTGAEditor ()
-- (SSTGAEditor *) initWithWorld:(NSManagedObjectID *)w record:(NSManagedObjectID *)rec parentContext:(NSManagedObjectContext *)context;
 
 - (void) cancelEditing:(id)sender;
 - (void) saveEditing:(id)sender;
 
-@property (nonatomic, strong) SSMagicManagedObject *record;
+@property (nonatomic, strong) NSObject *record;
+@property (nonatomic, copy) NSString *worldIdentifier;
+@property (nonatomic, assign) SSTGARecordType recordType;
+
 @end
 
 @implementation SSTGAEditor
 {
-    World *currentWorld;
-
     UIBarButtonItem *saveButton;
-
-    NSManagedObjectContext *editContext;
 }
 
-- (SSTGAEditor *) initWithWorld:(NSManagedObjectID *)w record:(NSManagedObjectID *)recId parentContext:(NSManagedObjectContext *)parentContext {
++ (instancetype)editorForTrigger:(NSString *)triggerIdentifier worldIdentifier:(NSString *)worldIdentifier {
+    MUDWorld *world = [WorldStoreBridge mudWorldForIdentifier:worldIdentifier];
+    if (!world) return nil;
 
-    NSManagedObjectContext *context = [NSManagedObjectContext MR_contextWithParent:parentContext];
-    World *world = [World existingObjectWithId:w inContext:context];
-    SSMagicManagedObject *rec = [SSMagicManagedObject existingObjectWithId:recId
-                                                                 inContext:context];
-
-    SSBaseForm *form;
-
-    if( [rec isKindOfClass:[Trigger class]] )
-        form = [SSTriggerForm formForTrigger:(Trigger *)rec];
-    else if( [rec isKindOfClass:[Alias class]] )
-        form = [SSAliasForm formForAlias:(Alias *)rec];
-    else if( [rec isKindOfClass:[Gag class]] )
-        form = [SSGagForm formForGag:(Gag *)rec];
-
-    if ((self = [self initWithRoot:form])) {
-        editContext = context;
-        currentWorld = world;
-        _record = rec;
-
-        [SSThemes configureTable:self.quickDialogTableView];
-
-        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
-                                                                   target:self
-                                                                   action:@selector(saveEditing:)];
-
-        self.navigationItem.rightBarButtonItem = saveButton;
+    MUDTrigger *trigger = nil;
+    for (MUDTrigger *t in world.triggers) {
+        if ([t.identifier isEqualToString:triggerIdentifier]) {
+            trigger = t;
+            break;
+        }
     }
+    if (!trigger) return nil;
 
-    return self;
+    SSBaseForm *form = [SSTriggerForm formForTrigger:trigger];
+    SSTGAEditor *editor = [[SSTGAEditor alloc] initWithRoot:form];
+    editor.record = trigger;
+    editor.worldIdentifier = worldIdentifier;
+    editor.recordType = SSTGARecordTypeTrigger;
+    [editor commonSetup];
+    return editor;
 }
 
-+ (instancetype)editorForRecord:(NSManagedObjectID *)record inWorld:(NSManagedObjectID *)world parentContext:(NSManagedObjectContext *)parentContext {
-    return [[SSTGAEditor alloc] initWithWorld:world
-                                       record:record
-                                parentContext:parentContext];
++ (instancetype)editorForAlias:(NSString *)aliasIdentifier worldIdentifier:(NSString *)worldIdentifier {
+    MUDWorld *world = [WorldStoreBridge mudWorldForIdentifier:worldIdentifier];
+    if (!world) return nil;
+
+    MUDAlias *alias = nil;
+    for (MUDAlias *a in world.aliases) {
+        if ([a.identifier isEqualToString:aliasIdentifier]) {
+            alias = a;
+            break;
+        }
+    }
+    if (!alias) return nil;
+
+    SSBaseForm *form = [SSAliasForm formForAlias:alias];
+    SSTGAEditor *editor = [[SSTGAEditor alloc] initWithRoot:form];
+    editor.record = alias;
+    editor.worldIdentifier = worldIdentifier;
+    editor.recordType = SSTGARecordTypeAlias;
+    [editor commonSetup];
+    return editor;
+}
+
++ (instancetype)editorForGag:(NSString *)gagIdentifier worldIdentifier:(NSString *)worldIdentifier {
+    MUDWorld *world = [WorldStoreBridge mudWorldForIdentifier:worldIdentifier];
+    if (!world) return nil;
+
+    MUDGag *gag = nil;
+    for (MUDGag *g in world.gags) {
+        if ([g.identifier isEqualToString:gagIdentifier]) {
+            gag = g;
+            break;
+        }
+    }
+    if (!gag) return nil;
+
+    SSBaseForm *form = [SSGagForm formForGag:gag];
+    SSTGAEditor *editor = [[SSTGAEditor alloc] initWithRoot:form];
+    editor.record = gag;
+    editor.worldIdentifier = worldIdentifier;
+    editor.recordType = SSTGARecordTypeGag;
+    [editor commonSetup];
+    return editor;
+}
+
+- (void)commonSetup {
+    [SSThemes configureTable:self.quickDialogTableView];
+
+    saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
+                                                               target:self
+                                                               action:@selector(saveEditing:)];
+
+    self.navigationItem.rightBarButtonItem = saveButton;
 }
 
 - (void)viewDidLoad {
@@ -88,7 +130,7 @@
 
 - (void)showSoundPicker {
     SSSoundPickerViewController *picker = [SSSoundPickerViewController new];
-    picker.selectedFileName = ((Trigger *)_record).soundFileName;
+    picker.selectedFileName = [_record valueForKey:@"soundFileName"];
 
     @weakify(self);
     picker.selectedBlock = ^(NSString *str) {
@@ -118,12 +160,17 @@
     @weakify(self);
     NSString *title;
 
-    if( [_record isKindOfClass:[Trigger class]] )
-        title = NSLocalizedString(@"DELETE_TRIGGER", nil);
-    else if( [_record isKindOfClass:[Alias class]] )
-        title = NSLocalizedString(@"DELETE_ALIAS", nil);
-    else if( [_record isKindOfClass:[Gag class]] )
-        title = NSLocalizedString(@"DELETE_GAG", nil);
+    switch (_recordType) {
+        case SSTGARecordTypeTrigger:
+            title = NSLocalizedString(@"DELETE_TRIGGER", nil);
+            break;
+        case SSTGARecordTypeAlias:
+            title = NSLocalizedString(@"DELETE_ALIAS", nil);
+            break;
+        case SSTGARecordTypeGag:
+            title = NSLocalizedString(@"DELETE_GAG", nil);
+            break;
+    }
 
     [SPLAlerts SPLShowActionViewWithTitle:nil
                               cancelTitle:NSLocalizedString(@"CANCEL", @"Cancel")
@@ -131,10 +178,24 @@
                          destructiveTitle:title
                          destructiveBlock:^{
                              @strongify(self);
-                             [self.record deleteObject];
-                             [self.record saveObjectWithCompletion:^{
-                                 [self.navigationController popViewControllerAnimated:YES];
-                             } fail:nil];
+                             NSString *recordId = [self.record valueForKey:@"identifier"];
+
+                             switch (self.recordType) {
+                                 case SSTGARecordTypeTrigger:
+                                     [WorldStoreBridge removeTriggerWithIdentifier:recordId
+                                                              fromWorldIdentifier:self.worldIdentifier];
+                                     break;
+                                 case SSTGARecordTypeAlias:
+                                     [WorldStoreBridge removeAliasWithIdentifier:recordId
+                                                            fromWorldIdentifier:self.worldIdentifier];
+                                     break;
+                                 case SSTGARecordTypeGag:
+                                     [WorldStoreBridge removeGagWithIdentifier:recordId
+                                                           fromWorldIdentifier:self.worldIdentifier];
+                                     break;
+                             }
+
+                             [self SPLDismiss];
                          }
                             barButtonItem:nil
                                sourceView:self.quickDialogTableView
@@ -152,6 +213,27 @@
 }
 
 - (void)cancelEditing:(id)sender {
+    // If record is new (hidden), remove it since user cancelled
+    BOOL isHidden = [[_record valueForKey:@"isHidden"] boolValue];
+    if (isHidden) {
+        NSString *recordId = [_record valueForKey:@"identifier"];
+
+        switch (_recordType) {
+            case SSTGARecordTypeTrigger:
+                [WorldStoreBridge removeTriggerWithIdentifier:recordId
+                                         fromWorldIdentifier:_worldIdentifier];
+                break;
+            case SSTGARecordTypeAlias:
+                [WorldStoreBridge removeAliasWithIdentifier:recordId
+                                       fromWorldIdentifier:_worldIdentifier];
+                break;
+            case SSTGARecordTypeGag:
+                [WorldStoreBridge removeGagWithIdentifier:recordId
+                                     fromWorldIdentifier:_worldIdentifier];
+                break;
+        }
+    }
+
     [self SPLDismiss];
 }
 
@@ -160,15 +242,14 @@
 
     [self.root fetchValueIntoObject:_record];
 
-    if( ![_record canSave] )
+    if( ![(id)_record canSave] )
         return;
 
-    _record.isHidden = @(NO);
-    [_record setValue:currentWorld forKey:@"world"];
+    [_record setValue:@(NO) forKey:@"isHidden"];
 
-    [_record saveObjectWithCompletion:^{
-        [self SPLDismiss];
-    } fail:nil];
+    [WorldStoreBridge updateMUDWorld:[WorldStoreBridge mudWorldForIdentifier:_worldIdentifier]];
+
+    [self SPLDismiss];
 }
 
 #pragma mark - lifecycle

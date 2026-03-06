@@ -10,9 +10,8 @@
 
 @interface SPLFXWorldEditor : SPLFXFormViewController
 
-+ (instancetype) editorForRecord:(NSManagedObjectID *)recordId
-                         inWorld:(NSManagedObjectID *)worldId
-                   parentContext:(NSManagedObjectContext *)context;
++ (instancetype) editorForTicker:(NSString *)tickerIdentifier
+                 worldIdentifier:(NSString *)worldIdentifier;
 
 - (void) deleteCurrentRecord;
 

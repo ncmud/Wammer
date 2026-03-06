@@ -7,6 +7,7 @@
 //
 
 #import "SPLTickerForm.h"
+#import "MUDModels.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
 #import "SSSoundPickerViewController.h"
 
@@ -16,18 +17,18 @@
 
 @implementation SPLTickerForm
 
-+ (instancetype)formForTicker:(Ticker *)ticker {
++ (instancetype)formForTicker:(MUDTicker *)ticker {
     SPLTickerForm *form = [self new];
     form.ticker = ticker;
 
     // default value doesn't fill?
-    form.isEnabled = [ticker.isEnabled boolValue];
+    form.isEnabled = ticker.isEnabled;
 
     return form;
 }
 
 - (NSArray *) extraFields {
-    if ([self.ticker.isHidden boolValue]) {
+    if (self.ticker.isHidden) {
         return nil;
     }
 
@@ -61,7 +62,7 @@
     return @{
              FXFormFieldTitle : NSLocalizedString(@"INTERVAL", nil),
              FXFormFieldType  : FXFormFieldTypeUnsigned,
-             FXFormFieldDefaultValue : self.ticker.interval,
+             FXFormFieldDefaultValue : @(self.ticker.interval),
              FXFormFieldKey : @"interval",
              @"contentView.backgroundColor" : [[SSThemes sharedThemer] valueForThemeKey:kThemeBackgroundColor],
              @"textField.textColor" : [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor],
@@ -72,7 +73,7 @@
 - (NSDictionary *)isEnabledField {
     return @{
              FXFormFieldTitle : NSLocalizedString(@"ENABLED", nil),
-             @"switchControl.on" : self.ticker.isEnabled,
+             @"switchControl.on" : @(self.ticker.isEnabled),
              FXFormFieldKey : @"isEnabled",
              @"textLabel.textColor" : [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor],
              @"switchControl.onTintColor" : [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor],

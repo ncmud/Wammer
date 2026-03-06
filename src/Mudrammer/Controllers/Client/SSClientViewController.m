@@ -22,6 +22,7 @@
 #import "SSWorldDisplayController.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
 #import "WorldStoreBridge.h"
+#import "MUDModels.h"
 
 @import Masonry;
 #import "SPLWorldTickerManager.h"
@@ -811,56 +812,33 @@ typedef void (^SPLSettingsCloseBlock) (void);
         return;
     }
 
-    // Bridge: look up Core Data object until SSTGAEditor is migrated (task 82)
-    MUDWorldBridge *bridgeWorld = [WorldStoreBridge worldForIdentifier:currentWorldIdentifier];
-    if (!bridgeWorld) return;
-    World *cdWorld = [World MR_findFirstWithPredicate:
-        [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
-            bridgeWorld.hostname, bridgeWorld.port]
-        inContext:[NSManagedObjectContext MR_defaultContext]];
-    if (!cdWorld) return;
-    NSManagedObjectID *cdWorldID = [cdWorld objectID];
+    NSString *worldId = [currentWorldIdentifier copy];
+    SSTGAEditor *editor = nil;
 
-    if (recordType == [Trigger class]) {
-        [Trigger createObjectWithCompletion:^(NSManagedObjectID *objectID) {
-            [MagicalRecord saveWithBlock:^(NSManagedObjectContext *context) {
-                Trigger *trigger = [Trigger existingObjectWithId:objectID
-                                                       inContext:context];
-                trigger.trigger = text;
-            } completion:^(BOOL didSave, NSError *error) {
-                SSTGAEditor *editor = [SSTGAEditor editorForRecord:objectID
-                                                           inWorld:cdWorldID
-                                                     parentContext:[NSManagedObjectContext MR_defaultContext]];
+    if (recordType == [Trigger class] || recordType == [MUDTrigger class]) {
+        MUDTrigger *trigger = [[MUDTrigger alloc] init];
+        trigger.trigger = text;
+        [WorldStoreBridge addTrigger:trigger toWorldIdentifier:worldId];
 
-                UINavigationController *nav = [editor wrappedNavigationController];
-                nav.modalPresentationStyle = UIModalPresentationPageSheet;
-                nav.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+        editor = [SSTGAEditor editorForTrigger:trigger.identifier
+                               worldIdentifier:worldId];
+    } else if (recordType == [Gag class] || recordType == [MUDGag class]) {
+        MUDGag *gag = [[MUDGag alloc] init];
+        gag.gag = text;
+        [WorldStoreBridge addGag:gag toWorldIdentifier:worldId];
 
-                [self presentViewController:nav
-                                   animated:YES
-                                 completion:nil];
-            }];
-        }];
-    } else if (recordType == [Gag class]) {
-        [Gag createObjectWithCompletion:^(NSManagedObjectID *objectID) {
-            [MagicalRecord saveWithBlock:^(NSManagedObjectContext *context) {
-                Gag *gag = [Gag existingObjectWithId:objectID
-                                           inContext:context];
-                gag.gag = text;
-            } completion:^(BOOL didSave, NSError *error) {
-                SSTGAEditor *editor = [SSTGAEditor editorForRecord:objectID
-                                                           inWorld:cdWorldID
-                                                     parentContext:[NSManagedObjectContext MR_defaultContext]];
+        editor = [SSTGAEditor editorForGag:gag.identifier
+                           worldIdentifier:worldId];
+    }
 
-                UINavigationController *nav = [editor wrappedNavigationController];
-                nav.modalPresentationStyle = UIModalPresentationPageSheet;
-                nav.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+    if (editor) {
+        UINavigationController *nav = [editor wrappedNavigationController];
+        nav.modalPresentationStyle = UIModalPresentationPageSheet;
+        nav.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
 
-                [self presentViewController:nav
-                                   animated:YES
-                                 completion:nil];
-            }];
-        }];
+        [self presentViewController:nav
+                           animated:YES
+                         completion:nil];
     }
 }
 

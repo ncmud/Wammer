@@ -11,9 +11,11 @@
 
 UIKIT_EXTERN NSUInteger const kFormMaxInputLength;
 
+@class MUDWorld;
+
 @interface SSWorldForm : SSBaseForm
 
-+ (instancetype) formForWorld:(World *)world;
++ (instancetype) formForWorld:(MUDWorld *)world;
 
 - (void) refreshWorldFormForController:(SSWorldEditViewController *)controller;
 

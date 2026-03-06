@@ -13,9 +13,14 @@
 
 @interface SSTGAEditor : SSQuickDialogController
 
-+ (instancetype) editorForRecord:(NSManagedObjectID *)record
-                         inWorld:(NSManagedObjectID *)world
-                   parentContext:(NSManagedObjectContext *)parentContext;
++ (instancetype) editorForTrigger:(NSString *)triggerIdentifier
+                  worldIdentifier:(NSString *)worldIdentifier;
+
++ (instancetype) editorForAlias:(NSString *)aliasIdentifier
+                worldIdentifier:(NSString *)worldIdentifier;
+
++ (instancetype) editorForGag:(NSString *)gagIdentifier
+              worldIdentifier:(NSString *)worldIdentifier;
 
 - (void) deleteCurrentRecord;
 

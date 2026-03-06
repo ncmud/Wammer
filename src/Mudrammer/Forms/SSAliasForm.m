@@ -9,13 +9,14 @@
 #import "SSAliasForm.h"
 #import "SSTGAEditor.h"
 #import "SSMultilineElement.h"
+#import "MUDModels.h"
 
 @implementation SSAliasForm
 
-+ (instancetype)formForAlias:(Alias *)alias {
++ (instancetype)formForAlias:(MUDAlias *)alias {
     SSAliasForm *form = [[SSAliasForm alloc] init];
 
-    BOOL isNewRecord = [alias.isHidden boolValue];
+    BOOL isNewRecord = alias.isHidden;
 
     form.title = ( isNewRecord
                    ? NSLocalizedString(@"NEW_ALIAS", @"New Alias")

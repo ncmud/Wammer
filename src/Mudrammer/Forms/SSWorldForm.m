@@ -11,22 +11,23 @@
 #import "SSPortElement.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
 #import "SSMultilineElement.h"
+#import "MUDModels.h"
 
 NSUInteger const kFormMaxInputLength = 1024;
 
 @interface SSWorldForm ()
 
-@property (nonatomic, strong) World *world;
+@property (nonatomic, strong) MUDWorld *world;
 @property (nonatomic, assign) BOOL isNewWorld;
 
 @end
 
 @implementation SSWorldForm
 
-+ (instancetype)formForWorld:(World *)world {
++ (instancetype)formForWorld:(MUDWorld *)world {
     SSWorldForm *form = [[SSWorldForm alloc] init];
     form.world = world;
-    form.isNewWorld = [world.isHidden boolValue];
+    form.isNewWorld = world.isHidden;
 
     if( !form.isNewWorld )
         form.title = [world worldDescription];
@@ -42,9 +43,7 @@ NSUInteger const kFormMaxInputLength = 1024;
     @weakify(controller);
     [self.sections removeAllObjects];
 
-    [self.world refreshObject];
-
-    self.isNewWorld = [_world.isHidden boolValue];
+    self.isNewWorld = _world.isHidden;
 
     if( !self.isNewWorld )
         self.title = [_world worldDescription];
@@ -65,14 +64,14 @@ NSUInteger const kFormMaxInputLength = 1024;
     [section addElement:hostElement];
 
     SSPortElement *portElement = [[SSPortElement alloc] initWithTitle:NSLocalizedString(@"PORT", @"World Port")
-                                                                value:_world.port];
+                                                                value:@(_world.port)];
     portElement.fractionDigits = 0;
     portElement.keyboardType = UIKeyboardTypeNumberPad;
     portElement.key = @"port";
     [section addElement:portElement];
 
     QBooleanElement *secureElement = [[QBooleanElement alloc] initWithTitle:@"SSL/TLS"
-                                                                  BoolValue:[_world.isSecure boolValue]];
+                                                                  BoolValue:_world.isSecure];
     secureElement.key = @"isSecure";
     [section addElement:secureElement];
 
@@ -115,13 +114,14 @@ NSUInteger const kFormMaxInputLength = 1024;
     newTriggerBtn.controllerAction = NSStringFromSelector(@selector(newTrigger));
     [triggerSection addElement:newTriggerBtn];
 
-    for (Trigger *trigger in [self.world orderedTriggersWithActive:YES]) {
+    for (MUDTrigger *trigger in [self.world orderedTriggersWithActive:YES]) {
         QLabelElement *triggerElement = [[QLabelElement alloc] initWithTitle:trigger.trigger
                                                                        Value:trigger.commands];
         triggerElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        NSString *triggerId = trigger.identifier;
         triggerElement.onSelected = ^{
             @strongify(controller);
-            [controller editRecord:[trigger objectID]];
+            [controller editTrigger:triggerId];
         };
         triggerElement.keepSelected = NO;
         [triggerSection addElement:triggerElement];
@@ -138,13 +138,14 @@ NSUInteger const kFormMaxInputLength = 1024;
     newAliasBtn.controllerAction = NSStringFromSelector(@selector(newAlias));
     [aliasSection addElement:newAliasBtn];
 
-    for (Alias *alias in [self.world orderedAliases]) {
+    for (MUDAlias *alias in [self.world orderedAliases]) {
         QLabelElement *aliasElement = [[QLabelElement alloc] initWithTitle:alias.name
                                                                      Value:alias.commands];
         aliasElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        NSString *aliasId = alias.identifier;
         aliasElement.onSelected = ^{
             @strongify(controller);
-            [controller editRecord:[alias objectID]];
+            [controller editAlias:aliasId];
         };
         aliasElement.keepSelected = NO;
         [aliasSection addElement:aliasElement];
@@ -161,7 +162,7 @@ NSUInteger const kFormMaxInputLength = 1024;
     newTickerBtn.controllerAction = NSStringFromSelector(@selector(newTicker));
     [tickerSection addElement:newTickerBtn];
 
-    for (Ticker *ticker in [self.world orderedTickers]) {
+    for (MUDTicker *ticker in [self.world orderedTickers]) {
         NSString *tickerLabel;
 
         if ([ticker.commands length] > 0) {
@@ -179,17 +180,18 @@ NSUInteger const kFormMaxInputLength = 1024;
         }
 
         NSString *tickerValue = [NSString stringWithFormat:NSLocalizedString(@"TICKER_STATUS_INTERVAL_%@_%@", nil),
-                                 ([ticker.isEnabled boolValue]
+                                 (ticker.isEnabled
                                   ? NSLocalizedString(@"ON", nil)
                                   : NSLocalizedString(@"OFF", nil)),
-                                 ticker.interval];
+                                 @(ticker.interval)];
 
         QLabelElement *tickerElement = [[QLabelElement alloc] initWithTitle:tickerLabel
                                                                       Value:tickerValue];
         tickerElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        NSString *tickerId = ticker.identifier;
         tickerElement.onSelected = ^{
             @strongify(controller);
-            [controller editRecord:[ticker objectID]];
+            [controller editTicker:tickerId];
         };
         tickerElement.keepSelected = NO;
         [tickerSection addElement:tickerElement];
@@ -206,15 +208,16 @@ NSUInteger const kFormMaxInputLength = 1024;
     newGagBtn.controllerAction = NSStringFromSelector(@selector(newGag));
     [gagSection addElement:newGagBtn];
 
-    for (Gag *gag in [self.world orderedGags]) {
+    for (MUDGag *gag in [self.world orderedGags]) {
         QLabelElement *gagElement = [[QLabelElement alloc] initWithTitle:( [gag.gag length] > 0
                                                                           ? gag.gag
                                                                           : NSLocalizedString(@"GAG_EMPTY", @"Empty Gag") )
                                                                    Value:nil];
         gagElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        NSString *gagId = gag.identifier;
         gagElement.onSelected = ^{
             @strongify(controller);
-            [controller editRecord:[gag objectID]];
+            [controller editGag:gagId];
         };
         gagElement.keepSelected = NO;
         [gagSection addElement:gagElement];
@@ -228,13 +231,14 @@ NSUInteger const kFormMaxInputLength = 1024;
     if( [inactives count] > 0 ) {
         QSection *inactiveTriggerSection = [[QSection alloc] initWithTitle:NSLocalizedString(@"TRIGGERS_INACTIVE", @"Triggers (Inactive)")];
 
-        for (Trigger *trigger in inactives) {
+        for (MUDTrigger *trigger in inactives) {
             QLabelElement *triggerElement = [[QLabelElement alloc] initWithTitle:trigger.trigger
                                                                            Value:trigger.commands];
             triggerElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            NSString *triggerId = trigger.identifier;
             triggerElement.onSelected = ^{
                 @strongify(controller);
-                [controller editRecord:[trigger objectID]];
+                [controller editTrigger:triggerId];
             };
             triggerElement.keepSelected = NO;
             [triggerSection addElement:triggerElement];

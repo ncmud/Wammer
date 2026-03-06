@@ -156,6 +156,54 @@ private extension String {
     }
 }
 
+// MARK: - Validation
+
+extension MUDWorld {
+    @objc var canSave: Bool {
+        !hostname.isEmpty && port > 0 && port <= Int16.max
+    }
+}
+
+extension MUDAlias {
+    @objc var canSave: Bool {
+        !name.isEmpty && !commands.isEmpty
+    }
+}
+
+extension MUDTrigger {
+    @objc var canSave: Bool {
+        !trigger.isEmpty
+    }
+
+    @objc static var triggerTypeLabelArray: [String] {
+        [
+            NSLocalizedString("START_OF_LINE", comment: "Start of Line"),
+            NSLocalizedString("LINE_CONTAINS", comment: "Line contains"),
+        ]
+    }
+}
+
+extension MUDGag {
+    @objc var canSave: Bool {
+        true
+    }
+
+    @objc static var gagTypeLabelArray: [String] {
+        [
+            NSLocalizedString("START_OF_LINE", comment: "Start of Line"),
+            NSLocalizedString("LINE_CONTAINS", comment: "Line contains"),
+            NSLocalizedString("LINE_EQUALS", comment: "Line equals"),
+        ]
+    }
+}
+
+extension MUDTicker {
+    @objc var canSave: Bool {
+        interval > 0
+            && (!commands.isEmpty || (soundFileName != nil && soundFileName != "None" && !(soundFileName?.isEmpty ?? true)))
+    }
+}
+
 // MARK: - MUDAlias Logic
 
 extension MUDAlias {

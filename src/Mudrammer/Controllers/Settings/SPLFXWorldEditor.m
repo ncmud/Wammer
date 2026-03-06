@@ -7,6 +7,7 @@
 //
 
 #import "SPLFXWorldEditor.h"
+#import "WorldStoreBridge.h"
 #import "SPLTickerForm.h"
 #import "SSSoundPickerViewController.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
@@ -14,40 +15,38 @@
 
 @interface SPLFXWorldEditor ()
 
-@property (nonatomic, strong) SSMagicManagedObject *record;
-
-@property (nonatomic, strong) World *currentWorld;
-
+@property (nonatomic, strong) MUDTicker *ticker;
+@property (nonatomic, copy) NSString *worldIdentifier;
 @property (nonatomic, strong) UIBarButtonItem *saveButton;
-
-@property (nonatomic, strong) NSManagedObjectContext *editContext;
 
 @end
 
 @implementation SPLFXWorldEditor
 
-+ (instancetype)editorForRecord:(NSManagedObjectID *)recordId
-                        inWorld:(NSManagedObjectID *)worldId
-                  parentContext:(NSManagedObjectContext *)context {
++ (instancetype)editorForTicker:(NSString *)tickerIdentifier
+                worldIdentifier:(NSString *)worldIdentifier {
 
-    SPLFXWorldEditor *editor;
+    MUDWorld *world = [WorldStoreBridge mudWorldForIdentifier:worldIdentifier];
+    if (!world) return nil;
 
-    SSMagicManagedObject *record = [SSMagicManagedObject existingObjectWithId:recordId
-                                                                    inContext:context];
-
-    if ([recordId.entity isEqual:[Ticker MR_entityDescription]]) {
-        editor = [self formViewControllerWithForm:
-                  [SPLTickerForm formForTicker:(Ticker *)record]];
-
-        editor.title = ([record.isHidden boolValue]
-                        ? NSLocalizedString(@"NEW_TICKER", nil)
-                        : NSLocalizedString(@"EDIT_TICKER", nil));
+    MUDTicker *ticker = nil;
+    for (MUDTicker *t in world.tickers) {
+        if ([t.identifier isEqualToString:tickerIdentifier]) {
+            ticker = t;
+            break;
+        }
     }
+    if (!ticker) return nil;
 
-    editor.record = record;
-    editor.editContext = context;
-    editor.currentWorld = [World existingObjectWithId:worldId
-                                            inContext:context];
+    SPLFXWorldEditor *editor = [self formViewControllerWithForm:
+                                [SPLTickerForm formForTicker:ticker]];
+
+    editor.title = (ticker.isHidden
+                    ? NSLocalizedString(@"NEW_TICKER", nil)
+                    : NSLocalizedString(@"EDIT_TICKER", nil));
+
+    editor.ticker = ticker;
+    editor.worldIdentifier = worldIdentifier;
 
     return editor;
 }
@@ -98,42 +97,35 @@
 }
 
 - (void) cancelEditing:(id)sender {
+    // If ticker is new (hidden), remove it since user cancelled
+    if (_ticker.isHidden) {
+        [WorldStoreBridge removeTickerWithIdentifier:_ticker.identifier
+                                 fromWorldIdentifier:_worldIdentifier];
+    }
     [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void) saveEditing:(id)sender {
     [self.tableView endEditing:YES];
 
-    [self bindToObject:self.record];
+    [self bindToObject:self.ticker];
 
-    if (![self.record canSave]) {
+    if (![self.ticker canSave]) {
         return;
     }
 
-    self.record.isHidden = @(NO);
-    [self.record setValue:self.currentWorld
-                   forKey:@"world"];
+    self.ticker.isHidden = NO;
 
-    [self.record saveObjectWithCompletion:^{
-        [self.navigationController popViewControllerAnimated:YES];
-    } fail:nil];
+    [WorldStoreBridge updateMUDWorld:[WorldStoreBridge mudWorldForIdentifier:_worldIdentifier]];
+
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)deleteCurrentRecord {
     [self.tableView endEditing:YES];
 
     @weakify(self);
-    NSString *title;
-
-    if( [_record isKindOfClass:[Trigger class]] )
-        title = NSLocalizedString(@"DELETE_TRIGGER", nil);
-    else if( [_record isKindOfClass:[Alias class]] )
-        title = NSLocalizedString(@"DELETE_ALIAS", nil);
-    else if( [_record isKindOfClass:[Gag class]] )
-        title = NSLocalizedString(@"DELETE_GAG", nil);
-    else if ([self.record isKindOfClass:[Ticker class]]) {
-        title = NSLocalizedString(@"DELETE_TICKER", nil);
-    }
+    NSString *title = NSLocalizedString(@"DELETE_TICKER", nil);
 
     [SPLAlerts SPLShowActionViewWithTitle:nil
                               cancelTitle:NSLocalizedString(@"CANCEL", @"Cancel")
@@ -141,10 +133,9 @@
                          destructiveTitle:title
                          destructiveBlock:^{
                              @strongify(self);
-                             [self.record deleteObject];
-                             [self.record saveObjectWithCompletion:^{
-                                 [self.navigationController popViewControllerAnimated:YES];
-                             } fail:nil];
+                             [WorldStoreBridge removeTickerWithIdentifier:self.ticker.identifier
+                                                     fromWorldIdentifier:self.worldIdentifier];
+                             [self.navigationController popViewControllerAnimated:YES];
                          }
                             barButtonItem:nil
                                sourceView:self.tableView

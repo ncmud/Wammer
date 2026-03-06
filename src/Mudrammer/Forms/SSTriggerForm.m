@@ -12,15 +12,16 @@
 #import "SSMultilineElement.h"
 #import "SSFormAppearance.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
+#import "MUDModels.h"
 
 NSString * const kSoundElement = @"soundFileName";
 
 @implementation SSTriggerForm
 
-+ (instancetype)formForTrigger:(Trigger *)trigger {
++ (instancetype)formForTrigger:(MUDTrigger *)trigger {
     SSTriggerForm *form = [[SSTriggerForm alloc] init];
 
-    BOOL isNewRecord = [trigger.isHidden boolValue];
+    BOOL isNewRecord = trigger.isHidden;
 
     form.title = ( isNewRecord
                   ? NSLocalizedString(@"NEW_TRIGGER", @"New Trigger")
@@ -44,7 +45,7 @@ NSString * const kSoundElement = @"soundFileName";
     QSection *section2 = [[QSection alloc] initWithTitle:nil];
 
     QBooleanElement *triggerEnabled = [[QBooleanElement alloc] initWithTitle:NSLocalizedString(@"ENABLED", @"Enabled")
-                                                                   BoolValue:[trigger.isEnabled boolValue]];
+                                                                   BoolValue:trigger.isEnabled];
     triggerEnabled.key = @"isEnabled";
     [section2 addElement:triggerEnabled];
 

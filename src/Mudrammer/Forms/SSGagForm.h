@@ -8,8 +8,10 @@
 
 #import "SSBaseForm.h"
 
+@class MUDGag;
+
 @interface SSGagForm : SSBaseForm
 
-+ (instancetype) formForGag:(Gag *)gag;
++ (instancetype) formForGag:(MUDGag *)gag;
 
 @end

@@ -9,6 +9,8 @@
 @import Foundation;
 @import UIKit;
 
+#import "MUDModels.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - MUDWorldBridge
@@ -59,6 +61,10 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString *)addEmptyWorld;
 + (void)removeWorldWithIdentifier:(NSString *)identifier;
 
++ (nullable MUDWorld *)mudWorldForIdentifier:(NSString *)identifier;
++ (void)updateMUDWorld:(MUDWorld *)world;
++ (void)addMUDWorld:(MUDWorld *)world;
+
 + (void)setDefaultWorldWithIdentifier:(NSString *)identifier;
 + (nullable NSString *)defaultWorldIdentifier;
 + (nullable NSString *)worldDescriptionForIdentifier:(NSString *)identifier;
@@ -68,6 +74,15 @@ NS_ASSUME_NONNULL_BEGIN
 // Ticker access
 + (NSArray<MUDTickerBridge *> *)tickersForWorldIdentifier:(NSString *)identifier;
 + (nullable MUDTickerBridge *)tickerForIdentifier:(NSString *)tickerIdentifier worldIdentifier:(NSString *)worldIdentifier;
+
+// Record editing
++ (void)addTrigger:(MUDTrigger *)trigger toWorldIdentifier:(NSString *)identifier;
++ (void)addAlias:(MUDAlias *)alias toWorldIdentifier:(NSString *)identifier;
++ (void)addGag:(MUDGag *)gag toWorldIdentifier:(NSString *)identifier;
++ (void)removeTriggerWithIdentifier:(NSString *)triggerIdentifier fromWorldIdentifier:(NSString *)worldIdentifier;
++ (void)removeAliasWithIdentifier:(NSString *)aliasIdentifier fromWorldIdentifier:(NSString *)worldIdentifier;
++ (void)removeGagWithIdentifier:(NSString *)gagIdentifier fromWorldIdentifier:(NSString *)worldIdentifier;
++ (void)removeTickerWithIdentifier:(NSString *)tickerIdentifier fromWorldIdentifier:(NSString *)worldIdentifier;
 
 // Alias / Gag / Trigger matching
 + (nullable NSArray<NSString *> *)commandsIfMatchingAliasForIdentifier:(NSString *)identifier input:(NSString *)input;
