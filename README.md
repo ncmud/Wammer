@@ -21,12 +21,12 @@ You'll need Xcode 26+ and [Tuist](https://tuist.io).
 tuist generate
 ```
 
-Open the generated `MUDRammer.xcworkspace`, select the **MUDRammer** scheme, and build.
+Open the generated `iMUD.xcworkspace`, select the **iMUD** scheme, and build.
 
 To run tests:
 
 ```bash
-xcodebuild test -workspace MUDRammer.xcworkspace -scheme MRTests -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+xcodebuild test -workspace iMUD.xcworkspace -scheme MRTests -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
 ## About MUDs
