@@ -8,7 +8,8 @@ let package = Package(
         .target(
             name: "libextobjc",
             path: "Sources",
-            publicHeadersPath: "include"
+            publicHeadersPath: "include",
+            cSettings: [.unsafeFlags(["-w"])]
         )
     ]
 )

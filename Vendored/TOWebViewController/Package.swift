@@ -10,7 +10,8 @@ let package = Package(
             name: "TOWebViewController",
             path: "Sources",
             resources: [.process("Resources")],
-            publicHeadersPath: "include"
+            publicHeadersPath: "include",
+            cSettings: [.unsafeFlags(["-w"])]
         )
     ]
 )

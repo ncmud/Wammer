@@ -13,7 +13,8 @@ let package = Package(
             name: "SPLCore",
             dependencies: ["MagicalRecord", "libextobjc"],
             path: "Sources",
-            publicHeadersPath: "include"
+            publicHeadersPath: "include",
+            cSettings: [.unsafeFlags(["-w"])]
         )
     ]
 )
