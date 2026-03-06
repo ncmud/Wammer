@@ -33,8 +33,14 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     QSection *section = [_tableView.root getVisibleSectionForIndex:indexPath.section];
     QElement *element = [section getVisibleElementForIndex:indexPath.row];
+    if (!element) {
+        return [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+    }
     element.controller = _tableView.controller;
     UITableViewCell *cell = [element getCellForTableView:(QuickDialogTableView *) tableView controller:_tableView.controller];
+    if (!cell) {
+        return [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+    }
     cell.accessibilityLabel = element.accessibilityLabel;
     cell.accessibilityIdentifier = element.accessibilityIdentifier;
     cell.userInteractionEnabled = element.enabled;

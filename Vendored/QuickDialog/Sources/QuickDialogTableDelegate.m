@@ -32,6 +32,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     QSection *section = [_tableView.root getVisibleSectionForIndex:indexPath.section];
     QElement * element = [section getVisibleElementForIndex: indexPath.row];
+    if (!element) return;
 
     [element selected:_tableView controller:_tableView.controller indexPath:indexPath];
 }
