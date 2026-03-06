@@ -8,12 +8,10 @@
 
 #import "SSAppDelegate.h"
 #import "SSClientContainer.h"
-#import <UserVoice.h>
+@import UserNotifications;
 #import "SSRadialControl.h"
 #import "SSWorldDisplayController.h"
-#import <IFTTTSplashView.h>
-#import <HockeySDK.h>
-#import <Keys/MudrammerKeys.h>
+
 
 @interface SSAppDelegate ()
 + (void) setupCoreData;
@@ -74,34 +72,11 @@
 #pragma mark - SSApplication
 
 - (void) ss_willFinishLaunchingWithOptions:(NSDictionary *)options {
-    [[IFTTTSplashView sharedSplash] showSplash];
-
-    BITHockeyManager *manager = [BITHockeyManager sharedHockeyManager];
-    [manager.authenticator setIdentificationType:BITAuthenticatorIdentificationTypeAnonymous];
-    [manager.crashManager setCrashManagerStatus:BITCrashManagerStatusAutoSend];
-
-    MudrammerKeys *keys = [MudrammerKeys new];
-
-    [ARAnalytics setupWithAnalytics:@{
-          ARHockeyAppBetaID   : keys.hOCKEYBETA_KEY,
-          ARHockeyAppLiveID   : keys.hOCKEYLIVE_KEY,
-    }];
-
     [self.class setupCoreData];
 
     [World createDefaultWorldsIfNecessary];
 
     [SSThemes sharedThemer]; // UIAppearance™ Inside®
-
-    // uservoice
-    UVConfig *uvconfig = [UVConfig configWithSite:keys.uSERVOICE_FORUM_SITE];
-    uvconfig.forumId = keys.uSERVOICE_FORUM_ID.integerValue;
-    uvconfig.customFields = @{
-        @"Version" : [NSString stringWithFormat:@"%@ (%@)",
-                      [UIApplication applicationVersion],
-                      [UIApplication applicationBuild]],
-    };
-    [UserVoice initialize:uvconfig];
 
     self.idleTimerDisabled = YES;
     self.applicationSupportsShakeToEdit = NO;
@@ -145,7 +120,7 @@
     switch (eventType) {
         case SSApplicationEventDidBecomeActive:
 
-            [[UIApplication sharedApplication] cancelAllLocalNotifications];
+            [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
 
             [SSRadialControl validateRadialPositions];
 
@@ -159,7 +134,7 @@
 
         case SSApplicationEventWillTerminate:
 
-            [[UIApplication sharedApplication] cancelAllLocalNotifications];
+            [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
 
             [MagicalRecord cleanUp];
 
@@ -170,24 +145,5 @@
     }
 }
 
-#pragma mark - Notifications
-
-- (void)application:(UIApplication *)application
-didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
-    [self.notificationObserver didRegisterUserNotificationSettings:notificationSettings];
-}
-
-- (void)application:(UIApplication *)application
-handleActionWithIdentifier:(NSString *)identifier
-forLocalNotification:(UILocalNotification *)notification
-  completionHandler:(void (^)())completionHandler {
-    [self.notificationObserver handleActionWithIdentifier:identifier
-                                     forLocalNotification:notification
-                                               completion:completionHandler];
-}
-
-- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
-
-}
 
 @end

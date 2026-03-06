@@ -7,7 +7,7 @@
 //
 
 #import "SSTextEntryCell.h"
-#import <Masonry.h>
+@import Masonry;
 #import <FBKVOController.h>
 
 @interface SSTextEntryCell ()

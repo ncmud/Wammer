@@ -12,7 +12,7 @@
 #import "SSAccessoryToolbar.h"
 #import "SSMudHistoryDelegate.h"
 #import <UIScreen+SSAdditions.h>
-#import <Masonry.h>
+@import Masonry;
 
 UIEdgeInsets const kToolbarInsets = (UIEdgeInsets) { 4, 8, 4, 8 };
 

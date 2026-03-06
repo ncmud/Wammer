@@ -6,7 +6,8 @@
 //  Copyright (c) 2013 Zumper. All rights reserved.
 //
 
-#import <QuickDialog.h>
+
+@import QuickDialog;
 
 @interface SSQuickDialogController : QuickDialogController <QuickDialogEntryElementDelegate>
 

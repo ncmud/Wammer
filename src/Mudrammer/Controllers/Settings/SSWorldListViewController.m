@@ -9,7 +9,7 @@
 #import "SSWorldListViewController.h"
 #import "SSWorldEditViewController.h"
 #import "SSWorldCell.h"
-#import <SSDataSources.h>
+@import SSDataSources;
 
 @interface SSWorldListViewController ()
 

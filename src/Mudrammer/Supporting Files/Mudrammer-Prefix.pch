@@ -11,13 +11,12 @@
     @import UIKit;
 
     // Pods
-    #import <SPLCore.h>
-    #import <SSDataSources.h>
-    #import <SSOperations.h>
-    #import <ARAnalytics.h>
-    #import <FBKVOController.h>
-    #import <BlocksKit+MessageUI.h>
-    #import <BlocksKit.h>
+    @import SPLCore;
+    @import SSDataSources;
+    @import SSOperations;
+
+    @import KVOController;
+    @import libextobjc;
     #import <Availability.h>
 
     // Categories

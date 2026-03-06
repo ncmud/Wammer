@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Jonathan Hersh. All rights reserved.
 //
 
-#import <QuickDialog.h>
-#import "QFlatAppearance.h"
+
+@import QuickDialog;
 
 @interface SSFormAppearance : QFlatAppearance
 

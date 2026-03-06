@@ -1,1 +1,0 @@
-../../../HockeySDK-Source/Classes/BITAppStoreHeader.h

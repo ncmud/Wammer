@@ -16,10 +16,12 @@
 #import "SPLHandoffWebViewController.h"
 #import "SPLAlerts.h"
 #import <FBKVOController.h>
-#import <IFTTTSplashView.h>
+
+@import MessageUI;
+
 #import "SSWelcomeViewController.h"
 
-@interface SSClientContainer ()
+@interface SSClientContainer () <MFMailComposeViewControllerDelegate>
 
 @property (nonatomic, strong) FBKVOController *kvoController;
 
@@ -111,11 +113,6 @@
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^{
 
-        void (^SplashDismissal)(void) = ^{
-            [[IFTTTSplashView sharedSplash] dismissSplashWithAnimation:IFTTTSplashAnimationGrowFade
-                                                            completion:nil];
-        };
-
         if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefInitialSetupComplete]) {
             SSWelcomeViewController *welcome = [SSWelcomeViewController new];
             UINavigationController *nav = [welcome wrappedNavigationController];
@@ -124,9 +121,7 @@
 
             [self presentViewController:nav
                                animated:NO
-                             completion:SplashDismissal];
-        } else {
-            SplashDismissal();
+                             completion:nil];
         }
     });
 }
@@ -154,14 +149,11 @@
                 MFMailComposeViewController *mvc = [MFMailComposeViewController new];
                 [mvc setToRecipients:@[ [[url absoluteString] stringByReplacingOccurrencesOfString:@"mailto:"
                                                                                         withString:@""] ]];
-                [mvc bk_setCompletionBlock:^(MFMailComposeViewController *composer, MFMailComposeResult result, NSError *error) {}];
+                mvc.mailComposeDelegate = self;
 
                 [self presentViewController:mvc
                                    animated:YES
-                                 completion:^{
-                                     // MAIL HACK
-                                     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-                                 }];
+                                 completion:nil];
             }
         } else {
             SPLHandoffWebViewController *webView = [[SPLHandoffWebViewController alloc] initWithURL:url];
@@ -219,6 +211,14 @@
     if (self.state != JASidePanelCenterVisible) {
         [self showCenterPanelAnimated:animated];
     }
+}
+
+#pragma mark - MFMailComposeViewControllerDelegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller
+          didFinishWithResult:(MFMailComposeResult)result
+                        error:(NSError *)error {
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

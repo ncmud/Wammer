@@ -7,7 +7,7 @@
 //
 
 #import "SSSoundPickerViewController.h"
-#import <SSDataSources.h>
+@import SSDataSources;
 #import "JSQSystemSoundPlayer+SSAdditions.h"
 
 @interface SSSoundPickerViewController ()

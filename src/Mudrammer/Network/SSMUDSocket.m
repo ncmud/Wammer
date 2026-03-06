@@ -62,7 +62,7 @@
 
         _socket = socket;
         self.socket.delegate = self;
-        self.socket.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+        self.socket.delegateQueue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
     }
 
     return self;
@@ -104,7 +104,7 @@
 - (void)informDelegateWithSelector:(SEL)selector object:(id)object {
     id del = self.delegate;
     if ([del respondsToSelector:selector]) {
-        dispatch_async( dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        dispatch_async( dispatch_get_global_queue( QOS_CLASS_DEFAULT, 0), ^{
             NSString *sel = NSStringFromSelector(selector);
 
             if( [sel isEqualToString:NSStringFromSelector(@selector(mudsocketDidConnectToHost:))] )

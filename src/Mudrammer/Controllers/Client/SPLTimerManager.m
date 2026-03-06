@@ -7,8 +7,8 @@
 //
 
 #import "SPLTimerManager.h"
-#import <MyLilTimer.h>
-#import <OSCache.h>
+@import MyLilTimer;
+@import OSCache;
 
 @interface SPLTimerManager () <OSCacheDelegate>
 

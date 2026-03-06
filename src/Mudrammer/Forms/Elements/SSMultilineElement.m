@@ -7,9 +7,6 @@
 //
 
 #import "SSMultilineElement.h"
-#import <QuickDialog.h>
-#import <QTableViewCell.h>
-#import <QEntryTableViewCell.h>
 
 @implementation SSMultilineElement
 

@@ -26,9 +26,11 @@
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
     [super webViewDidFinishLoad:webView];
 
-    if (!self.webActivity && [NSUserActivity class]) {
-        self.webActivity = [SPLWebActivity activityWithUIWebView:webView];
-    } else if (self.webActivity) {
+    NSURL *url = webView.request.URL;
+    if (!self.webActivity && url) {
+        self.webActivity = [SPLWebActivity activityWithURL:url];
+    } else if (self.webActivity && url) {
+        self.webActivity.userActivity.webpageURL = url;
         [self.webActivity setNeedsUpdate];
     }
 }

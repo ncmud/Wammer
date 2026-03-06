@@ -7,7 +7,7 @@
 //
 
 #import "SPLTelnetLib.h"
-#import <libtelnet.h>
+@import libtelnet;
 #import "SSStringCoder.h"
 #import "NSData+SPLDataParsing.h"
 

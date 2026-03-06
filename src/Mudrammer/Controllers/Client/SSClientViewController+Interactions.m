@@ -9,7 +9,6 @@
 #import "SSClientViewController+Interactions.h"
 #import "SSMudView.h"
 #import "SSMUDSocket.h"
-#import <BlocksKit.h>
 #import "SSClientContainer.h"
 #import "SSWorldDisplayController.h"
 #import "SSMUDToolbar.h"
@@ -23,9 +22,14 @@
 
     NSString *urlString = [[url absoluteString] lowercaseString];
 
-    if ([@[ @"gif", @"png", @"jpg", @"jpeg", @"tiff" ] bk_any:^BOOL(NSString *extension) {
-        return [urlString hasSuffix:extension];
-    }]) {
+    BOOL matchesImageExtension = NO;
+    for (NSString *extension in @[ @"gif", @"png", @"jpg", @"jpeg", @"tiff" ]) {
+        if ([urlString hasSuffix:extension]) {
+            matchesImageExtension = YES;
+            break;
+        }
+    }
+    if (matchesImageExtension) {
 
         JTSImageInfo *info = [JTSImageInfo new];
         info.imageURL = url;
@@ -68,19 +72,6 @@
         [self.socket disconnect];
     } else {
         [self connect];
-    }
-}
-
-#pragma mark - UVDelegate (UserVoice)
-
-- (void)userVoiceWasDismissed {
-    [UserVoice setDelegate:nil];
-
-    if (![[UIDevice currentDevice] isIPad]) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent
-                                                        animated:YES];
-        });
     }
 }
 

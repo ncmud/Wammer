@@ -7,7 +7,7 @@
 //
 
 @import Foundation;
-#import <FXForms.h>
+@import FXForms;
 
 @class Ticker;
 

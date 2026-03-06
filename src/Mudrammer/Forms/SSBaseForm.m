@@ -8,8 +8,6 @@
 
 #import "SSBaseForm.h"
 #import "SSQuickDialogController.h"
-#import <QuickDialog.h>
-#import <QPickerElement.h>
 #import "SSFormAppearance.h"
 
 @implementation SSBaseForm

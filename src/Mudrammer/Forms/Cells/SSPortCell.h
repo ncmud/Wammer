@@ -6,7 +6,8 @@
 //  Copyright (c) 2013 Jonathan Hersh. All rights reserved.
 //
 
-#import "QDecimalTableViewCell.h"
+
+@import QuickDialog;
 
 @interface SSPortCell : QDecimalTableViewCell
 

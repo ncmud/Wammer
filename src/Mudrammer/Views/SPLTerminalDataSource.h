@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Jonathan Hersh. All rights reserved.
 //
 
-#import <SSDataSources.h>
+@import SSDataSources;
 #import "SSAttributedLineGroup.h"
 
 // Maximum number of lines in the table before enqueuing a partial clear.

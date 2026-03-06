@@ -7,8 +7,8 @@
 //
 
 @import UIKit;
-#import <SSDataSources.h>
-#import <TTTAttributedLabel.h>
+@import SSDataSources;
+@import TTTAttributedLabel;
 
 UIKIT_EXTERN UIEdgeInsets const kTextInsets;
 

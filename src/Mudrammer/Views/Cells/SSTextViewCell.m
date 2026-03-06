@@ -8,8 +8,8 @@
 
 #import "SSTextViewCell.h"
 #import "SSMudView.h"
-#import <Masonry.h>
-#import <TTTAttributedLabel.h>
+@import Masonry;
+@import TTTAttributedLabel;
 
 UIEdgeInsets const kTextInsets = (UIEdgeInsets) { 0, 2, 0, 5 };
 

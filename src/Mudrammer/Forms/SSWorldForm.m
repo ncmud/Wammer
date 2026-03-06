@@ -115,7 +115,7 @@ NSUInteger const kFormMaxInputLength = 1024;
     newTriggerBtn.controllerAction = NSStringFromSelector(@selector(newTrigger));
     [triggerSection addElement:newTriggerBtn];
 
-    [[self.world orderedTriggersWithActive:YES] bk_each:^(Trigger *trigger) {
+    for (Trigger *trigger in [self.world orderedTriggersWithActive:YES]) {
         QLabelElement *triggerElement = [[QLabelElement alloc] initWithTitle:trigger.trigger
                                                                        Value:trigger.commands];
         triggerElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
@@ -125,7 +125,7 @@ NSUInteger const kFormMaxInputLength = 1024;
         };
         triggerElement.keepSelected = NO;
         [triggerSection addElement:triggerElement];
-    }];
+    }
 
     [self addSection:triggerSection];
 
@@ -138,7 +138,7 @@ NSUInteger const kFormMaxInputLength = 1024;
     newAliasBtn.controllerAction = NSStringFromSelector(@selector(newAlias));
     [aliasSection addElement:newAliasBtn];
 
-    [[self.world orderedAliases] bk_each:^(Alias *alias) {
+    for (Alias *alias in [self.world orderedAliases]) {
         QLabelElement *aliasElement = [[QLabelElement alloc] initWithTitle:alias.name
                                                                      Value:alias.commands];
         aliasElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
@@ -148,7 +148,7 @@ NSUInteger const kFormMaxInputLength = 1024;
         };
         aliasElement.keepSelected = NO;
         [aliasSection addElement:aliasElement];
-    }];
+    }
 
     [self addSection:aliasSection];
 
@@ -161,7 +161,7 @@ NSUInteger const kFormMaxInputLength = 1024;
     newTickerBtn.controllerAction = NSStringFromSelector(@selector(newTicker));
     [tickerSection addElement:newTickerBtn];
 
-    [[self.world orderedTickers] bk_each:^(Ticker *ticker) {
+    for (Ticker *ticker in [self.world orderedTickers]) {
         NSString *tickerLabel;
 
         if ([ticker.commands length] > 0) {
@@ -193,7 +193,7 @@ NSUInteger const kFormMaxInputLength = 1024;
         };
         tickerElement.keepSelected = NO;
         [tickerSection addElement:tickerElement];
-    }];
+    }
 
     [self addSection:tickerSection];
 
@@ -206,7 +206,7 @@ NSUInteger const kFormMaxInputLength = 1024;
     newGagBtn.controllerAction = NSStringFromSelector(@selector(newGag));
     [gagSection addElement:newGagBtn];
 
-    [[self.world orderedGags] bk_each:^(Gag *gag) {
+    for (Gag *gag in [self.world orderedGags]) {
         QLabelElement *gagElement = [[QLabelElement alloc] initWithTitle:( [gag.gag length] > 0
                                                                           ? gag.gag
                                                                           : NSLocalizedString(@"GAG_EMPTY", @"Empty Gag") )
@@ -218,7 +218,7 @@ NSUInteger const kFormMaxInputLength = 1024;
         };
         gagElement.keepSelected = NO;
         [gagSection addElement:gagElement];
-    }];
+    }
 
     [self addSection:gagSection];
 
@@ -228,7 +228,7 @@ NSUInteger const kFormMaxInputLength = 1024;
     if( [inactives count] > 0 ) {
         QSection *inactiveTriggerSection = [[QSection alloc] initWithTitle:NSLocalizedString(@"TRIGGERS_INACTIVE", @"Triggers (Inactive)")];
 
-        [inactives bk_each:^(Trigger *trigger) {
+        for (Trigger *trigger in inactives) {
             QLabelElement *triggerElement = [[QLabelElement alloc] initWithTitle:trigger.trigger
                                                                            Value:trigger.commands];
             triggerElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
@@ -238,7 +238,7 @@ NSUInteger const kFormMaxInputLength = 1024;
             };
             triggerElement.keepSelected = NO;
             [triggerSection addElement:triggerElement];
-        }];
+        }
 
         [self addSection:inactiveTriggerSection];
     }

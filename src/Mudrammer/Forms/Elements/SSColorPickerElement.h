@@ -6,9 +6,7 @@
 //  Copyright (c) 2013 Jonathan Hersh. All rights reserved.
 //
 
-#import <QRadioElement.h>
-#import <QColorPickerElement.h>
-#import <QuickDialog.h>
+@import QuickDialog;
 
 @interface SSColorPickerElement : QColorPickerElement
 

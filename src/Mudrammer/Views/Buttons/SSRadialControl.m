@@ -7,8 +7,8 @@
 //
 
 #import "SSRadialControl.h"
-#import <Masonry.h>
-#import <TTTAttributedLabel.h>
+@import Masonry;
+@import TTTAttributedLabel;
 
 CGFloat const kControlRadius = 60.0f;
 CGSize const kControlSize = (CGSize) { 80, 80 };

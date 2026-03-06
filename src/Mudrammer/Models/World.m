@@ -216,9 +216,9 @@ static NSCharacterSet *disallowedHostCharacters;
         NSString *worldFile = [[NSBundle mainBundle] pathForResource:@"DefaultWorlds" ofType:@"plist"];
         NSArray *worldList = [NSArray arrayWithContentsOfFile:worldFile];
 
-        [worldList bk_each:^(NSDictionary *dict) {
+        for (NSDictionary *dict in worldList) {
             [World worldFromDictionary:dict inContext:context];
-        }];
+        }
     } completion:^(BOOL success, NSError *err) {
         NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
         [d setBool:YES forKey:kPrefInitialWorldsCreated];
@@ -294,10 +294,11 @@ static NSCharacterSet *disallowedHostCharacters;
         NSArray *words = [userInput componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
         NSString *command = words[0];
 
-        NSSet *matches = [self.aliases bk_select:^BOOL(Alias *alias) {
-            return [alias.name length] > 0 && [[alias.name lowercaseString]
-                                               isEqualToString:[command lowercaseString]];
-        }];
+        NSSet *matches = [self.aliases filteredSetUsingPredicate:
+            [NSPredicate predicateWithBlock:^BOOL(Alias *alias, NSDictionary *bindings) {
+                return [alias.name length] > 0 && [[alias.name lowercaseString]
+                                                   isEqualToString:[command lowercaseString]];
+            }]];
 
         if( [matches count] > 0 ) {
             Alias *alias = [matches anyObject];

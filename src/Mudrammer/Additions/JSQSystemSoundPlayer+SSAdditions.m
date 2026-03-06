@@ -92,23 +92,23 @@
 
         NSMutableArray *tmpSounds = [NSMutableArray array];
 
-        [soundFiles bk_each:^(NSURL *soundURL) {
+        for (NSURL *soundURL in soundFiles) {
             if ([soundURL isFileURL]) {
                 NSArray *bits = [[soundURL lastPathComponent] componentsSeparatedByString:@"."];
 
                 if ([bits count] != 2)
-                    return;
+                    continue;
 
                 NSString *soundName = [NSString stringWithFormat:@"SOUND_%@",
                                        [bits[0] uppercaseString]];
 
                 if ([NSLocalizedString(soundName, nil) isEqualToString:soundName])
-                    return;
+                    continue;
 
                 [tmpSounds addObject:[[SSSound alloc] initWithFileName:[soundURL lastPathComponent]
                                                              soundName:NSLocalizedString(soundName, nil)]];
             }
-        }];
+        }
 
         [tmpSounds sortUsingComparator:[SSSound soundNameComparator]];
         sounds = [NSArray arrayWithArray:tmpSounds];

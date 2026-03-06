@@ -11,7 +11,7 @@
 
 @class SSSound;
 
-#import <JSQSystemSoundPlayer.h>
+@import JSQSystemSoundPlayer;
 
 @interface JSQSystemSoundPlayer (SSAdditions)
 

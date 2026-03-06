@@ -6,7 +6,8 @@
 //  Copyright (c) 2013 Jonathan Hersh. All rights reserved.
 //
 
-#import "QMultilineElement.h"
+
+@import QuickDialog;
 
 @interface SSMultilineElement : QMultilineElement
 

@@ -7,7 +7,7 @@
 //
 
 #import "SSWelcomeViewController.h"
-#import <Masonry.h>
+@import Masonry;
 #import "SSClientContainer.h"
 #import "SSWorldDisplayController.h"
 

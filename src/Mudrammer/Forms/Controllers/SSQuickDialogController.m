@@ -18,13 +18,13 @@
       _focusesFirstTextFieldOnLoad = NO;
       hasFocusedAField = NO;
 
-      [rootElement.sections bk_each:^(QSection *section) {
-          [section.elements bk_each:^(QElement *element) {
+      for (QSection *section in rootElement.sections) {
+          for (QElement *element in section.elements) {
               if ([element isKindOfClass:[QEntryElement class]]) {
                   ((QEntryElement *)element).delegate = self;
               }
-          }];
-      }];
+          }
+      }
   }
 
   return self;

@@ -79,16 +79,16 @@ static NSRegularExpression *triggerSubMatcher;
 
     NSMutableArray *outputCommands = [NSMutableArray array];
 
-    [userCommands bk_each:^(NSString *userCommand) {
+    for (NSString *userCommand in userCommands) {
         if( [userCommand length] == 0 )
-            return;
+            continue;
 
         NSString *cmd = [self.trigger spl_commandForUserCommand:userCommand
                                                       inputLine:line];
 
         if( [cmd length] > 0 )
             [outputCommands addObject:cmd];
-    }];
+    }
 
     return outputCommands;
 }

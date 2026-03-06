@@ -7,7 +7,7 @@
 //
 
 #import "SPLMUDTitleView.h"
-#import <Masonry.h>
+@import Masonry;
 
 @interface SPLMUDTitleView ()
 
@@ -25,7 +25,7 @@
         self.titleLabel.font = [UIFont boldSystemFontOfSize:([[UIDevice currentDevice] isIPad]
                                                              ? 18.0f
                                                              : 16.0f)];
-        self.titleLabel.shadowColor = [UIColor darkTextColor];
+        self.titleLabel.shadowColor = [UIColor blackColor];
         self.titleLabel.shadowOffset = CGSizeMake(0, 1);
         self.titleLabel.textColor = [UIColor whiteColor];
         self.titleLabel.backgroundColor = [UIColor clearColor];
@@ -43,17 +43,18 @@
                          forState:UIControlStateNormal];
         [self.MSSPButton.titleLabel setFont:[UIFont systemFontOfSize:13.f]];
 
-        @weakify(self);
-        [self.MSSPButton bk_addEventHandler:^(id sender) {
-            @strongify(self);
-            if (self.MSSPButtonBlock) {
-                self.MSSPButtonBlock();
-            }
-        }
-                           forControlEvents:UIControlEventTouchUpInside];
+        [self.MSSPButton addTarget:self
+                           action:@selector(MSSPButtonTapped:)
+                 forControlEvents:UIControlEventTouchUpInside];
     }
 
     return self;
+}
+
+- (void)MSSPButtonTapped:(id)sender {
+    if (self.MSSPButtonBlock) {
+        self.MSSPButtonBlock();
+    }
 }
 
 - (void)setTitle:(NSString *)title {

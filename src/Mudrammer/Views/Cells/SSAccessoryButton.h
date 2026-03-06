@@ -7,7 +7,7 @@
 //
 
 @import UIKit;
-#import <SSDataSources.h>
+@import SSDataSources;
 
 @interface SSAccessoryButton : SSBaseCollectionCell
 

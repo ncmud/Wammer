@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Jonathan Hersh. All rights reserved.
 //
 
-#import <SSDataSources.h>
+@import SSDataSources;
 
 typedef void (^SSBooleanChangeHandler) (BOOL);
 

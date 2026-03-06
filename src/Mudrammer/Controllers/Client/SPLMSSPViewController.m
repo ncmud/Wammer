@@ -6,10 +6,12 @@
 //  Copyright (c) 2014 Jonathan Hersh. All rights reserved.
 //
 
+@import MessageUI;
+
 #import "SPLMSSPViewController.h"
-#import <SSDataSources.h>
-#import <TTTAttributedLabel.h>
-#import <Masonry.h>
+@import SSDataSources;
+@import TTTAttributedLabel;
+@import Masonry;
 #import "NSDate+SPLAdditions.h"
 #import "SPLHandoffWebViewController.h"
 
@@ -42,7 +44,7 @@
 
 @end
 
-@interface SPLMSSPViewController () <TTTAttributedLabelDelegate>
+@interface SPLMSSPViewController () <TTTAttributedLabelDelegate, MFMailComposeViewControllerDelegate>
 
 @property (nonatomic, copy) NSDictionary *MSSPData;
 @property (nonatomic, strong) SSSectionedDataSource *dataSource;
@@ -76,7 +78,7 @@
             return NO;
         };
 
-        [[[data allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)] bk_each:^(NSString *key) {
+        for (NSString *key in [[data allKeys] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)]) {
             id value = data[key];
 
             if ([key isEqualToString:@"UPTIME"]) {
@@ -92,7 +94,7 @@
             section.header = key;
 
             [self.dataSource appendSection:section];
-        }];
+        }
     }
 
     return self;
@@ -113,14 +115,11 @@
             MFMailComposeViewController *mvc = [MFMailComposeViewController new];
             [mvc setToRecipients:@[ [[url absoluteString] stringByReplacingOccurrencesOfString:@"mailto:"
                                                                                     withString:@""] ]];
-            [mvc bk_setCompletionBlock:^(MFMailComposeViewController *composer, MFMailComposeResult result, NSError *error) {}];
+            mvc.mailComposeDelegate = self;
 
             [self presentViewController:mvc
                                animated:YES
-                             completion:^{
-                                 // MAIL HACK
-                                 [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-                             }];
+                             completion:nil];
         }
     } else {
         SPLHandoffWebViewController *webView = [[SPLHandoffWebViewController alloc] initWithURL:url];
@@ -128,6 +127,14 @@
         [self.navigationController pushViewController:webView
                                              animated:YES];
     }
+}
+
+#pragma mark - MFMailComposeViewControllerDelegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller
+          didFinishWithResult:(MFMailComposeResult)result
+                        error:(NSError *)error {
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

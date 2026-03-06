@@ -9,7 +9,7 @@
 #import "SSThemePickerController.h"
 #import "SSThemeCell.h"
 #import "CMFontSelectTableViewController.h"
-#import <SSDataSources.h>
+@import SSDataSources;
 #import "SPLCheckMarkView.h"
 
 @interface SSThemePickerController ()

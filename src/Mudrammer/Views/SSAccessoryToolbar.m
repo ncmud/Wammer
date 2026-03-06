@@ -8,7 +8,7 @@
 
 #import "SSAccessoryToolbar.h"
 #import "SSAccessoryButton.h"
-#import <Masonry.h>
+@import Masonry;
 
 @interface SSAccessoryToolbar ()
 

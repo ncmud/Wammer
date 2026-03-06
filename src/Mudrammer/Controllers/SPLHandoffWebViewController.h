@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 splinesoft LLC. All rights reserved.
 //
 
-#import <TOWebViewController.h>
-#import <SPLWebActivity.h>
+@import TOWebViewController;
+@import SPLUserActivity;
 
 @interface SPLHandoffWebViewController : TOWebViewController
 

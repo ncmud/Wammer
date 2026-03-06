@@ -9,8 +9,8 @@
 #import "SSWorldDisplayController.h"
 #import "SSWorldCell.h"
 #import "SSWorldListViewController.h"
-#import <SSDataSources.h>
-#import <Masonry.h>
+@import SSDataSources;
+@import Masonry;
 #import "SPLCheckMarkView.h"
 
 CGFloat const kWorldHeaderHeight = 20.0f;
@@ -27,7 +27,7 @@ typedef NS_ENUM(NSUInteger, SPLClientStatus) {
 
 @interface SSWorldDisplayController () <UITableViewDelegate>
 
-@property (nonatomic, strong) UIPopoverController *popover;
+@property (nonatomic, strong) UIViewController *popoverPresenter;
 @property (nonatomic, strong) SSArrayDataSource *dataSource;
 @property (nonatomic, strong) NSMutableIndexSet *unreadClientIndexes;
 @property (nonatomic, strong) FBKVOController *kvoController;
@@ -248,7 +248,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
         WorldPickerSelectionBlock pickblock = ^(NSManagedObjectID *pickedWorld) {
             @strongify(self);
             if ([[UIDevice currentDevice] isIPad]) {
-                [self.popover dismissPopoverAnimated:YES];
+                [self.popoverPresenter dismissViewControllerAnimated:YES completion:nil];
                 [self addClientWithWorld:pickedWorld];
             } else {
                 [[SSClientContainer sharedClientContainer] dismissViewControllerAnimated:YES
@@ -263,14 +263,15 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
         //nav.delegate = self;
 
         if( [[UIDevice currentDevice] isIPad] ) {
-            _popover = [[UIPopoverController alloc] initWithContentViewController:nav];
-            //_popoverController.delegate = self;
-            _popover.popoverContentSize = [picker preferredContentSize];
+            nav.modalPresentationStyle = UIModalPresentationPopover;
+            nav.preferredContentSize = [picker preferredContentSize];
+            UIPopoverPresentationController *popover = nav.popoverPresentationController;
+            popover.sourceView = tableView;
+            popover.sourceRect = [tableView rectForRowAtIndexPath:indexPath];
+            popover.permittedArrowDirections = UIPopoverArrowDirectionAny;
+            _popoverPresenter = nav;
 
-            [_popover presentPopoverFromRect:[tableView rectForRowAtIndexPath:indexPath]
-                                                inView:tableView
-                              permittedArrowDirections:UIPopoverArrowDirectionAny
-                                              animated:YES];
+            [self presentViewController:nav animated:YES completion:nil];
         } else {
             picker.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
                                                                                                     target:self

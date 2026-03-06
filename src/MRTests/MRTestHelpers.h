@@ -10,19 +10,19 @@
 
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
-#import <Expecta.h>
-#import <OCMock.h>
+@import Expecta;
+@import OCMock;
 #import "SSANSIEngine.h"
 #import "SSAttributedLineGroup.h"
-#import <TTTAttributedLabel.h>
+@import TTTAttributedLabel;
 #import "NSData+SPLDataParsing.h"
 #import "World.h"
 #import "Ticker.h"
 #import "Trigger.h"
 #import "Gag.h"
 #import "Alias.h"
-#import <SPLCore.h>
-#import <MagicalRecord.h>
+@import SPLCore;
+@import MagicalRecord;
 @import CoreText;
 
 #define kDefaultColor [UIColor whiteColor]

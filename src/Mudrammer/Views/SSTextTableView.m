@@ -9,7 +9,7 @@
 #import "SSTextTableView.h"
 #import "SSTextViewCell.h"
 #import "SSMudView.h"
-#import <SAMRateLimit.h>
+@import SAMRateLimit;
 #import "NSAttributedString+SPLAdditions.h"
 #import "SPLTerminalDataSource.h"
 

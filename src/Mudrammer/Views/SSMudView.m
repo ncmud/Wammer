@@ -9,16 +9,16 @@
 #import "SSMudView.h"
 #import "SSRadialControl.h"
 #import "SSSettingsViewController.h"
-#import "SSSpeechSynthesizer.h"
-#import <Masonry.h>
-#import <DAKeyboardControl.h>
-#import <TTTAttributedLabel.h>
+@import SSAccessibility;
+@import Masonry;
+@import DAKeyboardControl;
+@import TTTAttributedLabel;
 #import "SSMUDToolbar.h"
 #import "SSTextTableView.h"
 #import "SPLTerminalDataSource.h"
 #import "SSTextViewCell.h"
 #import "NSAttributedString+SPLAdditions.h"
-#import <SAMRateLimit.h>
+@import SAMRateLimit;
 
 @interface SSMudView () <SSRadialDelegate, SSMUDToolbarDelegate>
 
@@ -290,11 +290,11 @@
     [self.dataSource appendAttributedLineGroup:group];
 
     if (speak) {
-        [[group cleanTextLinesWithCommands:NO] bk_each:^(NSString *line) {
+        for (NSString *line in [group cleanTextLinesWithCommands:NO]) {
             if ([line length] > 0) {
                 [self appendTTS:line];
             }
-        }];
+        }
     }
 }
 

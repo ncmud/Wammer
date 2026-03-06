@@ -54,9 +54,13 @@
     NSArray *inputWords = [input componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     NSString *targetInput = nil;
 
-    inputWords = [inputWords bk_select:^BOOL(NSString *word) {
-        return ![[word lowercaseString] isEqualToString:[self.name lowercaseString]];
-    }];
+    NSMutableArray *filteredWords = [NSMutableArray array];
+    for (NSString *word in inputWords) {
+        if (![[word lowercaseString] isEqualToString:[self.name lowercaseString]]) {
+            [filteredWords addObject:word];
+        }
+    }
+    inputWords = filteredWords;
 
     if( !inputWords || [inputWords count] < 1 )
         targetInput = @"";
@@ -72,7 +76,7 @@
 
     NSMutableArray *ret = [NSMutableArray array];
 
-    [commands bk_each:^(NSString *command) {
+    for (NSString *command in commands) {
         __block NSUInteger maxCommandIndex = 0;
         __block NSMutableString *outString = [NSMutableString stringWithString:command];
         __block BOOL didApplyMatching = NO;
@@ -135,7 +139,7 @@
             [outString appendFormat:@" %@",targetInput];
 
         [ret addObject:outString];
-    }];
+    }
 
     return ( [ret count] > 0 ? ret : nil );
 }

@@ -6,7 +6,8 @@
 //  Copyright (c) 2013 Jonathan Hersh. All rights reserved.
 //
 
-#import "QDecimalElement.h"
+
+@import QuickDialog;
 
 @interface SSPortElement : QDecimalElement
 

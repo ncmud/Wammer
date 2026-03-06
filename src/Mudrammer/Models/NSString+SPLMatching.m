@@ -83,10 +83,13 @@ static NSCharacterSet *nonDecimalCharacterSet;
                                               (1+arc4random_uniform((unsigned int)matchValue))]];
     }];
 
-    return [[matchString componentsSeparatedByCharactersInSet:splitChars]
-            bk_select:^BOOL(NSString *command) {
-                return [command length] > 0;
-            }];
+    NSMutableArray *filtered = [NSMutableArray array];
+    for (NSString *command in [matchString componentsSeparatedByCharactersInSet:splitChars]) {
+        if ([command length] > 0) {
+            [filtered addObject:command];
+        }
+    }
+    return filtered;
 }
 
 - (NSDictionary *)spl_commandLocationsForPattern {

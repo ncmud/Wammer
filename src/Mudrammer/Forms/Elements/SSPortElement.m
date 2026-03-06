@@ -8,7 +8,6 @@
 
 #import "SSPortElement.h"
 #import "SSPortCell.h"
-#import <QTextField.h>
 
 @implementation SSPortElement
 

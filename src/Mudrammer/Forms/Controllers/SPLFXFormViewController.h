@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Jonathan Hersh. All rights reserved.
 //
 
-#import <FXForms.h>
+@import FXForms;
 
 @interface SPLFXFormViewController : FXFormViewController <FXFormControllerDelegate>
 

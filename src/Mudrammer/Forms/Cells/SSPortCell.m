@@ -7,8 +7,6 @@
 //
 
 #import "SSPortCell.h"
-#import "QDecimalTableViewCell.h"
-#import "QuickDialog.h"
 
 @implementation SSPortCell {
     NSNumberFormatter *_numberFormatter;

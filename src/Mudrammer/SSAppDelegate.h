@@ -7,7 +7,7 @@
 //
 
 @import UIKit;
-#import <SSApplication.h>
+@import SSApplication;
 #import "SPLNotificationManager.h"
 
 @interface SSAppDelegate : SSApplication

@@ -17,12 +17,12 @@
 #import "SSMUDSocket.h"
 #import "SSConnectButton.h"
 #import "SSSessionLogger.h"
-#import <TTTAttributedLabel.h>
+@import TTTAttributedLabel;
 #import "SSWorldListViewController.h"
 #import "SSWorldDisplayController.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
-#import <UserVoice.h>
-#import <Masonry.h>
+
+@import Masonry;
 #import "SPLWorldTickerManager.h"
 #import "SPLMUDTitleView.h"
 #import "SPLMSSPViewController.h"
@@ -38,8 +38,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 @interface SSClientViewController () <SSMUDSocketDelegate,
                                       SSMudViewDelegate,
-                                      UIPopoverControllerDelegate,
-                                      SettingsDelegate>
+                                      UIPopoverPresentationControllerDelegate,
+                                      SettingsDelegate,
+                                      MFMailComposeViewControllerDelegate>
 - (SSClientViewController *) init;
 
 // socket
@@ -75,7 +76,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 @property (nonatomic, strong) UIBarButtonItem *settingsButton;
 @property (nonatomic, strong) UIBarButtonItem *editWorldButton;
 
-@property (nonatomic, strong) UIPopoverController *SSPopoverController;
+@property (nonatomic, strong) UIViewController *SSPopoverController;
 
 @property (nonatomic, assign) NSUInteger tickerIdentifier;
 
@@ -120,11 +121,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
         self.titleView.MSSPButtonBlock = ^{
             @strongify(self);
             SPLMSSPViewController *MSSPVC = [[SPLMSSPViewController alloc] initWithMSSPData:self.titleView.MSSPData];
-            MSSPVC.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] bk_initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-                                                                                                      handler:^(id sender)
-            {
-                [self dismissViewControllerAnimated:YES completion:nil];
-            }];
+            MSSPVC.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                                                                                  target:self
+                                                                                                  action:@selector(dismissMSSPViewController:)];
 
             UINavigationController *nav = [MSSPVC wrappedNavigationController];
 
@@ -197,8 +196,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
 
-    if ([self.SSPopoverController isPopoverVisible]) {
-        [self.SSPopoverController dismissPopoverAnimated:animated];
+    if (self.SSPopoverController.presentingViewController != nil) {
+        [self.SSPopoverController dismissViewControllerAnimated:animated completion:nil];
     }
 }
 
@@ -211,7 +210,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     _socket = nil;
 
     self.connectButton.connectDelegate = nil;
-    self.SSPopoverController.delegate = nil;
+    _SSPopoverController = nil;
 
     _delegate = nil;
     _hostname = nil;
@@ -345,7 +344,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         return;
     }
 
-    if (!visible && [self.SSPopoverController isPopoverVisible]) {
+    if (!visible && self.SSPopoverController.presentingViewController != nil) {
         return;
     }
 
@@ -368,7 +367,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         [self.navigationController setNavigationBarHidden:!visible
                                                  animated:YES];
 
-    if( !visible && [self.SSPopoverController isPopoverVisible] )
+    if( !visible && self.SSPopoverController.presentingViewController != nil )
         [self closeSettingsWithCompletion:nil];
 }
 
@@ -391,19 +390,13 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self.titleView setTitle:title];
 }
 
-#pragma mark - UIPopoverControllerDelegate
+#pragma mark - UIPopoverPresentationControllerDelegate
 
-- (BOOL)popoverControllerShouldDismissPopover:(UIPopoverController *)popoverController {
+- (BOOL)presentationControllerShouldDismiss:(UIPresentationController *)presentationController {
     return YES;
 }
 
-- (void)popoverControllerDidDismissPopover:(UIPopoverController *)aPopoverController {
-    self.SSPopoverController.delegate = nil;
-
-    if ([self.SSPopoverController isPopoverVisible]) {
-        [self.SSPopoverController dismissPopoverAnimated:NO];
-    }
-
+- (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController {
     _SSPopoverController = nil;
 
     if ([self isConnected]) {
@@ -436,11 +429,11 @@ typedef void (^SPLSettingsCloseBlock) (void);
         [SSClientContainer sharedClientContainer].recognizesPanGesture = YES;
     }
 
-    if ([self.SSPopoverController isPopoverVisible] && [navigationController isEqual:self.SSPopoverController.contentViewController]) {
+    if (self.SSPopoverController.presentingViewController != nil && [navigationController isEqual:self.SSPopoverController]) {
         CGSize s = [viewController preferredContentSize];
 
         if (!CGSizeEqualToSize(s, CGSizeZero)) {
-            [self.SSPopoverController setPopoverContentSize:CGSizeMake(320.0f, s.height) animated:animated];
+            self.SSPopoverController.preferredContentSize = CGSizeMake(320.0f, s.height);
         }
     }
 }
@@ -448,14 +441,14 @@ typedef void (^SPLSettingsCloseBlock) (void);
 #pragma mark - button actions
 
 - (void)tappedSettings:(id)sender {
-    if ([self.SSPopoverController isPopoverVisible]) {
-        UINavigationController *nav = (UINavigationController *)[self.SSPopoverController contentViewController];
+    if (self.SSPopoverController.presentingViewController != nil) {
+        UINavigationController *nav = (UINavigationController *)self.SSPopoverController;
 
         if ([[nav visibleViewController] isKindOfClass:[SSSettingsViewController class]]) {
-            [self.SSPopoverController dismissPopoverAnimated:YES];
+            [self.SSPopoverController dismissViewControllerAnimated:YES completion:nil];
             return;
         } else {
-            [self.SSPopoverController dismissPopoverAnimated:NO];
+            [self.SSPopoverController dismissViewControllerAnimated:NO completion:nil];
             // fall through
         }
     }
@@ -468,12 +461,13 @@ typedef void (^SPLSettingsCloseBlock) (void);
     settingsNav.delegate = self;
 
     if ([[UIDevice currentDevice] isIPad]) {
-        _SSPopoverController = [[UIPopoverController alloc] initWithContentViewController:settingsNav];
-
-        [self.SSPopoverController presentPopoverFromBarButtonItem:self.settingsButton
-                                         permittedArrowDirections:UIPopoverArrowDirectionUp
-                                                         animated:YES];
-        self.SSPopoverController.delegate = self;
+        settingsNav.modalPresentationStyle = UIModalPresentationPopover;
+        UIPopoverPresentationController *popover = settingsNav.popoverPresentationController;
+        popover.barButtonItem = self.settingsButton;
+        popover.permittedArrowDirections = UIPopoverArrowDirectionUp;
+        popover.delegate = self;
+        _SSPopoverController = settingsNav;
+        [self presentViewController:settingsNav animated:YES completion:nil];
     } else {
         [self presentViewController:settingsNav
                            animated:YES
@@ -482,14 +476,14 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (void)editCurrentWorld:(id)sender {
-    if ([self.SSPopoverController isPopoverVisible]) {
-        UINavigationController *nav = (UINavigationController *)[self.SSPopoverController contentViewController];
+    if (self.SSPopoverController.presentingViewController != nil) {
+        UINavigationController *nav = (UINavigationController *)self.SSPopoverController;
 
         if( [[nav visibleViewController] class] == [SSWorldEditViewController class] ) {
-            [self.SSPopoverController dismissPopoverAnimated:YES];
+            [self.SSPopoverController dismissViewControllerAnimated:YES completion:nil];
             return;
         } else {
-            [self.SSPopoverController dismissPopoverAnimated:NO];
+            [self.SSPopoverController dismissViewControllerAnimated:NO completion:nil];
             // fall through
         }
     }
@@ -515,16 +509,17 @@ typedef void (^SPLSettingsCloseBlock) (void);
     nav.delegate = self;
 
     if( [[UIDevice currentDevice] isIPad] ) {
-        _SSPopoverController = [[UIPopoverController alloc] initWithContentViewController:nav];
-
-        [self.SSPopoverController presentPopoverFromBarButtonItem:self.editWorldButton
-                                         permittedArrowDirections:UIPopoverArrowDirectionUp
-                                                         animated:YES];
-
-        self.SSPopoverController.delegate = self;
+        nav.modalPresentationStyle = UIModalPresentationPopover;
+        UIPopoverPresentationController *popover = nav.popoverPresentationController;
+        popover.barButtonItem = self.editWorldButton;
+        popover.permittedArrowDirections = UIPopoverArrowDirectionUp;
+        popover.delegate = self;
+        _SSPopoverController = nav;
 
         // remove cancel button
         editor.navigationItem.leftBarButtonItem = nil;
+
+        [self presentViewController:nav animated:YES completion:nil];
     } else {
         [self presentViewController:nav
                            animated:YES
@@ -535,8 +530,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (void)tappedWorldSelect:(id)sender {
     [self.mudView endEditing:YES];
 
-    if( [self.SSPopoverController isPopoverVisible] )
-        [self.SSPopoverController dismissPopoverAnimated:NO];
+    if( self.SSPopoverController.presentingViewController != nil )
+        [self.SSPopoverController dismissViewControllerAnimated:NO completion:nil];
 
     [[SSClientContainer sharedClientContainer] showRightPanelAnimated:YES];
 }
@@ -624,8 +619,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
         }
     };
 
-    if( [self.SSPopoverController isPopoverVisible] ) {
-        [self.SSPopoverController dismissPopoverAnimated:YES];
+    if( self.SSPopoverController.presentingViewController != nil ) {
+        [self.SSPopoverController dismissViewControllerAnimated:YES completion:nil];
 
         actualCompletion();
     } else if( self.presentedViewController ) {
@@ -647,18 +642,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (void)settingsViewShouldOpenContact:(SSSettingsViewController *)settingsViewController {
-    @weakify(self);
-
-    [self closeSettingsWithCompletion:^{
-        @strongify(self);
-
-        if (![[UIDevice currentDevice] isIPad]) {
-            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault animated:YES];
-        }
-
-        [UserVoice setDelegate:self];
-        [UserVoice presentUserVoiceInterfaceForParentViewController:self];
-    }];
+    [self closeSettingsWithCompletion:nil];
 }
 
 - (void)settingsViewShouldSendSessionLog:(SSSettingsViewController *)settingsViewController {
@@ -686,18 +670,15 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                       self.hostname]];
                 [mailView setMessageBody:logString
                                   isHTML:NO];
-                [mailView bk_setCompletionBlock:^(MFMailComposeViewController *composer, MFMailComposeResult result, NSError *error) {}];
+                mailView.mailComposeDelegate = self;
 
                 [self presentViewController:mailView
                                    animated:YES
-                                 completion:^{
-                                     // MAIL HACK
-                                     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-                                 }];
+                                 completion:nil];
             });
         };
 
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), LogProcessOperation);
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), LogProcessOperation);
     }];
 }
 
@@ -752,6 +733,18 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self.mudView clearText];
 }
 
+#pragma mark - MFMailComposeViewControllerDelegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller
+          didFinishWithResult:(MFMailComposeResult)result
+                        error:(NSError *)error {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)dismissMSSPViewController:(id)sender {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
 #pragma mark - MUD view delegate
 
 - (void)appendText:(NSString *)text isUserInput:(BOOL)isUserInput {
@@ -774,9 +767,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (void)mudView:(SSMudView *)mv didReceiveUserCommand:(NSString *)command {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefSemicolonCommands]
         && [command stringContainsString:SPLCurrentCommandDelimiter()]) {
-        [[command componentsSeparatedByString:SPLCurrentCommandDelimiter()] bk_each:^(NSString *str) {
+        for (NSString *str in [command componentsSeparatedByString:SPLCurrentCommandDelimiter()]) {
             [self sendText:str appendToHistory:YES];
-        }];
+        }
     } else {
         [self sendText:command appendToHistory:YES];
     }
@@ -789,9 +782,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefSemicolonCommands]
         && [direction stringContainsString:SPLCurrentCommandDelimiter()]) {
-        [[direction componentsSeparatedByString:SPLCurrentCommandDelimiter()] bk_each:^(NSString *str) {
+        for (NSString *str in [direction componentsSeparatedByString:SPLCurrentCommandDelimiter()]) {
             [self sendText:str appendToHistory:NO];
-        }];
+        }
     } else {
         [self sendText:direction appendToHistory:NO];
     }
@@ -1157,9 +1150,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
                 }
 
                 if (commands) {
-                    [commands bk_each:^(NSString *cmd) {
+                    for (NSString *cmd in commands) {
                         [self sendText:cmd appendToHistory:NO];
-                    }];
+                    }
                 }
 
                 if (lineBGColors) {

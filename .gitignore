@@ -23,5 +23,12 @@ build/
 
 vendor/bundle
 .bundle
+.build
 src/Pods/CocoaPodsKeys
 Keys.xcscheme
+
+# Tuist generated
+Derived/
+MUDRammer.xcodeproj/
+MUDRammer.xcworkspace/
+.mcp.json

@@ -7,7 +7,7 @@
 //
 
 #import "SSSessionLogger.h"
-#import <OSCache.h>
+@import OSCache;
 
 @interface SSSessionLogger () <OSCacheDelegate>
 

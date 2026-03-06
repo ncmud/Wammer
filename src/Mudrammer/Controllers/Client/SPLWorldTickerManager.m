@@ -7,7 +7,7 @@
 //
 
 #import "SPLWorldTickerManager.h"
-#import <OSCache.h>
+@import OSCache;
 #import "SPLTimerManager.h"
 
 @interface SPLWorldTickerData : NSObject <NSFetchedResultsControllerDelegate>

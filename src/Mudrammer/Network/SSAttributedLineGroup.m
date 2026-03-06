@@ -111,12 +111,15 @@
     SSAttributedLineGroupItem *groupLine = [SSAttributedLineGroupItem new];
     groupLine.line = [string mutableCopy];
 
-    BOOL endsInNewLine = [[NSCharacterSet newlineCharacterSet] characterIsMember:
-                          [[string string] characterAtIndex:([[string string] length] - 1)]];
+    NSUInteger length = [[string string] length];
+    if (length > 0) {
+        BOOL endsInNewLine = [[NSCharacterSet newlineCharacterSet] characterIsMember:
+                              [[string string] characterAtIndex:(length - 1)]];
 
-    if (endsInNewLine) {
-        [groupLine.line deleteCharactersInRange:NSMakeRange(groupLine.line.length - 1, 1)];
-        groupLine.endsInNewLine = YES;
+        if (endsInNewLine) {
+            [groupLine.line deleteCharactersInRange:NSMakeRange(groupLine.line.length - 1, 1)];
+            groupLine.endsInNewLine = YES;
+        }
     }
 
     return groupLine;
@@ -245,9 +248,9 @@
         id commands = commandLocations[commandLocation];
 
         if ([commands isKindOfClass:[NSArray class]]) {
-            [(NSArray *)commands bk_each:^(SSLineGroupCommand *command) {
+            for (SSLineGroupCommand *command in (NSArray *)commands) {
                 [lines addObject:[SSAttributedLineGroupItem itemWithCommand:command]];
-            }];
+            }
         } else {
             [lines addObject:[SSAttributedLineGroupItem itemWithCommand:commands]];
         }
@@ -352,32 +355,41 @@
 }
 
 - (NSArray *)textLines {
-    return [self.lines bk_select:^BOOL(SSAttributedLineGroupItem *item) {
-        return [item hasText];
-    }];
+    NSMutableArray *filtered = [NSMutableArray array];
+    for (SSAttributedLineGroupItem *item in self.lines) {
+        if ([item hasText]) {
+            [filtered addObject:item];
+        }
+    }
+    return filtered;
 }
 
 - (NSArray *)cleanTextLinesWithCommands:(BOOL)withCommands {
-    return [(withCommands ? self.lines : [self textLines]) bk_map:^id(SSAttributedLineGroupItem *line) {
-
+    NSArray *source = withCommands ? self.lines : [self textLines];
+    NSMutableArray *mapped = [NSMutableArray arrayWithCapacity:source.count];
+    for (SSAttributedLineGroupItem *line in source) {
         if (line.command) {
-            return line;
+            [mapped addObject:line];
+            continue;
         }
 
         NSString *str = [line.line string];
 
         if ([str length] == 0) {
-            return @"";
+            [mapped addObject:@""];
+            continue;
         }
 
         str = [str stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 
         if ([str length] == 0) {
-            return @"";
+            [mapped addObject:@""];
+            continue;
         }
 
-        return str;
-    }];
+        [mapped addObject:str];
+    }
+    return mapped;
 }
 
 - (NSString *)description {

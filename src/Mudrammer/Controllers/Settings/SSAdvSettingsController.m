@@ -7,14 +7,14 @@
 //
 
 #import "SSAdvSettingsController.h"
-#import <SSDataSources.h>
+@import SSDataSources;
 #import "SSBooleanCell.h"
 #import "SSStringCoder.h"
 #import "SSValueCell.h"
 #import "SSStringEncodingPicker.h"
-#import <VTAcknowledgementsViewController.h>
+@import VTAcknowledgementsViewController;
 #import "SSTextEntryCell.h"
-#import <Masonry.h>
+@import Masonry;
 
 @interface SSAdvSettingsController ()
 

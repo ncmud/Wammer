@@ -10,16 +10,13 @@
 
 @implementation SPLNotificationManager
 
-- (instancetype) init {
+- (instancetype)init {
     if ((self = [super init])) {
         _askedForLocalNotifications = NO;
+        [UNUserNotificationCenter currentNotificationCenter].delegate = self;
     }
 
     return self;
-}
-
-- (BOOL)usesNewNotificationSystem {
-    return ([UIUserNotificationSettings class] != nil);
 }
 
 - (void)registerForLocalNotifications {
@@ -28,13 +25,11 @@
         return;
     }
 
-    if ([self usesNewNotificationSystem]) {
-        DLog(@"Using new settings");
-        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert | UIUserNotificationTypeSound
-                                                                                 categories:nil];
-
-        [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
-    }
+    [[UNUserNotificationCenter currentNotificationCenter]
+     requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound)
+     completionHandler:^(BOOL granted, NSError *error) {
+        DLog(@"Notification auth granted: %d error: %@", granted, error);
+    }];
 
     _askedForLocalNotifications = YES;
 }
@@ -44,36 +39,39 @@
         [self registerForLocalNotifications];
     }
 
-    // Timeout alert after 8 minutes
-    UILocalNotification *alert = [UILocalNotification new];
+    UNMutableNotificationContent *content = [UNMutableNotificationContent new];
+    content.body = NSLocalizedString(@"SESSION_TIMEOUT", @"Your session will timeout in two minutes.");
+    content.sound = [UNNotificationSound defaultSound];
 
-    alert.timeZone = [NSTimeZone defaultTimeZone];
-    alert.fireDate = [NSDate dateWithTimeIntervalSinceNow:( 8 * 60 )];
+    UNTimeIntervalNotificationTrigger *trigger =
+        [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:(8 * 60) repeats:NO];
 
-    alert.soundName = UILocalNotificationDefaultSoundName;
+    UNNotificationRequest *request =
+        [UNNotificationRequest requestWithIdentifier:@"sessionTimeout"
+                                             content:content
+                                             trigger:trigger];
 
-    alert.alertAction = NSLocalizedString(@"OPEN_WORLD", @"Open World");
-    alert.alertBody = NSLocalizedString(@"SESSION_TIMEOUT", @"Your session will timeout in two minutes.");
-
-    [[UIApplication sharedApplication] scheduleLocalNotification:alert];
+    [[UNUserNotificationCenter currentNotificationCenter]
+     addNotificationRequest:request
+     withCompletionHandler:^(NSError *error) {
+        if (error) {
+            DLog(@"Failed to schedule notification: %@", error);
+        }
+    }];
 }
 
-#pragma mark - UIApplication
+#pragma mark - UNUserNotificationCenterDelegate
 
-- (void)didRegisterUserNotificationSettings:(UIUserNotificationSettings *)settings {
-    DLog(@"Registered %@", settings);
-    _userNotificationSettings = settings;
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+       willPresentNotification:(UNNotification *)notification
+         withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
+    completionHandler(UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionSound);
 }
 
-- (void)handleActionWithIdentifier:(NSString *)identifier
-              forLocalNotification:(UILocalNotification *)notification
-                        completion:(void (^)())completion {
-
-    DLog(@"Received action with ID %@", identifier);
-
-    if (completion) {
-        completion();
-    }
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler {
+    completionHandler();
 }
 
 @end

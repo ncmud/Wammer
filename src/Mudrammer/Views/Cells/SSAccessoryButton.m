@@ -7,8 +7,8 @@
 //
 
 #import "SSAccessoryButton.h"
-#import <Masonry.h>
-#import <TTTAttributedLabel.h>
+@import Masonry;
+@import TTTAttributedLabel;
 
 #define kObservedProps @[ kThemeFontColor, kThemeFontName ]
 

@@ -7,7 +7,7 @@
 //
 
 #import "SSANSIEngine.h"
-#import <TTTAttributedLabel.h>
+@import TTTAttributedLabel;
 #import "SSAttributedLineGroup.h"
 #import "NSCharacterSet+SPLAdditions.h"
 #import "NSScanner+SPLAdditions.h"

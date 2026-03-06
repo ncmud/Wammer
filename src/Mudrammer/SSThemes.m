@@ -51,7 +51,7 @@
                     },
                     @{
                         kThemeName : NSLocalizedString(@"THEME_WHITE",@"Snowblind Theme"),
-                        kThemeFontColor : [UIColor darkTextColor],
+                        kThemeFontColor : [UIColor labelColor],
                         kThemeFontName  : kDefaultFontName,
                         kThemeFontSize  : @(kDefaultFontSize),
                         kThemeLinkColor : UIColorFromRGB(0x1797C0),
@@ -69,7 +69,7 @@
                     },
                     @{
                         kThemeName : NSLocalizedString(@"THEME_JOLIE",@"Jolie Theme"),
-                        kThemeFontColor : [UIColor darkTextColor],
+                        kThemeFontColor : [UIColor labelColor],
                         kThemeFontName  : kDefaultFontName,
                         kThemeFontSize  : @(kDefaultFontSize),
                         kThemeLinkColor : UIColorFromRGB(0x1797C0),
@@ -78,7 +78,7 @@
                     },
                     @{
                         kThemeName : NSLocalizedString(@"THEME_ROSE",@"Rose Theme"),
-                        kThemeFontColor : [UIColor darkTextColor],
+                        kThemeFontColor : [UIColor labelColor],
                         kThemeFontName  : kDefaultFontName,
                         kThemeFontSize  : @(kDefaultFontSize),
                         kThemeLinkColor : [UIColor redColor],
@@ -114,7 +114,7 @@
                     },
                     @{
                         kThemeName : NSLocalizedString(@"THEME_HUMANE",@"Humane Theme"),
-                        kThemeFontColor : [UIColor darkTextColor],
+                        kThemeFontColor : [UIColor labelColor],
                         kThemeFontName  : kDefaultFontName,
                         kThemeFontSize  : @(kDefaultFontSize),
                         kThemeLinkColor : UIColorFromRGB(0x1797C0),
@@ -255,7 +255,7 @@
 
     // UINavigationBar
     NSShadow *titleShadow = [NSShadow new];
-    [titleShadow setShadowColor:[UIColor darkTextColor]];
+    [titleShadow setShadowColor:[UIColor labelColor]];
     [titleShadow setShadowOffset:CGSizeMake(0, 1)];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
            NSForegroundColorAttributeName : [UIColor whiteColor],
@@ -271,25 +271,14 @@
     NSShadow *iPadShadow = [NSShadow new];
     [iPadShadow setShadowColor:[UIColor whiteColor]];
     [iPadShadow setShadowOffset:CGSizeMake(0, 1)];
-    [[UINavigationBar appearanceWhenContainedIn:[UIPopoverController class], nil]
+    [[UINavigationBar appearanceWhenContainedInInstancesOfClasses:@[[UIPopoverPresentationController class]]]
      setBackgroundImage:nil
      forBarMetrics:UIBarMetricsDefault];
-    [[UINavigationBar appearanceWhenContainedIn:[UIPopoverController class], nil]
+    [[UINavigationBar appearanceWhenContainedInInstancesOfClasses:@[[UIPopoverPresentationController class]]]
      setTitleTextAttributes:@{
-          NSForegroundColorAttributeName : [UIColor darkTextColor],
+          NSForegroundColorAttributeName : [UIColor labelColor],
           NSShadowAttributeName : iPadShadow
     }];
-
-    if ([UIPopoverPresentationController class]) {
-        [[UINavigationBar appearanceWhenContainedIn:[UIPopoverPresentationController class], nil]
-         setBackgroundImage:nil
-         forBarMetrics:UIBarMetricsDefault];
-        [[UINavigationBar appearanceWhenContainedIn:[UIPopoverPresentationController class], nil]
-         setTitleTextAttributes:@{
-              NSForegroundColorAttributeName : [UIColor darkTextColor],
-              NSShadowAttributeName : iPadShadow
-          }];
-    }
 
     // UIToolbar
     [[UIToolbar appearance] setBackgroundImage:bgImage
@@ -297,10 +286,7 @@
                                     barMetrics:UIBarMetricsDefault];
     [[UIToolbar appearance] setBarTintColor:[UIColor whiteColor]];
 
-    // UIStatusBar
-    // In iOS 7, this relies on UIViewControllerBasedStatusBarAppearance
-    // in Info.plist being set to NO.
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    // Status bar style is now handled per-view-controller via preferredStatusBarStyle
 
     // UISwitch - reapplied upon each theme change
     [[UISwitch appearance] setOnTintColor:[self valueForThemeKey:kThemeFontColor]];
@@ -496,18 +482,18 @@
     [cloud setObject:[self currentTheme][kThemeFontName] forKey:kPrefCurrentFontName];
 
     // Sync boolean prefs
-    [boolPrefs bk_each:^(NSString *boolPref) {
+    for (NSString *boolPref in boolPrefs) {
         [cloud setBool:[defaults boolForKey:boolPref] forKey:boolPref];
-    }];
+    }
 
     // Sync object prefs
-    [objectPrefs bk_each:^(NSString *objectPref) {
+    for (NSString *objectPref in objectPrefs) {
         id value = [defaults objectForKey:objectPref];
 
         if (value) {
             [cloud setObject:value forKey:objectPref];
         }
-    }];
+    }
 
     [cloud synchronize];
 }
