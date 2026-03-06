@@ -69,7 +69,7 @@
                                                NSIndexPath *indexPath) {
             @strongify(self);
             [SSThemes configureCell:cell];
-            cell.label.text = dataString;
+            cell.label.text = dataString ?: @"";
             cell.label.delegate = self;
         };
         self.dataSource.tableActionBlock = ^BOOL(SSCellActionType action,

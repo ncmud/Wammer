@@ -1083,13 +1083,18 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
 #endif
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             __strong __typeof(weakSelf)strongSelf = weakSelf;
+            if (!strongSelf) return;
+
+            NSString *textString = [(NSAttributedString *)text string];
+            if (!textString) return;
 
             NSDataDetector *dataDetector = strongSelf.dataDetector;
             if (dataDetector && [dataDetector respondsToSelector:@selector(matchesInString:options:range:)]) {
-                NSArray *results = [dataDetector matchesInString:[(NSAttributedString *)text string] options:0 range:NSMakeRange(0, [(NSAttributedString *)text length])];
+                NSArray *results = [dataDetector matchesInString:textString options:0 range:NSMakeRange(0, [textString length])];
                 if ([results count] > 0) {
                     dispatch_sync(dispatch_get_main_queue(), ^{
-                        if ([[strongSelf.attributedText string] isEqualToString:[(NSAttributedString *)text string]]) {
+                        NSString *currentString = [strongSelf.attributedText string];
+                        if (currentString && [currentString isEqualToString:textString]) {
                             [strongSelf addLinksWithTextCheckingResults:results attributes:strongSelf.linkAttributes];
                         }
                     });
@@ -1099,7 +1104,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     }
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
-    if (&NSLinkAttributeName) {
+    if (&NSLinkAttributeName && self.attributedText) {
         [self.attributedText enumerateAttribute:NSLinkAttributeName inRange:NSMakeRange(0, self.attributedText.length) options:0 usingBlock:^(id value, __unused NSRange range, __unused BOOL *stop) {
             if (value) {
                 NSURL *URL = [value isKindOfClass:[NSString class]] ? [NSURL URLWithString:value] : value;
