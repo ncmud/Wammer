@@ -156,7 +156,7 @@
             BOOL kbPref = [[NSUserDefaults standardUserDefaults] boolForKey:kPrefBTKeyboard];
             CGFloat keyboardHeight = CGRectGetHeight(keyboardFrame);
 
-            if (!kbPref) {
+            if (!kbPref && self.superview && !CGRectIsNull(keyboardFrame)) {
                 [self mas_updateConstraints:^(MASConstraintMaker *make) {
                     if (closing || keyboardHeight <= 0) {
                         make.bottom.equalTo(self.superview);
