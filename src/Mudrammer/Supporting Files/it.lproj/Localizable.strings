@@ -1,9 +1,9 @@
-"ABOUT_HELP" = "Informazioni su MUDRammer";
+"ABOUT_HELP" = "Informazioni su iMUD";
 "ACTIVE_WORLDS" = "Attivo";
 "ADD_CONNECTION" = "Aggiungi nuova connessione";
 "ADVANCED" = "Avanzate";
 
-"ACK_HEADER" = "MUDRammer is grateful for the following libraries and projects:";
+"ACK_HEADER" = "iMUD is grateful for the following libraries and projects:";
 
 /* Separate multiple actions with a semicolon (;). */
 "ALIAS_EDIT_HELP" = "Separate multiple commands with semicolons (;) or newlines.\n\n#N# in a command generates a random number from 1-N.\n\nSample Alias // Sample Command(s)\nYou Type => Command(s) sent\n\nrando // say I am #50#!\nrando => say I am 37!\n\nsh // cast shield;bow\nsh seuss => cast shield seuss;bow seuss\n\nrd // use rod $2$ at $1$\nrd orc 3 => use rod 3 at orc\n\np // page $1$=$*$\np bob hello sir! => page bob=hello sir!";
@@ -21,7 +21,7 @@
 
 
 "BTKEYBOARD" = "Tastiera Bluetooth";
-"BTKEYBOARD_HELP" = "Abilita questa opzione se hai collegato una tastiera Bluetooth. La tastiera software verrà ignorata da MUDRammer.";
+"BTKEYBOARD_HELP" = "Abilita questa opzione se hai collegato una tastiera Bluetooth. La tastiera software verrà ignorata da iMUD.";
 
 /* Cancel */
 "CANCEL" = "Annulla";
@@ -118,7 +118,7 @@
 
 "LOCAL_ECHO" = "Mostra i comandi digitati";
 
-"LOG_FOOTER" = "\nMUDRammer - a Modern MUD client for iPhone and iPad\nhttps://itunes.apple.com/us/app/mudrammer-a-modern-mud-client/id597157072?mt=8";
+"LOG_FOOTER" = "\niMUD - a Modern MUD client for iPhone and iPad\nhttps://itunes.apple.com/us/app/mudrammer-a-modern-mud-client/id597157072?mt=8";
 "LOGGING_PREF" = "Registra log della sessione";
 
 /* Mail Session Log */
@@ -167,7 +167,7 @@
 "SAVE_WORLD" = "Salva";
 
 /* Your session will timeout in two minutes. */
-"SESSION_TIMEOUT" = "La tua sessione di MUDRammer potrebbe scadere a breve.";
+"SESSION_TIMEOUT" = "La tua sessione di iMUD potrebbe scadere a breve.";
 
 "SERVER_STATUS" = "Server Status";
 
@@ -175,7 +175,7 @@
 "SEMICOLON_CMDS_HELP" = "Digita ; per inviare comandi multipli.";
 
 "SIMPLE_TELNET" = "Modalità Telnet semplice";
-"SIMPLE_TELNET_DESC" = "Nella modalità Telnet semplice, MUDRammer non negozierá le opzioni Telnet.";
+"SIMPLE_TELNET_DESC" = "Nella modalità Telnet semplice, iMUD non negozierá le opzioni Telnet.";
 
 "SEND" = "Invia";
 
@@ -237,11 +237,11 @@
 
 "TYPE" = "Tipo";
 
-/* Welcome to MUDRammer */
-"WELCOME" = "Benvenuto in MUDRammer";
+/* Welcome to iMUD */
+"WELCOME" = "Benvenuto in iMUD";
 
-/* MUDRammer is a modern MUD client for iPhone and iPad. Let's get started with NANVAENT, one of the oldest and (in this humble developer's opinion) greatest MUDs around today. Say hi to me (Seuss)!\n\nOr, connect to your own favorite MUD. */
-"WELCOME_TEXT" = "MUDRammer è un Mud Client moderno per iPhone e iPad.\n\nPer aggiungere un Mud, tocca Fine, Poi premi il pulsante nell’angolo in alto a sinistra.";
+/* iMUD is a modern MUD client for iPhone and iPad. Let's get started with NANVAENT, one of the oldest and (in this humble developer's opinion) greatest MUDs around today. Say hi to me (Seuss)!\n\nOr, connect to your own favorite MUD. */
+"WELCOME_TEXT" = "iMUD è un Mud Client moderno per iPhone e iPad.\n\nPer aggiungere un Mud, tocca Fine, Poi premi il pulsante nell’angolo in alto a sinistra.";
 
 /* Worlds */
 "WORLDS" = "Mondi";

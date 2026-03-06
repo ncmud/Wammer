@@ -29,6 +29,6 @@ Keys.xcscheme
 
 # Tuist generated
 Derived/
-MUDRammer.xcodeproj/
-MUDRammer.xcworkspace/
+*.xcodeproj/
+*.xcworkspace/
 .mcp.json

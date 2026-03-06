@@ -1,7 +1,7 @@
 import ProjectDescription
 
 let project = Project(
-    name: "MUDRammer",
+    name: "iMUD",
     packages: [
         .local(path: "Vendored/CocoaAsyncSocket"),
         .local(path: "Vendored/libtelnet"),
@@ -32,10 +32,10 @@ let project = Project(
     ],
     targets: [
         .target(
-            name: "MUDRammer",
+            name: "iMUD",
             destinations: .iOS,
             product: .app,
-            bundleId: "com.PLACEHOLDER.mudrammer",
+            bundleId: "org.ncmud.imud",
             deploymentTargets: .iOS("26.0"),
             infoPlist: .extendingDefault(with: [
                 "UIAppFonts": .array([
@@ -128,6 +128,7 @@ let project = Project(
             ],
             settings: .settings(
                 base: [
+                    "DEVELOPMENT_TEAM": "H3R5ZX3287",
                     "CLANG_ENABLE_MODULES": "YES",
                     "HEADER_SEARCH_PATHS": .array([
                         "$(SRCROOT)/Vendored/**",
@@ -141,13 +142,13 @@ let project = Project(
             name: "MRTests",
             destinations: .iOS,
             product: .unitTests,
-            bundleId: "com.PLACEHOLDER.mudrammer.tests",
+            bundleId: "org.ncmud.imud.tests",
             infoPlist: "src/MRTests/MRTests-Info.plist",
             sources: [
                 "src/MRTests/**",
             ],
             dependencies: [
-                .target(name: "MUDRammer"),
+                .target(name: "iMUD"),
                 .package(product: "Expecta"),
                 .package(product: "OCMock"),
             ],

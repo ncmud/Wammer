@@ -25,10 +25,10 @@
     dispatch_once(&onceToken, ^{
         extras = @[
             @"> invoke iOS incantation",
-            @"MUDRammer is crafted in one person's spare time. Please consider leaving a review - it really helps. Thanks!",
-            @"Thanks for mudding with MUDRammer!",
+            @"iMUD is crafted in one person's spare time. Please consider leaving a review - it really helps. Thanks!",
+            @"Thanks for mudding with iMUD!",
             @"> perform dance of cellular connectivity",
-            @"> use MUDRammer\nIt's super effective!",
+            @"> use iMUD\nIt's super effective!",
         ];
     });
 
