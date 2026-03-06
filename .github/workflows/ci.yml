@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [trunk]
+  pull_request:
+    branches: [trunk]
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+
+      - name: Install Tuist
+        run: brew install tuist
+
+      - name: Generate project
+        run: tuist generate --no-open
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -workspace Wammer.xcworkspace \
+            -scheme Wammer \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -skipPackagePluginValidation \
+            | xcpretty
+
+      - name: Test
+        run: |
+          xcodebuild test \
+            -workspace Wammer.xcworkspace \
+            -scheme MRTests \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -skipPackagePluginValidation \
+            | xcpretty
