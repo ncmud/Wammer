@@ -1,10 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-curl https://mise.jdx.dev/install.sh | sh
+curl https://mise.run | sh
 export PATH="$HOME/.local/bin:$PATH"
-mise install tuist
-eval "$(mise activate bash)"
 
-cd "$CI_PRIMARY_REPOSITORY_PATH"
-tuist generate --no-open
+mise install
+
+mise exec -- tuist generate -p ../ --no-open
