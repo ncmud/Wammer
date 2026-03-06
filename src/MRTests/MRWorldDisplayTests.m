@@ -18,7 +18,6 @@
 @implementation MRWorldDisplayTests
 {
     SSWorldDisplayController *worldController;
-    World *world;
     NSString *mudWorldIdentifier;
 }
 
@@ -26,16 +25,6 @@
     [super setUp];
     worldController = [SSWorldDisplayController new];
 
-    [MagicalRecord saveWithBlockAndWait:^(NSManagedObjectContext *context) {
-        World *w = [World createObjectInContext:context];
-        w.isHidden = @NO;
-        w.hostname = @"nanvaent.org";
-        w.port = @23;
-    }];
-
-    world = [World MR_findFirst];
-
-    // Create matching world in WorldStore for bridge lookup
     [WorldStoreBridge addWorldWithHostname:@"nanvaent.org" name:@"" port:23];
     NSArray<MUDWorldBridge *> *worlds = [WorldStoreBridge allWorlds];
     for (MUDWorldBridge *w in worlds) {
@@ -48,10 +37,6 @@
 
 - (void)tearDown {
     [super tearDown];
-
-    [MagicalRecord saveWithBlockAndWait:^(NSManagedObjectContext *context) {
-        [World MR_truncateAllInContext:context];
-    }];
 
     if (mudWorldIdentifier) {
         [WorldStoreBridge removeWorldWithIdentifier:mudWorldIdentifier];

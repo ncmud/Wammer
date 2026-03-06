@@ -13,8 +13,7 @@
 #pragma mark - SSApplication
 
 - (void)ss_willFinishLaunchingWithOptions:(NSDictionary *)options {
-    [MagicalRecord setLoggingLevel:MagicalRecordLoggingLevelAll];
-    [MagicalRecord setupCoreDataStackWithInMemoryStore];
+    // WorldStore.shared auto-loads on first access; no setup needed
 }
 
 - (UIViewController *)ss_appRootViewController {

@@ -11,24 +11,11 @@
 @import UserNotifications;
 #import "SSRadialControl.h"
 #import "SSWorldDisplayController.h"
+#import "WorldStoreBridge.h"
+#import "MUDModels.h"
 
-
-@interface SSAppDelegate ()
-+ (void) setupCoreData;
-@end
 
 @implementation SSAppDelegate
-
-#pragma mark - setup and scaffolding
-
-+ (void)setupCoreData {
-#ifdef DEBUG
-    [MagicalRecord setLoggingLevel:MagicalRecordLoggingLevelAll];
-#else
-    [MagicalRecord setLoggingLevel:MagicalRecordLoggingLevelOff];
-#endif
-    [MagicalRecord setupCoreDataStackWithAutoMigratingSqliteStoreNamed:kStoreName];
-}
 
 #pragma mark - URL tapped
 
@@ -43,25 +30,33 @@
     }
 
     if ([[url scheme] isEqualToString:@"telnet"]) {
+        NSString *hostname = [[url host] lowercaseString];
 
-        // Is this world already saved?
-        World *existing = [World MR_findFirstWithPredicate:[NSPredicate predicateWithFormat:@"hostname == %@ AND isHidden == NO",
-                                                            [[url host] lowercaseString]]
-                                                  sortedBy:[World defaultSortField]
-                                                 ascending:[World defaultSortAscending]
-                                                 inContext:[NSManagedObjectContext MR_defaultContext]];
-
-        if (!existing) {
-            World *w = [World worldFromURL:url];
-            w.isHidden = @NO;
-            [w saveObjectWithCompletion:^{
-                [[NSNotificationCenter defaultCenter] postNotificationName:kNotificationWorldChanged
-                                                                    object:[w objectID]];
+        // Check if this world is already saved
+        NSString *existingIdentifier = nil;
+        for (MUDWorldBridge *w in [WorldStoreBridge allWorlds]) {
+            if ([w.hostname isEqualToString:hostname]) {
+                existingIdentifier = w.identifier;
+                break;
             }
-                                   fail:nil];
-        } else {
+        }
+
+        if (!existingIdentifier) {
+            int16_t port = [url port] ? [[url port] shortValue] : 23;
+            [WorldStoreBridge addWorldWithHostname:hostname name:@"" port:port];
+
+            // Find the newly added world
+            for (MUDWorldBridge *w in [WorldStoreBridge allWorlds]) {
+                if ([w.hostname isEqualToString:hostname]) {
+                    existingIdentifier = w.identifier;
+                    break;
+                }
+            }
+        }
+
+        if (existingIdentifier) {
             [[NSNotificationCenter defaultCenter] postNotificationName:kNotificationWorldChanged
-                                                                object:[existing objectID]];
+                                                                object:existingIdentifier];
         }
 
         return YES;
@@ -74,9 +69,8 @@
 #pragma mark - SSApplication
 
 - (void) ss_willFinishLaunchingWithOptions:(NSDictionary *)options {
-    [self.class setupCoreData];
-
-    [World createDefaultWorldsIfNecessary];
+    // WorldStore.shared auto-loads on first access; trigger it now
+    (void)[WorldStoreBridge allWorlds];
 
     [SSThemes sharedThemer]; // UIAppearance™ Inside®
 
@@ -137,8 +131,6 @@
         case SSApplicationEventWillTerminate:
 
             [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
-
-            [MagicalRecord cleanUp];
 
             break;
 

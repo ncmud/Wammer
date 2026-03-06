@@ -55,6 +55,7 @@ typedef NS_ENUM(NSInteger, MUDGagType) {
 @property (nonatomic) BOOL vibrate;
 @property (nonatomic, readonly) BOOL canSave;
 + (NSArray<NSString *> *)triggerTypeLabelArray;
+- (BOOL)matchesLine:(NSString *)line;
 
 @end
 
@@ -70,6 +71,7 @@ typedef NS_ENUM(NSInteger, MUDGagType) {
 @property (nonatomic, copy) NSString *gag;
 @property (nonatomic, readonly) BOOL canSave;
 + (NSArray<NSString *> *)gagTypeLabelArray;
+- (BOOL)matchesLine:(NSString *)line;
 
 @end
 

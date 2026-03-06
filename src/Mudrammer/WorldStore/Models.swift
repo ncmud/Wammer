@@ -13,6 +13,10 @@ final class MUDAlias: NSObject, Codable {
     var name: String
     var commands: String
 
+    override convenience init() {
+        self.init(name: "", commands: "")
+    }
+
     init(
         identifier: String = UUID().uuidString,
         isEnabled: Bool = true,
@@ -55,6 +59,10 @@ final class MUDTrigger: NSObject, Codable {
         case identifier, isEnabled, isHidden, lastModified
         case trigger, commands, soundFileName, triggerType
         case highlightColorHex, vibrate
+    }
+
+    override convenience init() {
+        self.init(trigger: "", commands: "")
     }
 
     init(
@@ -148,6 +156,10 @@ final class MUDGag: NSObject, Codable {
     var gagType: MUDGagType
     var gag: String
 
+    override convenience init() {
+        self.init(gag: "")
+    }
+
     init(
         identifier: String = UUID().uuidString,
         isEnabled: Bool = true,
@@ -177,6 +189,10 @@ final class MUDTicker: NSObject, Codable {
     var interval: Int64
     var commands: String
     var soundFileName: String?
+
+    override convenience init() {
+        self.init(interval: 0, commands: "")
+    }
 
     init(
         identifier: String = UUID().uuidString,
@@ -215,6 +231,10 @@ final class MUDWorld: NSObject, Codable {
     var triggers: [MUDTrigger]
     var gags: [MUDGag]
     var tickers: [MUDTicker]
+
+    override convenience init() {
+        self.init(hostname: "", name: "", port: 0)
+    }
 
     init(
         identifier: String = UUID().uuidString,
