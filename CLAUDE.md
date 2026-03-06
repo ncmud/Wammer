@@ -4,23 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-iMUD is a fork of [MUDRammer](https://github.com/splinesoft/MUDRammer), an Objective-C iOS MUD client. The codebase has been modernized from CocoaPods to vendored Swift packages and from a hand-maintained Xcode project to Tuist-generated workspaces. Targets iOS 26.
+Wammer is a fork of [MUDRammer](https://github.com/splinesoft/MUDRammer), an Objective-C iOS MUD client. The codebase has been modernized from CocoaPods to vendored Swift packages and from a hand-maintained Xcode project to Tuist-generated workspaces. Targets iOS 26.
 
 ## Build System
 
 The project uses [Tuist](https://tuist.io) (v4.131.0) to generate the Xcode workspace from `Project.swift` and `Tuist.swift`.
 
 ```bash
-tuist generate                # Generate iMUD.xcworkspace
+tuist generate                # Generate Wammer.xcworkspace
 ```
 
-Build and run from the generated `iMUD.xcworkspace` using the **iMUD** scheme.
+Build and run from the generated `Wammer.xcworkspace` using the **Wammer** scheme.
 
 ### Running Tests
 
 ```bash
 xcodebuild test \
-  -workspace iMUD.xcworkspace \
+  -workspace Wammer.xcworkspace \
   -scheme MRTests \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```

@@ -1,4 +1,4 @@
-# iMUD
+# Wammer
 
 This is a fork of [MUDRammer](https://github.com/splinesoft/MUDRammer), a MUD client for iPhone and iPad originally created by [Jonathan Hersh](https://github.com/jhersh). MUDRammer was a fantastic piece of work — a polished, accessible, and thoughtfully designed MUD client that served the community well from its first App Store release in February 2013 through its removal in March 2025.
 
@@ -21,12 +21,12 @@ You'll need Xcode 26+ and [Tuist](https://tuist.io).
 tuist generate
 ```
 
-Open the generated `iMUD.xcworkspace`, select the **iMUD** scheme, and build.
+Open the generated `Wammer.xcworkspace`, select the **Wammer** scheme, and build.
 
 To run tests:
 
 ```bash
-xcodebuild test -workspace iMUD.xcworkspace -scheme MRTests -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+xcodebuild test -workspace Wammer.xcworkspace -scheme MRTests -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
 ## About MUDs
