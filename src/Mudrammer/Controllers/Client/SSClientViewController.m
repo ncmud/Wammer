@@ -977,45 +977,33 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self.mudView setEditable:YES];
             [self.mudView setKeyboardPanningEnabled:YES];
 
-            // Bridge: ticker manager still uses Core Data World (task 81)
-            MUDWorldBridge *bridgeWorld = [WorldStoreBridge worldForIdentifier:self->currentWorldIdentifier];
-            World *cdWorld = nil;
-            if (bridgeWorld) {
-                cdWorld = [World MR_findFirstWithPredicate:
-                    [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
-                        bridgeWorld.hostname, bridgeWorld.port]
-                    inContext:[NSManagedObjectContext MR_defaultContext]];
-            }
+            self.tickerIdentifier = [self.tickerManager enableAndObserveTickersForWorldIdentifier:self->currentWorldIdentifier
+                                                                                        tickerBlock:^(NSString *tickerId, NSString *worldId)
+            {
+                @strongify(self);
 
-            if (cdWorld) {
-                self.tickerIdentifier = [self.tickerManager enableAndObserveTickersForWorld:cdWorld
-                                                                                tickerBlock:^(NSManagedObjectID *tickerId)
-                {
-                    @strongify(self);
+                MUDTickerBridge *ticker = [WorldStoreBridge tickerForIdentifier:tickerId worldIdentifier:worldId];
 
-                    Ticker *ticker = [Ticker existingObjectWithId:tickerId];
+                if (!ticker) {
+                    return;
+                }
 
-                    if (!ticker) {
-                        return;
+                if ([ticker.commands length] > 0) {
+                    [self sendText:ticker.commands
+                   appendToHistory:YES];
+                }
+
+                if ([ticker.soundFileName length] > 0 && ![ticker.soundFileName isEqualToString:@"None"]) {
+                    SSSound *sound = [JSQSystemSoundPlayer soundForFileName:ticker.soundFileName];
+
+                    if (sound) {
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            [JSQSystemSoundPlayer playSound:sound
+                                                 completion:nil];
+                        });
                     }
-
-                    if ([ticker.commands length] > 0) {
-                        [self sendText:ticker.commands
-                       appendToHistory:YES];
-                    }
-
-                    if ([ticker.soundFileName length] > 0 && ![ticker.soundFileName isEqualToString:@"None"]) {
-                        SSSound *sound = [JSQSystemSoundPlayer soundForFileName:ticker.soundFileName];
-
-                        if (sound) {
-                            dispatch_async(dispatch_get_main_queue(), ^{
-                                [JSQSystemSoundPlayer playSound:sound
-                                                     completion:nil];
-                            });
-                        }
-                    }
-                }];
-            }
+                }
+            }];
 
             // Connect command
             MUDWorldBridge *connectWorld = [WorldStoreBridge worldForIdentifier:self->currentWorldIdentifier];

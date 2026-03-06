@@ -25,6 +25,18 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+#pragma mark - MUDTickerBridge
+
+@interface MUDTickerBridge : NSObject
+
+@property (nonatomic, readonly, copy) NSString *identifier;
+@property (nonatomic, readonly) BOOL isEnabled;
+@property (nonatomic, readonly) int64_t interval;
+@property (nonatomic, readonly, copy) NSString *commands;
+@property (nonatomic, readonly, copy, nullable) NSString *soundFileName;
+
+@end
+
 #pragma mark - MUDTriggerResultBridge
 
 @interface MUDTriggerResultBridge : NSObject
@@ -50,6 +62,12 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)setDefaultWorldWithIdentifier:(NSString *)identifier;
 + (nullable NSString *)defaultWorldIdentifier;
 + (nullable NSString *)worldDescriptionForIdentifier:(NSString *)identifier;
+
++ (void)addTickerToWorldIdentifier:(NSString *)identifier commands:(NSString *)commands interval:(int64_t)interval isEnabled:(BOOL)isEnabled;
+
+// Ticker access
++ (NSArray<MUDTickerBridge *> *)tickersForWorldIdentifier:(NSString *)identifier;
++ (nullable MUDTickerBridge *)tickerForIdentifier:(NSString *)tickerIdentifier worldIdentifier:(NSString *)worldIdentifier;
 
 // Alias / Gag / Trigger matching
 + (nullable NSArray<NSString *> *)commandsIfMatchingAliasForIdentifier:(NSString *)identifier input:(NSString *)input;

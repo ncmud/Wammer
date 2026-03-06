@@ -75,6 +75,27 @@ final class WorldStoreBridge: NSObject {
         WorldStore.shared.world(forIdentifier: identifier)?.worldDescription
     }
 
+    @objc static func addTicker(toWorldIdentifier identifier: String, commands: String, interval: Int64, isEnabled: Bool) {
+        guard let world = WorldStore.shared.world(forIdentifier: identifier) else { return }
+        let ticker = MUDTicker(interval: interval, commands: commands)
+        ticker.isEnabled = isEnabled
+        world.tickers.append(ticker)
+        WorldStore.shared.updateWorld(world)
+    }
+
+    // MARK: - Ticker Access
+
+    @objc static func tickers(forWorldIdentifier identifier: String) -> [MUDTickerBridge] {
+        guard let world = WorldStore.shared.world(forIdentifier: identifier) else { return [] }
+        return world.tickers.filter { !$0.isHidden }.map { MUDTickerBridge(swiftTicker: $0) }
+    }
+
+    @objc static func ticker(forIdentifier tickerIdentifier: String, worldIdentifier: String) -> MUDTickerBridge? {
+        guard let world = WorldStore.shared.world(forIdentifier: worldIdentifier) else { return nil }
+        guard let ticker = world.tickers.first(where: { $0.identifier == tickerIdentifier }) else { return nil }
+        return MUDTickerBridge(swiftTicker: ticker)
+    }
+
     // MARK: - Alias / Gag / Trigger Matching
 
     @objc static func commandsIfMatchingAlias(forIdentifier identifier: String, input: String) -> [String]? {
@@ -94,6 +115,23 @@ final class WorldStoreBridge: NSObject {
         let result = world.runTriggers(forLines: lines)
         return MUDTriggerResultBridge(result: result)
     }
+}
+
+/// ObjC-visible wrapper around MUDTicker for use by ticker manager.
+@objc(MUDTickerBridge)
+@objcMembers
+final class MUDTickerBridge: NSObject {
+    private let swiftTicker: MUDTicker
+
+    init(swiftTicker: MUDTicker) {
+        self.swiftTicker = swiftTicker
+    }
+
+    var identifier: String { swiftTicker.identifier }
+    var isEnabled: Bool { swiftTicker.isEnabled }
+    var interval: Int64 { swiftTicker.interval }
+    var commands: String { swiftTicker.commands }
+    var soundFileName: String? { swiftTicker.soundFileName }
 }
 
 /// ObjC-visible trigger result wrapper.

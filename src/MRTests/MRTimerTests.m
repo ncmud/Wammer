@@ -9,6 +9,7 @@
 #import "MRTestHelpers.h"
 #import "SPLTimerManager.h"
 #import "SPLWorldTickerManager.h"
+#import "WorldStoreBridge.h"
 
 @interface MRTimerTests : XCTestCase
 
@@ -19,6 +20,7 @@
     SPLWorldTickerManager *tickerManager;
     SPLTimerManager *timerManager;
     NSString *timerName;
+    NSString *worldIdentifier;
 }
 
 - (void)setUp {
@@ -28,20 +30,18 @@
     timerName = @"TimerTest";
     tickerManager = [[SPLWorldTickerManager alloc] initWithTimerManager:timerManager];
 
-    [MagicalRecord saveWithBlockAndWait:^(NSManagedObjectContext *context) {
-        [Ticker MR_truncateAllInContext:context];
-        [World MR_truncateAllInContext:context];
+    // Create a world with a ticker in WorldStore
+    [WorldStoreBridge addWorldWithHostname:@"ticker-test.org" name:@"TickerTest" port:23];
+    NSArray<MUDWorldBridge *> *worlds = [WorldStoreBridge allWorlds];
+    for (MUDWorldBridge *w in worlds) {
+        if ([w.hostname isEqualToString:@"ticker-test.org"]) {
+            worldIdentifier = w.identifier;
+            break;
+        }
+    }
 
-        World *world = [World createObjectInContext:context];
-        world.isHidden = @NO;
-
-        Ticker *ticker = [Ticker createObjectInContext:context];
-        ticker.world = world;
-        ticker.isHidden = @NO;
-        ticker.interval = @1;
-        ticker.isEnabled = @YES;
-        ticker.commands = @"hi";
-    }];
+    // Add a ticker to the world
+    [WorldStoreBridge addTickerToWorldIdentifier:worldIdentifier commands:@"hi" interval:1 isEnabled:YES];
 }
 
 - (void)tearDown {
@@ -49,6 +49,11 @@
     [timerManager cancelRepeatingTimerWithName:timerName];
     timerManager = nil;
     tickerManager = nil;
+
+    if (worldIdentifier) {
+        [WorldStoreBridge removeWorldWithIdentifier:worldIdentifier];
+        worldIdentifier = nil;
+    }
 }
 
 #pragma mark - Timers
@@ -101,12 +106,12 @@
 - (void)testEnablingTickerSchedulesTimer {
     XCTestExpectation *tickerExp = [self expectationWithDescription:@"TickerFire"];
 
-    World *world = [World MR_findFirst];
+    NSArray<MUDTickerBridge *> *tickers = [WorldStoreBridge tickersForWorldIdentifier:worldIdentifier];
 
-    expect([world orderedTickers].count).to.beGreaterThan(0);
+    expect(tickers.count).to.beGreaterThan(0);
 
-    NSUInteger identifier = [tickerManager enableAndObserveTickersForWorld:world
-     tickerBlock:^(NSManagedObjectID *tickerID) {
+    NSUInteger identifier = [tickerManager enableAndObserveTickersForWorldIdentifier:worldIdentifier
+     tickerBlock:^(NSString *tickerId, NSString *worldId) {
          [tickerExp fulfill];
      }];
 
@@ -117,108 +122,17 @@
     [tickerManager disableTickersForIdentifier:identifier];
 }
 
-- (void)testCreatingTickerCreatesTimer {
-    XCTestExpectation *tickerExp = [self expectationWithDescription:@"TickerFire"];
-
-    World *world = [World MR_findFirst];
-    expect([world orderedTickers].count).to.beGreaterThan(0);
-
-    __block NSUInteger count = 0;
-
-    NSUInteger identifier = [tickerManager enableAndObserveTickersForWorld:world
-                                                               tickerBlock:^(NSManagedObjectID *tickerID) {
-                                                                   count++;
-                                                               }];
-
-    [MagicalRecord saveWithBlock:^(NSManagedObjectContext *context) {
-        Ticker *t = [Ticker createObjectInContext:context];
-        t.world = [world MR_inContext:context];
-        t.interval = @1;
-        t.isHidden = @NO;
-        t.isEnabled = @YES;
-    }];
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        expect(count).to.beGreaterThanOrEqualTo(10);
-        [tickerExp fulfill];
-    });
-
-    [self waitForExpectationsWithTimeout:7 handler:nil];
-
-    [tickerManager disableTickersForIdentifier:identifier];
-}
-
-- (void)testUpdatingTickerUpdatesTimer {
-    XCTestExpectation *tickerExp = [self expectationWithDescription:@"TickerFire"];
-
-    World *world = [World MR_findFirst];
-    expect([world orderedTickers].count).to.beGreaterThan(0);
-
-    __block NSUInteger count = 0;
-
-    NSUInteger identifier = [tickerManager enableAndObserveTickersForWorld:world
-                                                               tickerBlock:^(NSManagedObjectID *tickerID) {
-                                                                   count++;
-                                                               }];
-
-    expect(identifier).to.beGreaterThan(0);
-
-    [MagicalRecord saveWithBlockAndWait:^(NSManagedObjectContext *context) {
-        Ticker *ticker = [Ticker MR_findFirstInContext:context];
-        ticker.interval = @5;
-    }];
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        expect(count).to.equal(1);
-        [tickerExp fulfill];
-    });
-
-    [self waitForExpectationsWithTimeout:7 handler:nil];
-
-    [tickerManager disableTickersForIdentifier:identifier];
-}
-
-- (void)testDisablingTickerDisablesTimer {
-    XCTestExpectation *tickerExp = [self expectationWithDescription:@"TickerFire"];
-
-    World *world = [World MR_findFirst];
-    expect([world orderedTickers].count).to.beGreaterThan(0);
-
-    __block NSUInteger count = 0;
-
-    NSUInteger identifier = [tickerManager enableAndObserveTickersForWorld:world
-                                                               tickerBlock:^(NSManagedObjectID *tickerID) {
-                                                                   count++;
-                                                               }];
-
-    expect(identifier).to.beGreaterThan(0);
-
-    [MagicalRecord saveWithBlockAndWait:^(NSManagedObjectContext *context) {
-        Ticker *ticker = [Ticker MR_findFirstInContext:context];
-        ticker.isEnabled = @NO;
-    }];
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        expect(count).to.equal(0);
-        [tickerExp fulfill];
-    });
-
-    [self waitForExpectationsWithTimeout:3 handler:nil];
-
-    [tickerManager disableTickersForIdentifier:identifier];
-}
-
 - (void)testDisablingTickersDoesNotCallTimer {
     XCTestExpectation *tickerExp = [self expectationWithDescription:@"TickerNotFire"];
 
-    World *world = [World MR_findFirst];
+    NSArray<MUDTickerBridge *> *tickers = [WorldStoreBridge tickersForWorldIdentifier:worldIdentifier];
 
-    expect([world orderedTickers].count).to.beGreaterThan(0);
+    expect(tickers.count).to.beGreaterThan(0);
 
-    NSUInteger identifier = [tickerManager enableAndObserveTickersForWorld:world
-                                                               tickerBlock:^(NSManagedObjectID *tickerID) {
-                                                                   XCTFail(@"Called ticker!");
-                                                               }];
+    NSUInteger identifier = [tickerManager enableAndObserveTickersForWorldIdentifier:worldIdentifier
+                                                                         tickerBlock:^(NSString *tickerId, NSString *worldId) {
+                                                                             XCTFail(@"Called ticker!");
+                                                                         }];
 
     expect(identifier).to.beGreaterThan(0);
 

@@ -7,29 +7,28 @@
 //
 
 #import "SPLWorldTickerManager.h"
-@import OSCache;
+#import "WorldStoreBridge.h"
 #import "SPLTimerManager.h"
 
-@interface SPLWorldTickerData : NSObject <NSFetchedResultsControllerDelegate>
+@interface SPLWorldTickerData : NSObject
 
-@property (nonatomic, strong) NSFetchedResultsController *controller;
-@property (nonatomic, strong) NSMutableArray *tickerIdentifiers;
+@property (nonatomic, copy) NSString *worldIdentifier;
+@property (nonatomic, strong) NSMutableArray *tickerTimerNames;
 @property (nonatomic, assign) NSUInteger identifierPrefix;
 @property (nonatomic, copy) SPLTickerFireBlock tickerBlock;
 @property (nonatomic, weak) SPLTimerManager *timerManager;
 
-- (void) enableTicker:(Ticker *)ticker;
-- (void) disableTicker:(Ticker *)ticker;
+- (NSString *)timerNameForTickerIdentifier:(NSString *)tickerIdentifier;
+- (void)enableTickerBridge:(MUDTickerBridge *)ticker;
+- (void)disableTickerBridge:(MUDTickerBridge *)ticker;
 
 @end
 
-@interface SPLWorldTickerManager () <OSCacheDelegate>
+@interface SPLWorldTickerManager ()
 
-@property (nonatomic, strong) OSCache *cache;
+@property (nonatomic, strong) NSMutableDictionary *tickerDataMap;
 @property (nonatomic, assign) NSUInteger lastIdentifier;
 @property (nonatomic, strong) SPLTimerManager *timerManager;
-
-+ (NSString *) tickerIdentifierForTicker:(Ticker *)ticker prefix:(NSUInteger)prefix;
 
 @end
 
@@ -37,175 +36,164 @@
 
 - (instancetype)initWithTimerManager:(SPLTimerManager *)timerManager {
     if ((self = [super init])) {
-        _cache = [OSCache new];
-        [self.cache setName:@"WorldTickerManager Cache"];
-        self.cache.delegate = self;
+        _tickerDataMap = [NSMutableDictionary new];
 
         _lastIdentifier = 0;
         _timerManager = timerManager;
+
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(worldStoreDidChange:)
+                                                     name:WorldStoreBridge.didChangeNotification
+                                                   object:nil];
     }
 
     return self;
 }
 
 - (void)dealloc {
-    self.cache.delegate = nil;
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - Observing Tickers
 
-+ (NSString *)tickerIdentifierForTicker:(Ticker *)ticker
-                                 prefix:(NSUInteger)prefix {
-
-    NSManagedObjectID *objectId = [ticker objectID];
-    NSString *urlString = [[objectId URIRepresentation] absoluteString];
-
-    return [NSString stringWithFormat:@"%@-%@",
-            @(prefix),
-            urlString];
-}
-
-- (NSUInteger)enableAndObserveTickersForWorld:(World *)world
-                                  tickerBlock:(SPLTickerFireBlock)tickerBlock {
+- (NSUInteger)enableAndObserveTickersForWorldIdentifier:(NSString *)worldIdentifier
+                                            tickerBlock:(SPLTickerFireBlock)tickerBlock {
 
     self.lastIdentifier++;
 
     DLog(@"starting tickers %@", @(self.lastIdentifier));
 
     SPLWorldTickerData *data = [SPLWorldTickerData new];
-    data.tickerIdentifiers = [NSMutableArray new];
+    data.worldIdentifier = worldIdentifier;
+    data.tickerTimerNames = [NSMutableArray new];
     data.tickerBlock = tickerBlock;
     data.identifierPrefix = self.lastIdentifier;
     data.timerManager = self.timerManager;
 
-    // FRC observer
-    NSFetchedResultsController *controller = [Ticker MR_fetchAllSortedBy:[Ticker defaultSortField]
-                                                               ascending:[Ticker defaultSortAscending]
-                                                           withPredicate:[Ticker predicateForTickersWithWorld:world]
-                                                                 groupBy:nil
-                                                                delegate:data];
+    NSArray<MUDTickerBridge *> *tickers = [WorldStoreBridge tickersForWorldIdentifier:worldIdentifier];
 
-    data.controller = controller;
-    data.controller.delegate = data;
-
-    for (Ticker *ticker in controller.fetchedObjects) {
-        if (![ticker.isEnabled boolValue]) {
+    for (MUDTickerBridge *ticker in tickers) {
+        if (!ticker.isEnabled) {
             continue;
         }
 
-        [data enableTicker:ticker];
+        [data enableTickerBridge:ticker];
     }
 
-    [self.cache setObject:data
-                   forKey:@(self.lastIdentifier)];
+        self.tickerDataMap[@(self.lastIdentifier)] = data;
 
     return self.lastIdentifier;
 }
 
 - (void)disableTickersForIdentifier:(NSUInteger)identifier {
     DLog(@"Stopping tickers %@", @(identifier));
-    SPLWorldTickerData *data = [self.cache objectForKey:@(identifier)];
+    SPLWorldTickerData *data = self.tickerDataMap[@(identifier)];
 
-    for (NSString *tickerID in data.tickerIdentifiers) {
-        [self.timerManager cancelRepeatingTimerWithName:tickerID];
+    for (NSString *timerName in data.tickerTimerNames) {
+        [self.timerManager cancelRepeatingTimerWithName:timerName];
     }
 
-    data.controller.delegate = nil;
-
-    [self.cache removeObjectForKey:@(identifier)];
+    [self.tickerDataMap removeObjectForKey:@(identifier)];
 }
 
-#pragma mark - OSCacheDelegate
+#pragma mark - WorldStore Change Notification
 
-- (BOOL)cache:(OSCache *)cache shouldEvictObject:(id)entry {
-    return NO;
-}
+- (void)worldStoreDidChange:(NSNotification *)notification {
+    // Re-sync all active ticker sets with current world data
+    NSArray *allKeys = [self.tickerDataMap allKeys];
 
-- (void)cache:(OSCache *)cache willEvictObject:(id)entry {
+    for (NSNumber *key in allKeys) {
+        SPLWorldTickerData *data = self.tickerDataMap[key];
+        if (!data) continue;
 
+        NSArray<MUDTickerBridge *> *currentTickers = [WorldStoreBridge tickersForWorldIdentifier:data.worldIdentifier];
+
+        // Build set of current ticker identifiers
+        NSMutableSet *currentIds = [NSMutableSet set];
+        NSMutableDictionary *tickersByIdentifier = [NSMutableDictionary dictionary];
+        for (MUDTickerBridge *t in currentTickers) {
+            [currentIds addObject:t.identifier];
+            tickersByIdentifier[t.identifier] = t;
+        }
+
+        // Build set of previously-active ticker identifiers
+        NSMutableSet *previousIds = [NSMutableSet set];
+        for (NSString *timerName in [data.tickerTimerNames copy]) {
+            // Timer names are prefix-tickerId
+            NSRange dashRange = [timerName rangeOfString:@"-"];
+            if (dashRange.location != NSNotFound && NSMaxRange(dashRange) < timerName.length) {
+                NSString *tickerId = [timerName substringFromIndex:NSMaxRange(dashRange)];
+                [previousIds addObject:tickerId];
+            }
+        }
+
+        // Disable removed/disabled tickers
+        for (NSString *timerName in [data.tickerTimerNames copy]) {
+            NSRange dashRange = [timerName rangeOfString:@"-"];
+            if (dashRange.location == NSNotFound) continue;
+            NSString *tickerId = [timerName substringFromIndex:NSMaxRange(dashRange)];
+
+            MUDTickerBridge *ticker = tickersByIdentifier[tickerId];
+            if (!ticker || !ticker.isEnabled) {
+                [data.timerManager cancelRepeatingTimerWithName:timerName];
+                [data.tickerTimerNames removeObject:timerName];
+            } else {
+                // Check interval change
+                NSTimeInterval currentInterval = [data.timerManager intervalForTimerWithName:timerName];
+                if ((int64_t)currentInterval != ticker.interval) {
+                    [data.timerManager cancelRepeatingTimerWithName:timerName];
+                    [data.tickerTimerNames removeObject:timerName];
+                    [data enableTickerBridge:ticker];
+                }
+            }
+        }
+
+        // Enable new tickers
+        for (MUDTickerBridge *ticker in currentTickers) {
+            if (!ticker.isEnabled) continue;
+            NSString *timerName = [data timerNameForTickerIdentifier:ticker.identifier];
+            if (![data.tickerTimerNames containsObject:timerName]) {
+                [data enableTickerBridge:ticker];
+            }
+        }
+    }
 }
 
 @end
 
 @implementation SPLWorldTickerData
 
-- (void)enableTicker:(Ticker *)ticker {
-    NSManagedObjectID *tickerId = [ticker objectID];
-    NSString *tickerIdentifier = [SPLWorldTickerManager tickerIdentifierForTicker:ticker
-                                                                           prefix:self.identifierPrefix];
+- (NSString *)timerNameForTickerIdentifier:(NSString *)tickerIdentifier {
+    return [NSString stringWithFormat:@"%@-%@", @(self.identifierPrefix), tickerIdentifier];
+}
 
-    if (![self.tickerIdentifiers containsObject:tickerIdentifier]) {
-        [self.tickerIdentifiers addObject:tickerIdentifier];
+- (void)enableTickerBridge:(MUDTickerBridge *)ticker {
+    NSString *tickerIdentifier = ticker.identifier;
+    NSString *timerName = [self timerNameForTickerIdentifier:tickerIdentifier];
+    NSString *worldId = [self.worldIdentifier copy];
+
+    if (![self.tickerTimerNames containsObject:timerName]) {
+        [self.tickerTimerNames addObject:timerName];
     }
 
     @weakify(self);
     SPLTimerManager *manager = self.timerManager;
-    [manager scheduleRepeatingTimerWithName:tickerIdentifier
-                                   interval:[ticker.interval unsignedIntegerValue]
+    [manager scheduleRepeatingTimerWithName:timerName
+                                   interval:(NSTimeInterval)ticker.interval
                                       block:^{
                                           @strongify(self);
                                           if (self.tickerBlock) {
-                                              self.tickerBlock(tickerId);
+                                              self.tickerBlock(tickerIdentifier, worldId);
                                           }
                                       }];
 }
 
-- (void)disableTicker:(Ticker *)ticker {
-    NSString *identifier = [SPLWorldTickerManager tickerIdentifierForTicker:ticker
-                                                                     prefix:self.identifierPrefix];
+- (void)disableTickerBridge:(MUDTickerBridge *)ticker {
+    NSString *timerName = [self timerNameForTickerIdentifier:ticker.identifier];
 
     SPLTimerManager *manager = self.timerManager;
-    [manager cancelRepeatingTimerWithName:identifier];
-    [self.tickerIdentifiers removeObject:identifier];
-}
-
-#pragma mark - NSFetchedResultsControllerDelegate
-
-- (void)controller:(NSFetchedResultsController *)controller
-   didChangeObject:(id)anObject
-       atIndexPath:(NSIndexPath *)indexPath
-     forChangeType:(NSFetchedResultsChangeType)type
-      newIndexPath:(NSIndexPath *)newIndexPath {
-
-    Ticker *ticker = (Ticker *)anObject;
-    NSString *tickerIdentifier = [SPLWorldTickerManager tickerIdentifierForTicker:ticker
-                                                                           prefix:self.identifierPrefix];
-    SPLTimerManager *manager = self.timerManager;
-
-    switch (type) {
-        case NSFetchedResultsChangeDelete:
-            DLog(@"Canceling Ticker %@", tickerIdentifier);
-            [self disableTicker:ticker];
-            break;
-
-        case NSFetchedResultsChangeInsert:
-            DLog(@"Adding Ticker %@", tickerIdentifier);
-            [self enableTicker:ticker];
-            break;
-
-        case NSFetchedResultsChangeUpdate:
-        case NSFetchedResultsChangeMove:
-
-            // Enable or disable if necessary
-            if ([ticker.isEnabled boolValue]) {
-                if (![manager isTickerEnabledWithIdentifier:tickerIdentifier]) {
-                    [self enableTicker:ticker];
-                } else {
-                    // Ticker is enabled and already firing. Check that intervals match
-                    NSNumber *interval = ticker.interval;
-
-                    if (![interval isEqualToNumber:@([manager intervalForTimerWithName:tickerIdentifier])]) {
-                        DLog(@"Reschedule ticker to %@", interval);
-                        [self disableTicker:ticker];
-                        [self enableTicker:ticker];
-                    }
-                }
-            } else if (![ticker.isEnabled boolValue]) {
-                [manager cancelRepeatingTimerWithName:tickerIdentifier];
-            }
-
-            break;
-    }
+    [manager cancelRepeatingTimerWithName:timerName];
+    [self.tickerTimerNames removeObject:timerName];
 }
 
 @end
