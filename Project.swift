@@ -39,6 +39,8 @@ let project = Project(
             deploymentTargets: .iOS("26.0"),
             infoPlist: .extendingDefault(with: [
                 "CFBundleDisplayName": .string("MUDWammer"),
+                "CFBundleShortVersionString": .string("1.0.0"),
+                "CFBundleVersion": .string("1"),
                 "UIAppFonts": .array([
                     .string("AndaleMono.ttf"),
                     .string("AnonymousProMinusB.ttf"),
