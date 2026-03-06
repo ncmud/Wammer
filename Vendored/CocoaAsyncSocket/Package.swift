@@ -9,6 +9,7 @@ let package = Package(
             name: "CocoaAsyncSocket",
             path: "Sources",
             publicHeadersPath: "include",
+            cSettings: [.unsafeFlags(["-w"])],
             linkerSettings: [
                 .linkedFramework("Security"),
                 .linkedFramework("CFNetwork")

@@ -21,6 +21,8 @@
 
 @property (nonatomic, weak) id <SSMUDSocketDelegate> delegate;
 
+- (instancetype) init NS_UNAVAILABLE;
+
 - (instancetype) initWithSocket:(GCDAsyncSocket *)socket NS_DESIGNATED_INITIALIZER;
 
 #pragma mark - Connection Lifecycle

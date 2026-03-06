@@ -27,6 +27,8 @@ extern UIEdgeInsets const kToolbarInsets;
 
 @property (nonatomic, weak) id <SSMUDToolbarDelegate> toolbarDelegate;
 
+- (instancetype) initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
+
 - (instancetype) initWithFrame:(CGRect)frame NS_DESIGNATED_INITIALIZER;
 
 @end

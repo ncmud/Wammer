@@ -10,7 +10,8 @@ let package = Package(
             name: "VTAcknowledgementsViewController",
             path: "Sources",
             resources: [.process("Resources")],
-            publicHeadersPath: "include"
+            publicHeadersPath: "include",
+            cSettings: [.unsafeFlags(["-w"])]
         )
     ]
 )

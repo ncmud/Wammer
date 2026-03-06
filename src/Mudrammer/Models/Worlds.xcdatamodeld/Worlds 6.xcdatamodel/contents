@@ -30,7 +30,7 @@
     </entity>
     <entity name="Trigger" representedClassName="Trigger" syncable="YES">
         <attribute name="commands" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="highlightColor" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="highlightColor" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformer" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="isEnabled" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="isHidden" optional="YES" attributeType="Boolean" syncable="YES"/>

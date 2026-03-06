@@ -111,8 +111,8 @@
     [Trigger createObjectWithCompletion:^(NSManagedObjectID *objectId) {
         [self.navigationController pushViewController:
          [SSTGAEditor editorForRecord:objectId
-                              inWorld:[currentWorld objectID]
-                        parentContext:editContext]
+                              inWorld:[self->currentWorld objectID]
+                        parentContext:self->editContext]
                                                  animated:YES];
     }];
 }
@@ -121,8 +121,8 @@
     [Alias createObjectWithCompletion:^(NSManagedObjectID *objectId) {
         [self.navigationController pushViewController:
          [SSTGAEditor editorForRecord:objectId
-                              inWorld:[currentWorld objectID]
-                        parentContext:editContext]
+                              inWorld:[self->currentWorld objectID]
+                        parentContext:self->editContext]
                                              animated:YES];
     }];
 }
@@ -131,8 +131,8 @@
     [Gag createObjectWithCompletion:^(NSManagedObjectID *objectId) {
         [self.navigationController pushViewController:
          [SSTGAEditor editorForRecord:objectId
-                              inWorld:[currentWorld objectID]
-                        parentContext:editContext]
+                              inWorld:[self->currentWorld objectID]
+                        parentContext:self->editContext]
                                              animated:YES];
     }];
 }
@@ -141,8 +141,8 @@
     [Ticker createObjectWithCompletion:^(NSManagedObjectID *objectId) {
         [self.navigationController pushViewController:
          [SPLFXWorldEditor editorForRecord:objectId
-                                   inWorld:[currentWorld objectID]
-                             parentContext:editContext]
+                                   inWorld:[self->currentWorld objectID]
+                             parentContext:self->editContext]
                                              animated:YES];
     }];
 }

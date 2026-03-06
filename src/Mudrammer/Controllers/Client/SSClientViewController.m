@@ -97,6 +97,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     // logging
     NSString *logFileName;
+
+    // status bar visibility
+    BOOL _shouldHideStatusBar;
 }
 
 #pragma mark - init
@@ -136,7 +139,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         // Voiceover enabling
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(voiceOverStatusDidChange:)
-                                                     name:UIAccessibilityVoiceOverStatusChanged
+                                                     name:UIAccessibilityVoiceOverStatusDidChangeNotification
                                                    object:nil];
 
         // font changes cause NAWS
@@ -333,10 +336,17 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self updateWorldToolbar];
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
     [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 
     [self sendNAWS];
+}
+#pragma clang diagnostic pop
+
+- (BOOL)prefersStatusBarHidden {
+    return _shouldHideStatusBar;
 }
 
 - (void)setNavVisible:(BOOL)visible {
@@ -356,12 +366,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
         return;
     }
 
-    if( !self.presentedViewController
-       && [[UIApplication sharedApplication] isStatusBarHidden] == visible )
-        [[UIApplication sharedApplication] setStatusBarHidden:!visible
-                                                withAnimation:UIStatusBarAnimationFade];
-
-    [self setNeedsStatusBarAppearanceUpdate];
+    if( !self.presentedViewController ) {
+        _shouldHideStatusBar = !visible;
+        [self setNeedsStatusBarAppearanceUpdate];
+    }
 
     if( [self.navigationController isNavigationBarHidden] == visible )
         [self.navigationController setNavigationBarHidden:!visible
@@ -561,16 +569,16 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
         [world setDefaultWorld];
 
-        logFileName = [SSSessionLogger logFileNameForHost:world.hostname];
+        self->logFileName = [SSSessionLogger logFileNameForHost:world.hostname];
 
-        if (![currentWorld isEqual:world]) {
-            currentWorld = world;
+        if (![self->currentWorld isEqual:world]) {
+            self->currentWorld = world;
 
-            defaultWorldFetcher.delegate = nil;
-            defaultWorldFetcher = nil;
+            self->defaultWorldFetcher.delegate = nil;
+            self->defaultWorldFetcher = nil;
             // default world
-            defaultWorldFetcher = [World MR_fetchAllGroupedBy:nil
-                                                withPredicate:[NSPredicate predicateWithFormat:@"(self = %@)", currentWorld]
+            self->defaultWorldFetcher = [World MR_fetchAllGroupedBy:nil
+                                                withPredicate:[NSPredicate predicateWithFormat:@"(self = %@)", self->currentWorld]
                                                      sortedBy:[World defaultSortField]
                                                     ascending:[World defaultSortAscending]
                                                      delegate:self];
@@ -578,8 +586,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
         [self updateWorldToolbar];
 
-        self.hostname = currentWorld.hostname;
-        self.port = currentWorld.port;
+        self.hostname = self->currentWorld.hostname;
+        self.port = self->currentWorld.port;
 
         if ([self isConnected]) {
             [self disconnect];
@@ -651,12 +659,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self closeSettingsWithCompletion:^{
         @strongify(self);
 
-        if (![MFMailComposeViewController canSendMail] || [logFileName length] == 0) {
+        if (![MFMailComposeViewController canSendMail] || [self->logFileName length] == 0) {
             return;
         }
 
         void (^LogProcessOperation) (void) = ^{
-            NSString *logString = [SSSessionLogger contentsOfLogWithFileName:logFileName];
+            NSString *logString = [SSSessionLogger contentsOfLogWithFileName:self->logFileName];
 
             if ([logString length] == 0) {
                 return;
@@ -819,7 +827,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
                 trigger.trigger = text;
             } completion:^(BOOL didSave, NSError *error) {
                 SSTGAEditor *editor = [SSTGAEditor editorForRecord:objectID
-                                                           inWorld:currentWorld.objectID
+                                                           inWorld:self->currentWorld.objectID
                                                      parentContext:[NSManagedObjectContext MR_defaultContext]];
 
                 UINavigationController *nav = [editor wrappedNavigationController];
@@ -839,7 +847,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
                 gag.gag = text;
             } completion:^(BOOL didSave, NSError *error) {
                 SSTGAEditor *editor = [SSTGAEditor editorForRecord:objectID
-                                                           inWorld:currentWorld.objectID
+                                                           inWorld:self->currentWorld.objectID
                                                      parentContext:[NSManagedObjectContext MR_defaultContext]];
 
                 UINavigationController *nav = [editor wrappedNavigationController];
@@ -958,8 +966,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self appendText:[NSLocalizedString(@"CONNECTED", @"Connected") stringByAppendingString:@"\n"]
                  isUserInput:NO];
 
-            if( [[currentWorld worldDescription] length] > 0 )
-                [self updateTitle:[currentWorld worldDescription]];
+            if( [[self->currentWorld worldDescription] length] > 0 )
+                [self updateTitle:[self->currentWorld worldDescription]];
             else
                 [self updateTitle:[NSString stringWithFormat:@"%@:%@",
                                    self.hostname,
@@ -974,7 +982,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self.mudView setEditable:YES];
             [self.mudView setKeyboardPanningEnabled:YES];
 
-            self.tickerIdentifier = [self.tickerManager enableAndObserveTickersForWorld:currentWorld
+            self.tickerIdentifier = [self.tickerManager enableAndObserveTickersForWorld:self->currentWorld
                                                                             tickerBlock:^(NSManagedObjectID *tickerId)
             {
                 @strongify(self);
@@ -1003,14 +1011,14 @@ typedef void (^SPLSettingsCloseBlock) (void);
             }];
 
             // Connect command
-            if ([currentWorld.connectCommand length] > 0) {
+            if ([self->currentWorld.connectCommand length] > 0) {
                 DLog(@"Scheduling connect commands");
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kConnectCommandsDelay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                    if (![self isConnected] || [currentWorld.connectCommand length] == 0) {
+                    if (![self isConnected] || [self->currentWorld.connectCommand length] == 0) {
                         return;
                     }
 
-                    [self mudView:self.mudView didReceiveUserCommand:currentWorld.connectCommand];
+                    [self mudView:self.mudView didReceiveUserCommand:self->currentWorld.connectCommand];
                 });
             }
 
@@ -1062,7 +1070,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             [self.mudView appendTTS:[NSString stringWithFormat:@"Disconnected from %@", self.hostname]];
 
-            [self.logger closeStreamForFileName:logFileName];
+            [self.logger closeStreamForFileName:self->logFileName];
 
             [self.tickerManager disableTickersForIdentifier:self.tickerIdentifier];
 

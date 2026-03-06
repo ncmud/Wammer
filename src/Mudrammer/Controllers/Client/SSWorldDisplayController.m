@@ -159,15 +159,20 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
     self.dataSource.tableView = self.tableView;
     [self.tableView reloadData];
 
-    [[UIApplication sharedApplication] setStatusBarHidden:NO
-                                            withAnimation:UIStatusBarAnimationFade];
 }
 
+- (BOOL)prefersStatusBarHidden {
+    return NO;
+}
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 - (BOOL)shouldAutorotate {
     return YES;
 }
+#pragma clang diagnostic pop
 
-- (NSUInteger)supportedInterfaceOrientations {
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskAll;
 }
 
@@ -185,13 +190,17 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 #pragma mark - UITableViewDelegate
 
 - (CGFloat) tableHeaderHeight {
-    CGFloat statusHeight = CGRectGetHeight([UIApplication sharedApplication].statusBarFrame);
+    CGFloat statusHeight = 0;
+    UIWindowScene *scene = self.view.window.windowScene;
+    if (scene) {
+        statusHeight = scene.statusBarManager.statusBarFrame.size.height;
+    }
 
     if (statusHeight > 20) {
         return 20.f;
     }
 
-    return statusHeight;
+    return MAX(statusHeight, 20.f);
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {

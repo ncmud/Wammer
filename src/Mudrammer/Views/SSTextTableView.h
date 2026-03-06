@@ -10,6 +10,9 @@
 
 @interface SSTextTableView : UITableView <UIScrollViewAccessibilityDelegate>
 
+- (instancetype) initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
+- (instancetype) initWithFrame:(CGRect)frame style:(UITableViewStyle)style NS_UNAVAILABLE;
+
 // Specify a frame.
 - (instancetype) initWithFrame:(CGRect)frame NS_DESIGNATED_INITIALIZER;
 

@@ -283,8 +283,8 @@ NSUInteger const kLineDeleteAmount = (kMaxLineHistory / 5);
                 [self removeItemsInRange:NSMakeRange(0, kLineDeleteAmount)];
 
                 if (self.cursorPosition.vertical >= kLineDeleteAmount) {
-                    _cursorPosition = UIOffsetMake(self.cursorPosition.horizontal,
-                                                   self.cursorPosition.vertical - kLineDeleteAmount);
+                    self->_cursorPosition = UIOffsetMake(self.cursorPosition.horizontal,
+                                                       self.cursorPosition.vertical - kLineDeleteAmount);
                 }
             }
 

@@ -26,7 +26,10 @@
 
 #import <UIKit/UIKit.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 @interface TOWebViewController : UIViewController <UIWebViewDelegate>
+#pragma clang diagnostic pop
 
 /**
  Initializes a new `TOWebViewController` object with the specified URL.
@@ -40,7 +43,7 @@
 /**
  Initializes a new `TOWebViewController` object with the specified URL string.
  
- @param url The URL as a string, of the web page that the controller will initially display.
+ @param urlString The URL as a string, of the web page that the controller will initially display.
  
  @return The newly initialized `TOWebViewController` object.
  */
@@ -62,7 +65,10 @@
  
  @warning Usage of the web view's delegate property is reserved by this view controller. Do not set it to another object.
  */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 @property (nonatomic,readonly)  UIWebView *webView;
+#pragma clang diagnostic pop
 
 /** 
  Shows a loading progress bar underneath the top navigation bar. 

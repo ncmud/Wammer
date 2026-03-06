@@ -17,10 +17,13 @@
 #import <UIKit/UIKit.h>
 
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 @interface QWebViewController : UIViewController <UIWebViewDelegate> {
 
 @private
     UIWebView *_webView;
+#pragma clang diagnostic pop
     NSString *_url;
     NSString *_html;
 }
