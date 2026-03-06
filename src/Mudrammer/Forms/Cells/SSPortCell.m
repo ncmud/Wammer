@@ -41,13 +41,15 @@
 }
 
 - (QDecimalElement *)decimalElement {
+    if (!_entryElement) return nil;
     return ((QDecimalElement *)_entryElement);
 }
 
 - (void)updateTextFieldFromElement {
-    [_numberFormatter setMaximumFractionDigits:[self decimalElement].fractionDigits];
-    [_numberFormatter setMinimumFractionDigits:[self decimalElement].fractionDigits];
-    QDecimalElement *el = (QDecimalElement *)_entryElement;
+    QDecimalElement *el = [self decimalElement];
+    if (!el) return;
+    [_numberFormatter setMaximumFractionDigits:el.fractionDigits];
+    [_numberFormatter setMinimumFractionDigits:el.fractionDigits];
     _textField.text = [_numberFormatter stringFromNumber:el.numberValue];
 }
 
@@ -78,7 +80,7 @@
     if(_entryElement && _entryElement.delegate && [_entryElement.delegate respondsToSelector:@selector(QEntryShouldChangeCharactersInRange:withString:forElement:andCell:)])
         shouldChange = [_entryElement.delegate QEntryShouldChangeCharactersInRange:range withString:replacement forElement:_entryElement andCell:self];
 
-    if( shouldChange ) {
+    if( shouldChange && replacement ) {
         NSString *newValue = [_textField.text stringByReplacingCharactersInRange:range withString:replacement];
         [self updateElementFromTextField:newValue];
         [self updateTextFieldFromElement];
