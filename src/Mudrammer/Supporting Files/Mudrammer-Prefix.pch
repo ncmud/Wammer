@@ -27,11 +27,8 @@
     // Assetgen
     #import "SPLImagesCatalog.h"
 
-    // Core Data
-    #import "SSMagicManagedObject.h"
-
     // Models
-    #import "SSModels.h"
+    #import "MUDModels.h"
 
     // Mudrammer
     #import "SSAppDelegate.h"

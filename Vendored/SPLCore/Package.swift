@@ -5,13 +5,12 @@ let package = Package(
     platforms: [.iOS(.v26)],
     products: [.library(name: "SPLCore", targets: ["SPLCore"])],
     dependencies: [
-        .package(name: "MagicalRecord", path: "../MagicalRecord"),
         .package(name: "libextobjc", path: "../libextobjc"),
     ],
     targets: [
         .target(
             name: "SPLCore",
-            dependencies: ["MagicalRecord", "libextobjc"],
+            dependencies: ["libextobjc"],
             path: "Sources",
             publicHeadersPath: "include",
             cSettings: [.unsafeFlags(["-w"])]

@@ -9,6 +9,7 @@
 #import "SSMudView.h"
 #import "SSRadialControl.h"
 #import "SSSettingsViewController.h"
+#import "MUDModels.h"
 @import SSAccessibility;
 @import Masonry;
 @import DAKeyboardControl;
@@ -555,7 +556,7 @@
 
     if ([del respondsToSelector:@selector(mudView:shouldCreateRecordWithText:type:)]) {
         [del mudView:self shouldCreateRecordWithText:self.lastSelectedText
-                type:[Trigger class]];
+                type:[MUDTrigger class]];
     }
 }
 
@@ -564,7 +565,7 @@
 
     if ([del respondsToSelector:@selector(mudView:shouldCreateRecordWithText:type:)]) {
         [del mudView:self shouldCreateRecordWithText:self.lastSelectedText
-                type:[Gag class]];
+                type:[MUDGag class]];
     }
 }
 

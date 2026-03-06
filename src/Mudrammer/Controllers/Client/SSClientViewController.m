@@ -815,14 +815,14 @@ typedef void (^SPLSettingsCloseBlock) (void);
     NSString *worldId = [currentWorldIdentifier copy];
     SSTGAEditor *editor = nil;
 
-    if (recordType == [Trigger class] || recordType == [MUDTrigger class]) {
+    if (recordType == [MUDTrigger class]) {
         MUDTrigger *trigger = [[MUDTrigger alloc] init];
         trigger.trigger = text;
         [WorldStoreBridge addTrigger:trigger toWorldIdentifier:worldId];
 
         editor = [SSTGAEditor editorForTrigger:trigger.identifier
                                worldIdentifier:worldId];
-    } else if (recordType == [Gag class] || recordType == [MUDGag class]) {
+    } else if (recordType == [MUDGag class]) {
         MUDGag *gag = [[MUDGag alloc] init];
         gag.gag = text;
         [WorldStoreBridge addGag:gag toWorldIdentifier:worldId];

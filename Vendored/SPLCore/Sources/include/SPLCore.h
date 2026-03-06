@@ -13,7 +13,6 @@
 
 // Pod dependencies
 #import <EXTScope.h>
-#import <MagicalRecord.h>
 
 // Core
 #import "SPLFloat.h"
@@ -25,9 +24,6 @@
 #import "UITableView+SSAdditions.h"
 #import "UIView+SPLAdditions.h"
 #import "UIColor+SSAdditions.h"
-
-// Model Additions
-#import "SSMagicManagedObject.h"
 
 // Core Additions
 #import "UIDevice+SSAdditions.h"
