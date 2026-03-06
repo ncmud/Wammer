@@ -31,8 +31,9 @@ typedef NS_ENUM(NSUInteger, SPLScrollPosition) {
     SPLScrollPositionTopOfCurrentScreen
 };
 
-NSUInteger const kMaxLineHistory = 2000;
+NSUInteger const kMaxLineHistory = 10000;
 NSUInteger const kLineDeleteAmount = (kMaxLineHistory / 5);
+NSUInteger const kMaxLineQueueSize = (kMaxLineHistory * 2);
 
 @interface SPLTerminalDataSource ()
 
@@ -40,7 +41,9 @@ NSUInteger const kLineDeleteAmount = (kMaxLineHistory / 5);
 @property (nonatomic, strong) SSAttributedLineGroup *lineQueue;
 @property (nonatomic, strong) FBKVOController *kvoController;
 @property (nonatomic, strong) NSMutableDictionary *changeDictionary;
+@property (nonatomic, assign) BOOL flushPending;
 
+- (void) scheduleFlush;
 - (void) flushLineQueue;
 
 - (void) restartOperationQueue;
@@ -211,7 +214,13 @@ NSUInteger const kLineDeleteAmount = (kMaxLineHistory / 5);
         }
 
         [self.lineQueue appendAttributedLineGroup:group];
-        [self flushLineQueue];
+
+        // Cap the line queue to prevent memory exhaustion during server floods
+        while ([self.lineQueue.lines count] > kMaxLineQueueSize) {
+            [self.lineQueue removeFirstLine];
+        }
+
+        [self scheduleFlush];
     }];
 }
 
@@ -238,11 +247,21 @@ NSUInteger const kLineDeleteAmount = (kMaxLineHistory / 5);
     [self.operationQueue cancelAllOperations];
     [self.lineQueue cleanAllLines];
     [self.changeDictionary removeAllObjects];
+    self.flushPending = NO;
     [super clearItems];
     _cursorPosition = UIOffsetMake(1, 1);
 }
 
 #pragma mark - Flush changes
+
+- (void)scheduleFlush {
+    if (self.flushPending) {
+        return;
+    }
+
+    self.flushPending = YES;
+    [self flushLineQueue];
+}
 
 - (void) flushLineQueue {
     @weakify(self);
@@ -252,6 +271,7 @@ NSUInteger const kLineDeleteAmount = (kMaxLineHistory / 5);
 
         if ([operation isCancelled] || [self.lineQueue.lines count] == 0) {
             DLog(@"No text to flush.");
+            self.flushPending = NO;
             return;
         }
 
@@ -377,6 +397,7 @@ NSUInteger const kLineDeleteAmount = (kMaxLineHistory / 5);
             }
 
             [self.lineQueue cleanAllLines];
+            self.flushPending = NO;
 
             if ([operation isCancelled]) {
                 return;
