@@ -126,9 +126,12 @@
     });
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 - (BOOL)shouldAutorotate {
     return YES;
 }
+#pragma clang diagnostic pop
 
 - (void)dealloc {
     _kvoController = nil;
@@ -181,7 +184,7 @@
 
         NSInteger currentClient = [[SSClientContainer worldDisplayDrawer] selectedIndex];
 
-        void (^WorldChangeBlock)() = ^{
+        void (^WorldChangeBlock)(void) = ^{
             [[[SSClientContainer worldDisplayDrawer] clientAtIndex:currentClient] updateCurrentWorld:newWorld
                                                                                   connectAfterUpdate:YES];
         };

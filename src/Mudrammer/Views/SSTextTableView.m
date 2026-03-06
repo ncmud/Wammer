@@ -17,12 +17,9 @@
 
 - (SPLTerminalDataSource *)MUDDataSource;
 
-- (void) willRotate;
-- (void) didRotate;
+- (void) deviceOrientationDidChange;
 
 @property (nonatomic, strong) FBKVOController *kvoController;
-
-@property (nonatomic, assign) BOOL shouldScrollAfterRotate;
 
 @end
 
@@ -54,13 +51,8 @@
 
         // Scroll after rotation
         [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(willRotate)
-                                                     name:UIApplicationWillChangeStatusBarOrientationNotification
-                                                   object:nil];
-
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(didRotate)
-                                                     name:UIApplicationDidChangeStatusBarOrientationNotification
+                                                 selector:@selector(deviceOrientationDidChange)
+                                                     name:UIDeviceOrientationDidChangeNotification
                                                    object:nil];
     }
 
@@ -277,21 +269,18 @@
 
 #pragma mark - Rotation
 
-- (void)willRotate {
-    self.shouldScrollAfterRotate = [self isNearBottom];
-}
+- (void)deviceOrientationDidChange {
+    BOOL wasNearBottom = [self isNearBottom];
 
-- (void)didRotate {
     if (!self.window) {
         return;
     }
 
     [SAMRateLimit executeBlock:^{
-        if (self.shouldScrollAfterRotate) {
+        if (wasNearBottom) {
             [self performSelector:@selector(scrollToBottom)
                        withObject:nil
                        afterDelay:0.2f];
-            self.shouldScrollAfterRotate = NO;
         }
     } name:@"TableRotate" limit:0.3f];
 }

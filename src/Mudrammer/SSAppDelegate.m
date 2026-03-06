@@ -32,10 +32,11 @@
 
 #pragma mark - URL tapped
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 - (BOOL)application:(UIApplication *)application
             openURL:(NSURL *)url
-  sourceApplication:(NSString *)sourceApplication
-         annotation:(id)annotation {
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
 
     if (!url || ![url host]) {
         return NO;
@@ -68,6 +69,7 @@
 
     return NO;
 }
+#pragma clang diagnostic pop
 
 #pragma mark - SSApplication
 

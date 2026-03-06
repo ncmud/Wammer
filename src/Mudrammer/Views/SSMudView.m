@@ -484,6 +484,8 @@
     return suggestedSize.height;
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 
     UIMenuController *menuController = [UIMenuController sharedMenuController];
@@ -521,6 +523,7 @@
 
     [menuController setMenuVisible:YES animated:YES];
 }
+#pragma clang diagnostic pop
 
 #pragma mark - UIResponder
 
@@ -582,6 +585,8 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     if (self.lastMenuIndex && [[UIMenuController sharedMenuController] isMenuVisible]) {
         if ([[self.tableView indexPathsForVisibleRows] containsObject:self.lastMenuIndex]) {
             CGRect newRowRect = [self.tableView rectForRowAtIndexPath:self.lastMenuIndex];
@@ -592,6 +597,7 @@
             [[UIMenuController sharedMenuController] setMenuVisible:NO animated:YES];
         }
     }
+#pragma clang diagnostic pop
 
     if (!self.shouldHideTopNav || !self.isUserScrolling) {
         return;

@@ -21,6 +21,8 @@
  */
 @interface SPLTelnetLib : NSObject
 
+- (instancetype) init NS_UNAVAILABLE;
+
 - (instancetype) initWithStringCoder:(SSStringCoder *)stringCoder NS_DESIGNATED_INITIALIZER;
 
 @property (nonatomic, weak) id <SPLTelnetLibDelegate> delegate;

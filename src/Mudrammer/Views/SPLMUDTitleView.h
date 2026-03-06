@@ -15,6 +15,8 @@
 
 @interface SPLMUDTitleView : UIView
 
+- (instancetype) initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
+
 - (instancetype) initWithFrame:(CGRect)frame NS_DESIGNATED_INITIALIZER;
 
 /**

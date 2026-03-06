@@ -25,7 +25,7 @@
 
 @property(nonatomic, assign) BOOL resizeWhenKeyboardPresented;
 
-@property(nonatomic, copy) void (^willDisappearCallback)();
+@property(nonatomic, copy) void (^willDisappearCallback)(void);
 
 @property(nonatomic, strong) QMultilineElement *entryElement;
 

@@ -17,6 +17,8 @@
 
 @property (nonatomic, weak) id <UITextViewDelegate, SSGrowingTextViewDelegate> textDelegate;
 
+- (instancetype) initWithCoder:(NSCoder *)coder NS_UNAVAILABLE;
+
 - (instancetype) initWithFrame:(CGRect)frame
                  textContainer:(NSTextContainer *)textContainer NS_DESIGNATED_INITIALIZER;
 

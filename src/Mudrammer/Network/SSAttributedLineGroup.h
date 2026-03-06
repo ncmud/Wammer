@@ -37,6 +37,8 @@ typedef NS_ENUM(NSUInteger, SSLineGroupCommandType) {
 @property (readonly, nonatomic, assign) NSUInteger number1;
 @property (readonly, nonatomic, assign) NSUInteger number2;
 
+- (instancetype) init NS_UNAVAILABLE;
+
 - (instancetype) initWithCommand:(SSLineGroupCommandType)command
                          number1:(NSUInteger)number1
                          number2:(NSUInteger)number2 NS_DESIGNATED_INITIALIZER;

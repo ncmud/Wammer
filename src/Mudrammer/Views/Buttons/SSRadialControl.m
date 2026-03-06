@@ -243,9 +243,9 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c )
         [UIView animateWithDuration:kFadeDuration
                          animations:^{
                              if( enabled )
-                                 grabber.alpha = kAlphaInactive;
+                                 self->grabber.alpha = kAlphaInactive;
                              else
-                                 grabber.alpha = 0.0f;
+                                 self->grabber.alpha = 0.0f;
                          }];
     }
 }
@@ -274,17 +274,17 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c )
 - (void)didTap:(UITapGestureRecognizer *)tapper {
     [UIView animateWithDuration:kFadeDuration
                      animations:^{
-                         CGPoint newCenter = CGPointMake( grabber.center.x + ( arc4random() % 60 ) - 30,
-                                                         grabber.center.y + ( arc4random() % 60 ) - 30 );
+                         CGPoint newCenter = CGPointMake( self->grabber.center.x + ( arc4random() % 60 ) - 30,
+                                                         self->grabber.center.y + ( arc4random() % 60 ) - 30 );
 
-                         grabber.center = newCenter;
-                         grabber.alpha = kAlphaActive;
+                         self->grabber.center = newCenter;
+                         self->grabber.alpha = kAlphaActive;
                      } completion:^(BOOL finished) {
-                         if( !isPanning )
+                         if( !self->isPanning )
                              [UIView animateWithDuration:kFadeDuration
                                               animations:^{
-                                                  grabber.center = background.center;
-                                                  grabber.alpha = kAlphaInactive;
+                                                  self->grabber.center = self->background.center;
+                                                  self->grabber.alpha = kAlphaInactive;
                                               }];
                      }];
 }
@@ -303,8 +303,8 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c )
 
             [UIView animateWithDuration:kFadeDuration
                              animations:^{
-                                 background.alpha = 0.85f;
-                                 grabber.alpha = kAlphaActive;
+                                 self->background.alpha = 0.85f;
+                                 self->grabber.alpha = kAlphaActive;
                                  self.directionLabel.alpha = 1.0f;
                              }
                              completion:^(BOOL finished) {
@@ -370,9 +370,9 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c )
 
             [UIView animateWithDuration:kFadeDuration
                              animations:^{
-                                 grabber.center = background.center;
-                                 background.alpha = 0.0f;
-                                 grabber.alpha = kAlphaInactive;
+                                 self->grabber.center = self->background.center;
+                                 self->background.alpha = 0.0f;
+                                 self->grabber.alpha = kAlphaInactive;
                                  self.directionLabel.alpha = 0.0f;
                              }
                              completion:^(BOOL finished) {

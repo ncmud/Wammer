@@ -35,7 +35,7 @@
 }
 
 @property(nonatomic, retain) QRootElement * root;
-@property(nonatomic, copy) void (^willDisappearCallback)();
+@property(nonatomic, copy) void (^willDisappearCallback)(void);
 @property(nonatomic, strong) QuickDialogTableView *quickDialogTableView;
 @property(nonatomic) BOOL resizeWhenKeyboardPresented;
 

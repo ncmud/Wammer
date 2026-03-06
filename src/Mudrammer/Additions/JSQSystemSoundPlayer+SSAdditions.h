@@ -42,6 +42,8 @@
 @property (nonatomic, copy, readonly) NSString * fileName;
 @property (nonatomic, copy, readonly) NSString * soundName;
 
+- (instancetype) init NS_UNAVAILABLE;
+
 - (instancetype) initWithFileName:(NSString *)fileName
                         soundName:(NSString *)soundName NS_DESIGNATED_INITIALIZER;
 
