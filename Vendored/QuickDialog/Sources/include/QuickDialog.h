@@ -95,6 +95,4 @@
 #import "QuickDialogController+Animations.h"
 #import "QuickDialogDataSource.h"
 #import "QuickDialogWebController.h"
-#import "QWebElement.h"
-#import "QWebViewController.h"
 #import "UIColor+ColorUtilities.h"

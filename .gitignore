@@ -32,3 +32,4 @@ Derived/
 *.xcodeproj/
 *.xcworkspace/
 .mcp.json
+.env

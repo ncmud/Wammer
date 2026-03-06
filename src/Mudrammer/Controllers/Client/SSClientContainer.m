@@ -163,8 +163,9 @@
 
             [[[SSClientContainer worldDisplayDrawer] currentVisibleClient] hideKeyboard];
 
-            [[[SSClientContainer worldDisplayDrawer] currentVisibleClient].navigationController pushViewController:webView
-                                                                                                          animated:YES];
+            [[[SSClientContainer worldDisplayDrawer] currentVisibleClient] presentViewController:webView
+                                                                                        animated:YES
+                                                                                      completion:nil];
         }
     });
 }

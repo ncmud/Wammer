@@ -124,8 +124,7 @@
     } else {
         SPLHandoffWebViewController *webView = [[SPLHandoffWebViewController alloc] initWithURL:url];
 
-        [self.navigationController pushViewController:webView
-                                             animated:YES];
+        [self presentViewController:webView animated:YES completion:nil];
     }
 }
 

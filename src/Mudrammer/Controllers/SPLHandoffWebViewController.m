@@ -8,11 +8,20 @@
 
 #import "SPLHandoffWebViewController.h"
 
-@interface SPLHandoffWebViewController ()
+@interface SPLHandoffWebViewController () <SFSafariViewControllerDelegate>
 
 @end
 
 @implementation SPLHandoffWebViewController
+
+- (instancetype)initWithURL:(NSURL *)url {
+    self = [super initWithURL:url];
+    if (self) {
+        self.delegate = self;
+        self.webActivity = [SPLWebActivity activityWithURL:url];
+    }
+    return self;
+}
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
@@ -23,20 +32,14 @@
     }
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
-- (void)webViewDidFinishLoad:(UIWebView *)webView {
-    [super webViewDidFinishLoad:webView];
+#pragma mark - SFSafariViewControllerDelegate
 
-    NSURL *url = webView.request.URL;
-    if (!self.webActivity && url) {
-        self.webActivity = [SPLWebActivity activityWithURL:url];
-    } else if (self.webActivity && url) {
-        self.webActivity.userActivity.webpageURL = url;
-        [self.webActivity setNeedsUpdate];
-    }
+- (void)safariViewController:(SFSafariViewController *)controller didCompleteInitialNavigation:(BOOL)didLoadSuccessfully {
+    // Handoff activity was set at init time via the URL
 }
-#pragma clang diagnostic pop
+
+- (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
 
 @end

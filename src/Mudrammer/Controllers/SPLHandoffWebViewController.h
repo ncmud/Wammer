@@ -6,11 +6,13 @@
 //  Copyright (c) 2015 splinesoft LLC. All rights reserved.
 //
 
-@import TOWebViewController;
+@import SafariServices;
 @import SPLUserActivity;
 
-@interface SPLHandoffWebViewController : TOWebViewController
+@interface SPLHandoffWebViewController : SFSafariViewController
 
 @property (nonatomic, strong) SPLWebActivity *webActivity;
+
+- (instancetype)initWithURL:(NSURL *)url;
 
 @end
