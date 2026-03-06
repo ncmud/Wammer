@@ -9,6 +9,7 @@
 #import "SSClientContainer.h"
 #import "SSClientViewController.h"
 #import "SSWorldListViewController.h"
+#import "WorldStoreBridge.h"
 #import <QuartzCore/QuartzCore.h>
 #import "SSClientViewController.h"
 #import "SSWorldDisplayController.h"
@@ -171,22 +172,30 @@
 }
 
 - (void)selectedWorldDidChange:(NSNotification *)notification {
-    NSManagedObjectID *newWorld = [notification object];
+    NSString *worldIdentifier = [notification object];
 
-    if( !newWorld )
+    if( !worldIdentifier )
         return;
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        World *w = [World existingObjectWithId:newWorld
-                                     inContext:[NSManagedObjectContext MR_defaultContext]];
+        // Bridge: look up Core Data object by matching hostname until SSClientViewController is migrated (task 80)
+        MUDWorldBridge *mudWorld = [WorldStoreBridge worldForIdentifier:worldIdentifier];
+        if (!mudWorld)
+            return;
+
+        World *w = [World MR_findFirstWithPredicate:
+            [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
+                mudWorld.hostname, mudWorld.port]
+            inContext:[NSManagedObjectContext MR_defaultContext]];
 
         if( !w )
             return;
 
+        NSManagedObjectID *worldId = [w objectID];
         NSInteger currentClient = [[SSClientContainer worldDisplayDrawer] selectedIndex];
 
         void (^WorldChangeBlock)(void) = ^{
-            [[[SSClientContainer worldDisplayDrawer] clientAtIndex:currentClient] updateCurrentWorld:newWorld
+            [[[SSClientContainer worldDisplayDrawer] clientAtIndex:currentClient] updateCurrentWorld:worldId
                                                                                   connectAfterUpdate:YES];
         };
 

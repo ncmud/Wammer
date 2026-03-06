@@ -17,6 +17,7 @@ typedef void (^SSWorldSaveCompletionBlock) (BOOL);
 
 // Edit world
 + (instancetype) editorForWorld:(NSManagedObjectID *)world;
++ (instancetype) editorForWorldIdentifier:(NSString *)worldIdentifier;
 
 // New actions
 - (void) editRecord:(NSManagedObjectID *)TGARecordId;

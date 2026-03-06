@@ -1,6 +1,6 @@
 import Foundation
 
-@objc extension NSNotification.Name {
+extension NSNotification.Name {
     static let worldStoreDidChange = NSNotification.Name("WorldStoreDidChangeNotification")
 }
 

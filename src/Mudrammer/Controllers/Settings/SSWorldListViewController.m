@@ -9,15 +9,16 @@
 #import "SSWorldListViewController.h"
 #import "SSWorldEditViewController.h"
 #import "SSWorldCell.h"
-@import SSDataSources;
+#import "WorldStoreBridge.h"
 
 @interface SSWorldListViewController ()
 
 @property (nonatomic, copy) WorldPickerSelectionBlock completeBlock;
-@property (nonatomic, strong) SSCoreDataSource *dataSource;
+@property (nonatomic, strong) NSArray<MUDWorldBridge *> *worlds;
 
 - (SSWorldListViewController *) init;
 - (void) addWorld:(id)sender;
+- (void) reloadWorlds;
 
 @end
 
@@ -36,6 +37,11 @@
         addButton.accessibilityLabel = NSLocalizedString(@"NEW_WORLD", nil);
         addButton.accessibilityHint = @"Adds a new world.";
         self.navigationItem.rightBarButtonItem = addButton;
+
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(worldStoreDidChange:)
+                                                     name:WorldStoreBridge.didChangeNotification
+                                                   object:nil];
     }
 
     return self;
@@ -52,62 +58,28 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    // data source
-    NSFetchRequest *worldFetch = [World MR_requestAllSortedBy:[World defaultSortField]
-                                                    ascending:[World defaultSortAscending]
-                                                withPredicate:[World predicateForRecordsWithHidden:NO]
-                                                    inContext:[NSManagedObjectContext MR_defaultContext]];
+    [self reloadWorlds];
+}
 
-    @weakify(self);
-    SSCellConfigureBlock worldConfig = ^(SSWorldCell *cell,
-                                         World *world,
-                                         UITableView *tableView,
-                                         NSIndexPath *indexPath ) {
-        @strongify(self);
-        cell.textLabel.text = world.name;
-        cell.textLabel.adjustsFontSizeToFitWidth = YES;
-        cell.textLabel.minimumScaleFactor = 0.6f;
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"%@:%@",
-                                     world.hostname,
-                                     world.port];
+- (void)reloadWorlds {
+    NSArray<MUDWorldBridge *> *all = [WorldStoreBridge allWorlds];
+    NSMutableArray<MUDWorldBridge *> *visible = [NSMutableArray array];
+    for (MUDWorldBridge *w in all) {
+        if ([w.name length] > 0 || [w.hostname length] > 0) {
+            [visible addObject:w];
+        }
+    }
+    [visible sortUsingComparator:^NSComparisonResult(MUDWorldBridge *a, MUDWorldBridge *b) {
+        NSComparisonResult nameCompare = [a.name localizedCaseInsensitiveCompare:b.name];
+        if (nameCompare != NSOrderedSame) return nameCompare;
+        return [a.hostname localizedCaseInsensitiveCompare:b.hostname];
+    }];
+    self.worlds = visible;
+    [self.tableView reloadData];
+}
 
-        if (self.completeBlock)
-            cell.accessoryType = UITableViewCellAccessoryNone;
-    };
-
-    _dataSource = [[SSCoreDataSource alloc] initWithFetchRequest:worldFetch
-                                                       inContext:[NSManagedObjectContext MR_defaultContext]
-                                              sectionNameKeyPath:nil];
-    self.dataSource.cellClass = [SSWorldCell class];
-    self.dataSource.cellConfigureBlock = worldConfig;
-    self.dataSource.tableActionBlock = ^BOOL(SSCellActionType action,
-                                             UITableView *tableView,
-                                             NSIndexPath *indexPath) {
-        // Allow deletion only
-        // we can edit if this is not a picker VC
-        @strongify(self);
-        return action == SSCellActionTypeEdit && self.completeBlock == nil;
-    };
-    self.dataSource.tableDeletionBlock = ^(SSCoreDataSource *aDataSource,
-                                           UITableView *tableView,
-                                           NSIndexPath *indexPath) {
-
-        World *world  = [aDataSource itemAtIndexPath:indexPath];
-        NSManagedObjectID *worldId = [world objectID];
-
-        if( !worldId )
-            return;
-
-        [MagicalRecord saveWithBlock:^(NSManagedObjectContext *deleteContext) {
-            World *w = [World existingObjectWithId:worldId inContext:deleteContext];
-
-            if( w ) {
-                [w deleteObject];
-            }
-        }];
-    };
-    self.dataSource.rowAnimation = UITableViewRowAnimationFade;
-    self.dataSource.tableView = self.tableView;
+- (void)worldStoreDidChange:(NSNotification *)notification {
+    [self reloadWorlds];
 }
 
 - (CGSize)preferredContentSize {
@@ -115,39 +87,77 @@
 }
 
 - (void)dealloc {
-    _dataSource = nil;
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     _completeBlock = nil;
 }
 
 #pragma mark - actions
 
 - (void)addWorld:(id)sender {
-    [World createObjectWithCompletion:^(NSManagedObjectID *newWorldId) {
-        SSWorldEditViewController *editor = [SSWorldEditViewController editorForWorld:newWorldId];
+    NSString *newWorldId = [WorldStoreBridge addEmptyWorld];
 
-        [self.navigationController pushViewController:editor
-                                             animated:YES];
-    }];
+    SSWorldEditViewController *editor = [SSWorldEditViewController editorForWorldIdentifier:newWorldId];
+
+    [self.navigationController pushViewController:editor
+                                         animated:YES];
 }
 
-#pragma mark - tableview delegate
+#pragma mark - UITableViewDataSource
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return (NSInteger)self.worlds.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    SSWorldCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SSWorldCell"];
+    if (!cell) {
+        cell = [[SSWorldCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"SSWorldCell"];
+    }
+
+    MUDWorldBridge *world = self.worlds[(NSUInteger)indexPath.row];
+
+    cell.textLabel.text = world.name;
+    cell.textLabel.adjustsFontSizeToFitWidth = YES;
+    cell.textLabel.minimumScaleFactor = 0.6f;
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@:%d",
+                                 world.hostname,
+                                 world.port];
+
+    if (self.completeBlock)
+        cell.accessoryType = UITableViewCellAccessoryNone;
+
+    return cell;
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return self.completeBlock == nil;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        MUDWorldBridge *world = self.worlds[(NSUInteger)indexPath.row];
+        [WorldStoreBridge removeWorldWithIdentifier:world.identifier];
+    }
+}
+
+#pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tv didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    World *world = [self.dataSource itemAtIndexPath:indexPath];
+    MUDWorldBridge *world = self.worlds[(NSUInteger)indexPath.row];
 
     [tv deselectRowAtIndexPath:indexPath animated:YES];
 
     if( self.completeBlock )
-        self.completeBlock( [world objectID] );
+        self.completeBlock( world.identifier );
     else
         [[NSNotificationCenter defaultCenter] postNotificationName:kNotificationWorldChanged
-                                                            object:[world objectID]];
+                                                            object:world.identifier];
 }
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    World *world = [self.dataSource itemAtIndexPath:indexPath];
+    MUDWorldBridge *world = self.worlds[(NSUInteger)indexPath.row];
 
-    [self.navigationController pushViewController:[SSWorldEditViewController editorForWorld:[world objectID]]
+    [self.navigationController pushViewController:[SSWorldEditViewController editorForWorldIdentifier:world.identifier]
                                          animated:YES];
 }
 

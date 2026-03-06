@@ -9,6 +9,7 @@
 #import "MRTestHelpers.h"
 #import "SSWorldDisplayController.h"
 #import "SSClientContainer.h"
+#import "WorldStoreBridge.h"
 
 @interface MRWorldDisplayTests : XCTestCase
 
@@ -18,6 +19,7 @@
 {
     SSWorldDisplayController *worldController;
     World *world;
+    NSString *mudWorldIdentifier;
 }
 
 - (void)setUp {
@@ -32,6 +34,16 @@
     }];
 
     world = [World MR_findFirst];
+
+    // Create matching world in WorldStore for bridge lookup
+    [WorldStoreBridge addWorldWithHostname:@"nanvaent.org" name:@"" port:23];
+    NSArray<MUDWorldBridge *> *worlds = [WorldStoreBridge allWorlds];
+    for (MUDWorldBridge *w in worlds) {
+        if ([w.hostname isEqualToString:@"nanvaent.org"] && w.port == 23) {
+            mudWorldIdentifier = w.identifier;
+            break;
+        }
+    }
 }
 
 - (void)tearDown {
@@ -41,13 +53,17 @@
         [World MR_truncateAllInContext:context];
     }];
 
+    if (mudWorldIdentifier) {
+        [WorldStoreBridge removeWorldWithIdentifier:mudWorldIdentifier];
+    }
+
     worldController = nil;
 }
 
 - (void)testAddsSingleWorld {
     expect(worldController.numberOfClients).to.equal(0);
 
-    [worldController addClientWithWorld:[world objectID]];
+    [worldController addClientWithWorld:mudWorldIdentifier];
 
     expect(worldController.numberOfClients).to.equal(1);
     expect(worldController.selectedIndex).to.equal(0);
@@ -58,7 +74,7 @@
 }
 
 - (void)testRemovesSingleWorld {
-    [worldController addClientWithWorld:[world objectID]];
+    [worldController addClientWithWorld:mudWorldIdentifier];
 
     expect(worldController.numberOfClients).to.equal(1);
     expect(worldController.selectedIndex).to.equal(0);
@@ -70,7 +86,7 @@
 }
 
 - (void)testClientIndexAccess {
-    [worldController addClientWithWorld:[world objectID]];
+    [worldController addClientWithWorld:mudWorldIdentifier];
 
     SSClientViewController *client = worldController.currentVisibleClient;
 

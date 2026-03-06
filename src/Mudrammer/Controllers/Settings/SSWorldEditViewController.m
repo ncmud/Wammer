@@ -8,6 +8,7 @@
 
 @import UIKit;
 #import "SSWorldEditViewController.h"
+#import "WorldStoreBridge.h"
 #import "SSTGAEditor.h"
 #import "SSWorldForm.h"
 #import "SPLTickerForm.h"
@@ -58,6 +59,21 @@
 
 + (instancetype)editorForWorld:(NSManagedObjectID *)world {
     return [[SSWorldEditViewController alloc] initWithWorld:world];
+}
+
++ (instancetype)editorForWorldIdentifier:(NSString *)worldIdentifier {
+    // Bridge: look up Core Data object by matching hostname until this controller is migrated (task 82)
+    MUDWorldBridge *mudWorld = [WorldStoreBridge worldForIdentifier:worldIdentifier];
+    if (!mudWorld) return nil;
+
+    World *cdWorld = [World MR_findFirstWithPredicate:
+        [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
+            mudWorld.hostname, mudWorld.port]
+        inContext:[NSManagedObjectContext MR_defaultContext]];
+
+    if (!cdWorld) return nil;
+
+    return [[SSWorldEditViewController alloc] initWithWorld:[cdWorld objectID]];
 }
 
 - (CGSize)preferredContentSize {

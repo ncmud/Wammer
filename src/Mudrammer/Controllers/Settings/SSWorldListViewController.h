@@ -10,7 +10,7 @@
 
 @interface SSWorldListViewController : UITableViewController
 
-typedef void (^WorldPickerSelectionBlock) (NSManagedObjectID *);
+typedef void (^WorldPickerSelectionBlock) (NSString *);
 
 + (SSWorldListViewController *) worldPickerViewControllerWithCompletion:(WorldPickerSelectionBlock)block;
 

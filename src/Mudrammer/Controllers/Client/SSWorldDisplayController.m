@@ -9,6 +9,7 @@
 #import "SSWorldDisplayController.h"
 #import "SSWorldCell.h"
 #import "SSWorldListViewController.h"
+#import "WorldStoreBridge.h"
 @import SSDataSources;
 @import Masonry;
 #import "SPLCheckMarkView.h"
@@ -254,15 +255,15 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 
         @weakify(self);
 
-        WorldPickerSelectionBlock pickblock = ^(NSManagedObjectID *pickedWorld) {
+        WorldPickerSelectionBlock pickblock = ^(NSString *pickedWorldIdentifier) {
             @strongify(self);
             if ([[UIDevice currentDevice] isIPad]) {
                 [self.popoverPresenter dismissViewControllerAnimated:YES completion:nil];
-                [self addClientWithWorld:pickedWorld];
+                [self addClientWithWorld:pickedWorldIdentifier];
             } else {
                 [[SSClientContainer sharedClientContainer] dismissViewControllerAnimated:YES
                                                                               completion:^{
-                                                                                  [self addClientWithWorld:pickedWorld];
+                                                                                  [self addClientWithWorld:pickedWorldIdentifier];
                                                                               }];
             }
         };
@@ -321,7 +322,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
     [self updateWorldStatusButtons];
 }
 
-- (void)addClientWithWorld:(NSManagedObjectID *)worldId {
+- (void)addClientWithWorld:(NSString *)worldIdentifier {
 
     SSClientViewController *newClient = [SSClientViewController client];
     newClient.delegate = self;
@@ -330,6 +331,19 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
     nav.navigationBar.translucent = NO;
 
     BOOL isFirstWorld = [self numberOfClients] == 0;
+
+    // Bridge: look up Core Data object by matching hostname until SSClientViewController is migrated (task 80)
+    NSManagedObjectID *worldId = nil;
+    if (worldIdentifier) {
+        MUDWorldBridge *mudWorld = [WorldStoreBridge worldForIdentifier:worldIdentifier];
+        if (mudWorld) {
+            World *cdWorld = [World MR_findFirstWithPredicate:
+                [NSPredicate predicateWithFormat:@"hostname == %@ AND port == %d AND isHidden == NO",
+                    mudWorld.hostname, mudWorld.port]
+                inContext:[NSManagedObjectContext MR_defaultContext]];
+            worldId = [cdWorld objectID];
+        }
+    }
 
     if (!worldId) {
         World *defaultWorld = [World defaultWorldInContext:[NSManagedObjectContext MR_defaultContext]];

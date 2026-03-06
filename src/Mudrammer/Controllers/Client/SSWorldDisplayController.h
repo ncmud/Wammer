@@ -30,7 +30,7 @@ extern CGFloat const kWorldDisplayWidth;
 /**
  * Add a new client with the specified world to the end of the viewcontroller list.
  */
-- (void) addClientWithWorld:(NSManagedObjectID *)world;
+- (void) addClientWithWorld:(NSString *)worldIdentifier;
 
 /**
  * Remove the client at the specified index.

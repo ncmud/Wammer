@@ -132,6 +132,10 @@ let project = Project(
                 base: [
                     "DEVELOPMENT_TEAM": "H3R5ZX3287",
                     "CLANG_ENABLE_MODULES": "YES",
+                    "DEFINES_MODULE": "YES",
+                    "SWIFT_INSTALL_OBJC_HEADER": "YES",
+                    "SWIFT_OBJC_INTERFACE_HEADER_NAME": "Wammer-Swift.h",
+                    "SWIFT_ENABLE_EXPLICIT_MODULES": "NO",
                     "HEADER_SEARCH_PATHS": .array([
                         "$(SRCROOT)/Vendored/**",
                         "$(SRCROOT)/src/Mudrammer/**",
