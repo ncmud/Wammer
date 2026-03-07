@@ -31,7 +31,7 @@ let project = Project(
     targets: [
         .target(
             name: "Wammer",
-            destinations: .iOS,
+            destinations: [.iPhone, .iPad, .macCatalyst],
             product: .app,
             bundleId: "org.ncmud.wammer",
             deploymentTargets: .iOS("26.0"),
@@ -127,6 +127,7 @@ let project = Project(
             settings: .settings(
                 base: [
                     "DEVELOPMENT_TEAM": "H3R5ZX3287",
+                    "CODE_SIGN_IDENTITY[sdk=macosx*]": "Apple Development",
                     "CLANG_ENABLE_MODULES": "YES",
                     "DEFINES_MODULE": "YES",
                     "SWIFT_INSTALL_OBJC_HEADER": "YES",
