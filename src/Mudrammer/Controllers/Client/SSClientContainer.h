@@ -25,7 +25,7 @@
 /**
  * Access the world display drawer for this container.
  */
-@property (nonatomic, readonly) SSWorldDisplayController *worldDisplay;
+@property (nonatomic, readonly, nullable) SSWorldDisplayController *worldDisplay;
 
 #if TARGET_OS_MACCATALYST
 - (void)menuDisconnect:(id)sender;

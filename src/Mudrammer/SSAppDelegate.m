@@ -70,11 +70,6 @@
 
 #pragma mark - App lifecycle events
 
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-    [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
-    [SSRadialControl validateRadialPositions];
-}
-
 - (void)applicationWillTerminate:(UIApplication *)application {
     [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
 }
