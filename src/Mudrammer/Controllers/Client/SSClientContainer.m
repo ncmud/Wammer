@@ -267,8 +267,15 @@
                                                   modifierFlags:UIKeyModifierCommand
                                                    propertyList:nil];
 
+    UIKeyCommand *reconnectCommand = [UIKeyCommand commandWithTitle:NSLocalizedString(@"RECONNECT", @"Reconnect")
+                                                               image:nil
+                                                              action:@selector(menuReconnect:)
+                                                               input:@"r"
+                                                       modifierFlags:UIKeyModifierCommand
+                                                        propertyList:nil];
+
     UIMenu *connectionMenu = [UIMenu menuWithTitle:NSLocalizedString(@"CONNECTION", @"Connection")
-                                          children:@[disconnectCommand, cycleCommand, clearCommand]];
+                                          children:@[reconnectCommand, disconnectCommand, cycleCommand, clearCommand]];
 
     [builder insertSiblingMenu:connectionMenu afterMenuForIdentifier:UIMenuFile];
 
@@ -292,8 +299,15 @@
 #pragma mark - Menu bar actions
 
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
+    BOOL connected = [self.worldDisplay.currentVisibleClient isConnected];
+
+    if (action == @selector(menuReconnect:)) {
+        return !connected;
+    }
+    if (action == @selector(menuDisconnect:)) {
+        return connected;
+    }
     if (action == @selector(menuNewWindow:) ||
-        action == @selector(menuDisconnect:) ||
         action == @selector(menuCycleConnections:) ||
         action == @selector(menuClearScreen:) ||
         action == @selector(menuShowWorldList:)) {
@@ -307,6 +321,13 @@
                                                       userActivity:nil
                                                            options:nil
                                                       errorHandler:nil];
+}
+
+- (void)menuReconnect:(id)sender {
+    SSClientViewController *client = self.worldDisplay.currentVisibleClient;
+    if (client) {
+        [client connect];
+    }
 }
 
 - (void)menuDisconnect:(id)sender {
