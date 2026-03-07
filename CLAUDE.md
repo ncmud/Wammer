@@ -41,7 +41,8 @@ Test target is `MRTests` (defined in `Project.swift`). Tests use Expecta (assert
 All app source is under `src/Mudrammer/`. Tests are in `src/MRTests/`.
 
 - **Network/** — Telnet/ANSI networking stack. Data flows: socket → `SPLTelnetLib` (telnet protocol + zlib) → `SSANSIEngine` (ANSI → NSAttributedString) → `SSMUDSocket` (delivers attributed line groups to UI)
-- **Models/** — Core Data models: `World` (connection config, owns aliases/triggers/gags/tickers), `Alias`, `Trigger`, `Gag`, `Ticker`. Uses MagicalRecord for Core Data convenience.
+- **Models/** — Currently empty; legacy Core Data models have been removed.
+- **WorldStore/** — Swift Codable models (`MUDWorld`, `MUDAlias`, `MUDTrigger`, `MUDGag`, `MUDTicker` in `Models.swift`) with JSON flat-file persistence (`WorldStore.swift`). Business logic in `Models+Logic.swift`. ObjC bridging via `WorldStoreBridge.swift/.h` and `MUDModels.h`.
 - **Controllers/Client/** — Active MUD session UI: `SSClientViewController` (terminal), `SSSessionLogger` (transcripts), `SPLWorldTickerManager` (periodic commands)
 - **Controllers/Settings/** — World list, world editor, theme/sound/encoding pickers
 - **Forms/** — QuickDialog/FXForms-based editors for aliases, triggers, gags, tickers
@@ -54,11 +55,23 @@ All former CocoaPods are vendored as local Swift packages in `Vendored/`. Key on
 
 - **CocoaAsyncSocket** — TCP socket library
 - **libtelnet** — Telnet protocol primitives (C library)
-- **SPLCore** — Shared utilities (depends on MagicalRecord and libextobjc)
-- **MagicalRecord** — Core Data convenience layer
+- **SPLCore** — Shared utilities (depends on libextobjc)
 - **JASidePanels** — Side panel navigation
 - **Masonry** — Auto Layout DSL
 - **TTTAttributedLabel** — Rich text display
+
+### Persistence
+
+World data is stored as JSON in `Documents/worlds.json` via `WorldStore` (singleton). No Core Data or MagicalRecord — all models are Swift `Codable` classes with `@objc`/`@objcMembers` for ObjC interop. Default worlds loaded from `DefaultWorlds.plist` on first launch.
+
+### ObjC/Swift Bridging
+
+The auto-generated `Wammer-Swift.h` header is broken (only contains `WammerResources`). Instead, hand-written ObjC headers declare Swift class interfaces:
+
+- `MUDModels.h` — ObjC interface declarations for all model types
+- `WorldStoreBridge.h/.swift` — Static methods exposing WorldStore to ObjC
+
+Swift classes use `@objc(ClassName)` and `@objcMembers` so ObjC can instantiate and use them at runtime. When adding new Swift APIs callable from ObjC, you must add the declaration to the corresponding `.h` file manually.
 
 ### Data Flow
 
