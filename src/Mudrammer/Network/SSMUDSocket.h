@@ -50,6 +50,9 @@
 // Should we echo entered text to the user?
 @property (nonatomic, readonly) BOOL shouldEchoText;
 
+// Set before connecting to enable TLS on the socket.
+@property (nonatomic, assign) BOOL isSecure;
+
 @end
 
 // Below protocol methods are called on arbitrary queues

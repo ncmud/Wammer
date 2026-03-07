@@ -579,6 +579,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
         self.hostname = world.hostname;
         self.port = @(world.port);
+        self.isSecure = world.isSecure;
 
         if ([self isConnected]) {
             [self disconnect];
@@ -701,6 +702,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
         _socket = [[SSMUDSocket alloc] initWithSocket:[GCDAsyncSocket new]];
         self.socket.delegate = self;
     }
+
+    self.socket.isSecure = self.isSecure;
 
     BOOL connected = [self.socket connectToHostname:self.hostname
                                              onPort:[self.port unsignedIntegerValue]

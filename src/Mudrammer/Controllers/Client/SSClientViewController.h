@@ -15,6 +15,7 @@
 
 @property (nonatomic, copy) NSString *hostname;
 @property (nonatomic, copy) NSNumber *port;
+@property (nonatomic, assign) BOOL isSecure;
 
 @property (nonatomic, weak) id <SSClientDelegate> delegate;
 

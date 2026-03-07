@@ -209,22 +209,16 @@
     // Reset default string color
     self.ansiEngine.defaultTextColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor];
 
-    // try to enable SSL
-    id del = self.delegate;
-    if ([del respondsToSelector:@selector(mudsocketShouldAttemptSSL:)]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if ([del mudsocketShouldAttemptSSL:self]) {
-                DLog(@"ATTEMPTING SSL");
-                [sock startTLS:@{
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLPeerName                  : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLValidatesCertificateChain : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
-                }];
-            }
-        });
-    }
-
     // Clear saved options
     self.dataCache = [NSMutableString new];
+
+    // Start TLS before any reads if the connection should be secure
+    if (self.isSecure) {
+        [sock startTLS:@{
+             (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLValidatesCertificateChain : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
+             GCDAsyncSocketSSLProtocolVersionMin : @(kTLSProtocol12),
+        }];
+    }
 
     [self.telnetLib socketDidConnect];
 
