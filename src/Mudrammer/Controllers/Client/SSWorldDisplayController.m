@@ -10,6 +10,7 @@
 #import "SSWorldCell.h"
 #import "SSWorldListViewController.h"
 #import "WorldStoreBridge.h"
+#import "SPLNotificationManager.h"
 @import SSDataSources;
 @import Masonry;
 #import "SPLCheckMarkView.h"
@@ -184,7 +185,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 #pragma mark - World picker
 
 - (void)closeWorldPicker {
-    [[SSClientContainer sharedClientContainer] dismissViewControllerAnimated:YES
+    [[self clientContainer] dismissViewControllerAnimated:YES
                                                                   completion:nil];
 }
 
@@ -241,7 +242,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
                                                        inSection:0];
 
         [self setSelectedIndex:indexPath.row];
-        [[SSClientContainer sharedClientContainer] closeDrawerAnimated:YES];
+        [[self clientContainer] closeDrawerAnimated:YES];
 
         NSArray *rows = @[ indexPath ];
 
@@ -261,7 +262,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
                 [self.popoverPresenter dismissViewControllerAnimated:YES completion:nil];
                 [self addClientWithWorld:pickedWorldIdentifier];
             } else {
-                [[SSClientContainer sharedClientContainer] dismissViewControllerAnimated:YES
+                [[self clientContainer] dismissViewControllerAnimated:YES
                                                                               completion:^{
                                                                                   [self addClientWithWorld:pickedWorldIdentifier];
                                                                               }];
@@ -286,7 +287,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
             picker.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
                                                                                                     target:self
                                                                                                     action:@selector(closeWorldPicker)];
-            [[SSClientContainer sharedClientContainer] presentViewController:nav
+            [[self clientContainer] presentViewController:nav
                                                                     animated:YES
                                                                   completion:nil];
         }
@@ -297,7 +298,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 
 - (void)setSelectedIndex:(NSInteger)selectedIndex {
     if (self.selectedIndex == selectedIndex) {
-        [[SSClientContainer sharedClientContainer] closeDrawerAnimated:YES];
+        [[self clientContainer] closeDrawerAnimated:YES];
         return;
     }
 
@@ -311,7 +312,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
         [self.unreadClientIndexes removeIndex:(NSUInteger)selectedIndex];
     }
 
-    [SSClientContainer sharedClientContainer].centerPanel =
+    [self clientContainer].centerPanel =
      (UIViewController *)[self.dataSource itemAtIndexPath:
                           [NSIndexPath indexPathForRow:(NSInteger)_selectedIndex
                                              inSection:0]];
@@ -373,11 +374,11 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
                               withRowAnimation:UITableViewRowAnimationFade];
     }
 
-    [SSClientContainer sharedClientContainer].centerPanel = nav;
+    [self clientContainer].centerPanel = nav;
 
     [self updateWorldStatusButtons];
 
-    [[SSClientContainer sharedClientContainer] closeDrawerAnimated:!isFirstWorld];
+    [[self clientContainer] closeDrawerAnimated:!isFirstWorld];
 }
 
 - (void)removeClientAtIndex:(NSInteger)index {
@@ -409,7 +410,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
     [self.dataSource removeItemAtIndex:(NSUInteger)index];
 
     _selectedIndex = [self.dataSource indexPathForItem:
-                      [SSClientContainer sharedClientContainer].centerPanel].row;
+                      [self clientContainer].centerPanel].row;
 
     [self updateWorldStatusButtons];
 }
@@ -481,7 +482,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 - (void)applicationDidEnterBackground:(NSNotification *)notification {
     for (NSInteger i = 0; i < [self numberOfClients]; i++) {
         if ([[self clientAtIndex:i] isConnected]) {
-            [[SSAppDelegate sharedApplication].notificationObserver scheduleTimeoutNotification];
+            [[SPLNotificationManager shared] scheduleTimeoutNotification];
             return;
         }
     }

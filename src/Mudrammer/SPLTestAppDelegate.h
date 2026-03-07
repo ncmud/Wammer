@@ -6,8 +6,10 @@
 //  Copyright (c) 2015 splinesoft LLC. All rights reserved.
 //
 
-#import "SSApplication.h"
+@import UIKit;
 
-@interface SPLTestAppDelegate : SSApplication
+@interface SPLTestAppDelegate : UIResponder <UIApplicationDelegate>
+
+@property (nonatomic, strong) UIWindow *window;
 
 @end

@@ -78,18 +78,18 @@
 #pragma mark - UIKeyCommand
 
 - (void)keyCommandCycleActiveConnections:(UIKeyCommand *)sender {
-    [[SSClientContainer worldDisplayDrawer] selectNextWorld];
-    SSClientViewController *newClient = [[SSClientContainer worldDisplayDrawer] currentVisibleClient];
+    [[self worldDisplay] selectNextWorld];
+    SSClientViewController *newClient = [[self worldDisplay] currentVisibleClient];
     [newClient.mudView.inputToolbar.textView becomeFirstResponder];
 }
 
 - (void)keyCommandSwitchToActiveConnection:(UIKeyCommand *)sender {
     NSInteger desiredIndex = sender.input.integerValue - 1;
 
-    if (desiredIndex >= 0 && desiredIndex < [[SSClientContainer worldDisplayDrawer] numberOfClients]) {
-        [[SSClientContainer worldDisplayDrawer] setSelectedIndex:desiredIndex];
+    if (desiredIndex >= 0 && desiredIndex < [[self worldDisplay] numberOfClients]) {
+        [[self worldDisplay] setSelectedIndex:desiredIndex];
 
-        SSClientViewController *newClient = [[SSClientContainer worldDisplayDrawer] currentVisibleClient];
+        SSClientViewController *newClient = [[self worldDisplay] currentVisibleClient];
         [newClient.mudView.inputToolbar.textView becomeFirstResponder];
     }
 }

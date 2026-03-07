@@ -85,18 +85,8 @@
     return self;
 }
 
-+ (instancetype)sharedClientContainer {
-    id rootVC = [SSAppDelegate sharedApplication].window.rootViewController;
-
-    if ([rootVC isKindOfClass:[SSClientContainer class]]) {
-        return (SSClientContainer *)rootVC;
-    }
-
-    return nil;
-}
-
-+ (SSWorldDisplayController *)worldDisplayDrawer {
-    return (SSWorldDisplayController *)(((SSClientContainer *)[self sharedClientContainer]).rightPanel);
+- (SSWorldDisplayController *)worldDisplay {
+    return (SSWorldDisplayController *)self.rightPanel;
 }
 
 - (void)viewDidLoad {
@@ -162,11 +152,11 @@
         } else {
             SPLHandoffWebViewController *webView = [[SPLHandoffWebViewController alloc] initWithURL:url];
 
-            [[[SSClientContainer worldDisplayDrawer] currentVisibleClient] hideKeyboard];
+            [self.worldDisplay.currentVisibleClient hideKeyboard];
 
-            [[[SSClientContainer worldDisplayDrawer] currentVisibleClient] presentViewController:webView
-                                                                                        animated:YES
-                                                                                      completion:nil];
+            [self.worldDisplay.currentVisibleClient presentViewController:webView
+                                                                 animated:YES
+                                                               completion:nil];
         }
     });
 }
@@ -182,14 +172,14 @@
         if (!mudWorld)
             return;
 
-        NSInteger currentClient = [[SSClientContainer worldDisplayDrawer] selectedIndex];
+        NSInteger currentClient = [self.worldDisplay selectedIndex];
 
         void (^WorldChangeBlock)(void) = ^{
-            [[[SSClientContainer worldDisplayDrawer] clientAtIndex:currentClient] updateCurrentWorld:worldIdentifier
-                                                                                  connectAfterUpdate:YES];
+            [[self.worldDisplay clientAtIndex:currentClient] updateCurrentWorld:worldIdentifier
+                                                              connectAfterUpdate:YES];
         };
 
-        SSClientViewController *client = [[SSClientContainer worldDisplayDrawer] currentVisibleClient];
+        SSClientViewController *client = [self.worldDisplay currentVisibleClient];
 
         if ([client isConnected]) {
             NSString *desc = [WorldStoreBridge worldDescriptionForIdentifier:worldIdentifier];
@@ -200,7 +190,8 @@
                                      cancelTitle:NSLocalizedString(@"CANCEL", @"Cancel")
                                      cancelBlock:nil
                                          okTitle:NSLocalizedString(@"CONNECT", @"Connect")
-                                         okBlock:WorldChangeBlock];
+                                         okBlock:WorldChangeBlock
+                            presentingController:self];
         } else {
             WorldChangeBlock();
         }
@@ -223,6 +214,67 @@
           didFinishWithResult:(MFMailComposeResult)result
                         error:(NSError *)error {
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+#if TARGET_OS_MACCATALYST
+#pragma mark - Menu bar actions
+
+- (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
+    if (action == @selector(menuDisconnect:) ||
+        action == @selector(menuCycleConnections:) ||
+        action == @selector(menuClearScreen:) ||
+        action == @selector(menuShowWorldList:)) {
+        return YES;
+    }
+    return [super canPerformAction:action withSender:sender];
+}
+
+- (void)menuDisconnect:(id)sender {
+    SSClientViewController *client = self.worldDisplay.currentVisibleClient;
+    if (client) {
+        [client disconnect];
+    }
+}
+
+- (void)menuCycleConnections:(id)sender {
+    [self.worldDisplay selectNextWorld];
+}
+
+- (void)menuClearScreen:(id)sender {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"MRMenuClearScreen" object:nil];
+}
+
+- (void)menuShowWorldList:(id)sender {
+    [self toggleLeftPanel:sender];
+}
+#endif
+
+@end
+
+#pragma mark - UIViewController (SSClientContainerAccess)
+
+@implementation UIViewController (SSClientContainerAccess)
+
+- (SSClientContainer *)clientContainer {
+    UIViewController *vc = self;
+    while (vc) {
+        if ([vc isKindOfClass:[SSClientContainer class]]) {
+            return (SSClientContainer *)vc;
+        }
+        vc = vc.parentViewController ?: vc.presentingViewController;
+    }
+
+    // Fallback: walk from the window's root
+    UIViewController *root = self.view.window.rootViewController;
+    if ([root isKindOfClass:[SSClientContainer class]]) {
+        return (SSClientContainer *)root;
+    }
+
+    return nil;
+}
+
+- (SSWorldDisplayController *)worldDisplay {
+    return self.clientContainer.worldDisplay;
 }
 
 @end

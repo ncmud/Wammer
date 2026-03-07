@@ -13,103 +13,62 @@
 #import "SSWorldDisplayController.h"
 #import "WorldStoreBridge.h"
 #import "MUDModels.h"
+#import "SPLNotificationManager.h"
 
 
 @implementation SSAppDelegate
 
-#pragma mark - URL tapped
+- (void)_setupDefaultUserDefaults {
+    NSDictionary *defaultUserDefaults = @{
+        kPrefInitialWorldsCreated  : @NO,
+        kPrefLocalEcho             : @YES,
+        kPrefAutocorrect           : @NO,
+        kPrefMoveControl           : @(SSRadialControlPositionRight),
+        kPrefConnectOnStartup      : @YES,
+        kPrefStringEncoding        : @"ASCII",
+        kPrefKeyboardStyle         : @YES,
+        kPrefRadialControl         : @(SSRadialControlPositionLeft),
+        kPrefRadialCommands        : @[ @"up", @"in", @"down", @"out", @"look" ],
+        kPrefTopBarAlwaysVisible   : @NO,
+        kPrefAutocapitalization    : @NO,
+        kPrefBTKeyboard            : @NO,
+        kPrefSemicolonCommands     : @YES,
+        kPrefSemicolonCommandDelimiter : kPrefSemicolonDefaultDelimiter,
+    };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
-- (BOOL)application:(UIApplication *)application
-            openURL:(NSURL *)url
-            options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *prefKeys = [[defaults dictionaryRepresentation] allKeys];
 
-    if (!url || ![url host]) {
-        return NO;
-    }
-
-    if ([[url scheme] isEqualToString:@"telnet"]) {
-        NSString *hostname = [[url host] lowercaseString];
-
-        // Check if this world is already saved
-        NSString *existingIdentifier = nil;
-        for (MUDWorldBridge *w in [WorldStoreBridge allWorlds]) {
-            if ([w.hostname isEqualToString:hostname]) {
-                existingIdentifier = w.identifier;
-                break;
-            }
+    [defaultUserDefaults enumerateKeysAndObjectsUsingBlock:^(NSString *pref,
+                                                             id defaultValue,
+                                                             BOOL *stop) {
+        if (![prefKeys containsObject:pref]) {
+            [defaults setObject:defaultValue forKey:pref];
         }
-
-        if (!existingIdentifier) {
-            int16_t port = [url port] ? [[url port] shortValue] : 23;
-            [WorldStoreBridge addWorldWithHostname:hostname name:@"" port:port];
-
-            // Find the newly added world
-            for (MUDWorldBridge *w in [WorldStoreBridge allWorlds]) {
-                if ([w.hostname isEqualToString:hostname]) {
-                    existingIdentifier = w.identifier;
-                    break;
-                }
-            }
-        }
-
-        if (existingIdentifier) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:kNotificationWorldChanged
-                                                                object:existingIdentifier];
-        }
-
-        return YES;
-    }
-
-    return NO;
+    }];
 }
-#pragma clang diagnostic pop
 
-#pragma mark - SSApplication
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        [self _setupDefaultUserDefaults];
+    });
 
-- (void) ss_willFinishLaunchingWithOptions:(NSDictionary *)options {
     // WorldStore.shared auto-loads on first access; trigger it now
     (void)[WorldStoreBridge allWorlds];
 
     [SSThemes sharedThemer]; // UIAppearance™ Inside®
 
-    self.idleTimerDisabled = YES;
-    self.applicationSupportsShakeToEdit = NO;
+    application.idleTimerDisabled = YES;
 
     // disallow webview cache
     NSURLCache *sharedCache = [[NSURLCache alloc] initWithMemoryCapacity:0 diskCapacity:0 diskPath:nil];
     [NSURLCache setSharedURLCache:sharedCache];
 
-    _notificationObserver = [SPLNotificationManager new];
+    (void)[SPLNotificationManager shared];
+
+    return YES;
 }
 
-- (void) ss_willLaunchBackgroundSetup {
-
-}
-
-- (UIViewController *) ss_appRootViewController {
-    return [SSClientContainer new];
-}
-
-- (NSDictionary *) ss_defaultUserDefaults {
-    return @{
-             kPrefInitialWorldsCreated  : @NO,
-             kPrefLocalEcho             : @YES,
-             kPrefAutocorrect           : @NO,
-             kPrefMoveControl           : @(SSRadialControlPositionRight),
-             kPrefConnectOnStartup      : @YES,
-             kPrefStringEncoding        : @"ASCII",
-             kPrefKeyboardStyle         : @YES,
-             kPrefRadialControl         : @(SSRadialControlPositionLeft),
-             kPrefRadialCommands        : @[ @"up", @"in", @"down", @"out", @"look" ],
-             kPrefTopBarAlwaysVisible   : @NO,
-             kPrefAutocapitalization    : @NO,
-             kPrefBTKeyboard            : @NO,
-             kPrefSemicolonCommands     : @YES,
-             kPrefSemicolonCommandDelimiter : kPrefSemicolonDefaultDelimiter,
-    };
-}
 
 #if TARGET_OS_MACCATALYST
 #pragma mark - Mac Menu Bar
@@ -123,6 +82,22 @@
 
     // Remove menus that don't apply
     [builder removeMenuForIdentifier:UIMenuFormat];
+
+    // New Window command in File menu
+    UIKeyCommand *newWindowCommand = [UIKeyCommand commandWithTitle:NSLocalizedString(@"NEW_WINDOW", @"New Window")
+                                                              image:nil
+                                                             action:@selector(menuNewWindow:)
+                                                              input:@"n"
+                                                      modifierFlags:UIKeyModifierCommand
+                                                       propertyList:nil];
+
+    UIMenu *newWindowMenu = [UIMenu menuWithTitle:@""
+                                            image:nil
+                                       identifier:nil
+                                          options:UIMenuOptionsDisplayInline
+                                         children:@[newWindowCommand]];
+
+    [builder insertChildMenu:newWindowMenu atStartOfMenuForIdentifier:UIMenuFile];
 
     // Connection menu
     UIKeyCommand *disconnectCommand = [UIKeyCommand commandWithTitle:NSLocalizedString(@"DISCONNECT", @"Disconnect")
@@ -165,67 +140,26 @@
                                           options:UIMenuOptionsDisplayInline
                                          children:@[worldListCommand]];
 
-    [builder insertChildMenu:worldListMenu atStartOfMenuForIdentifier:UIMenuFile];
+    [builder insertChildMenu:worldListMenu atEndOfMenuForIdentifier:UIMenuFile];
 }
 
-- (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
-    if (action == @selector(menuDisconnect:) ||
-        action == @selector(menuCycleConnections:) ||
-        action == @selector(menuClearScreen:) ||
-        action == @selector(menuShowWorldList:)) {
-        return YES;
-    }
-    return [super canPerformAction:action withSender:sender];
-}
-
-- (void)menuDisconnect:(id)sender {
-    SSClientViewController *client = [SSClientContainer worldDisplayDrawer].currentVisibleClient;
-    if (client) {
-        [client disconnect];
-    }
-}
-
-- (void)menuCycleConnections:(id)sender {
-    [[SSClientContainer worldDisplayDrawer] selectNextWorld];
-}
-
-- (void)menuClearScreen:(id)sender {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"MRMenuClearScreen" object:nil];
-}
-
-- (void)menuShowWorldList:(id)sender {
-    SSClientContainer *container = [SSClientContainer sharedClientContainer];
-    [container toggleLeftPanel:sender];
+- (void)menuNewWindow:(id)sender {
+    [UIApplication.sharedApplication requestSceneSessionActivation:nil
+                                                      userActivity:nil
+                                                           options:nil
+                                                      errorHandler:nil];
 }
 #endif
 
-- (void) ss_receivedApplicationEvent:(SSApplicationEvent)eventType {
+#pragma mark - App lifecycle events
 
-    switch (eventType) {
-        case SSApplicationEventDidBecomeActive:
-
-            [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
-
-            [SSRadialControl validateRadialPositions];
-
-            break;
-
-        case SSApplicationEventWillEnterForeground:
-        case SSApplicationEventDidEnterBackground:
-        case SSApplicationEventWillResignActive:
-
-            break;
-
-        case SSApplicationEventWillTerminate:
-
-            [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
-
-            break;
-
-        default:
-            break;
-    }
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
+    [SSRadialControl validateRadialPositions];
 }
 
+- (void)applicationWillTerminate:(UIApplication *)application {
+    [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
+}
 
 @end

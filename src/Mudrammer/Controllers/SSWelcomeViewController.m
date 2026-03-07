@@ -75,12 +75,12 @@
     NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
     [d setBool:YES forKey:kPrefInitialSetupComplete];
 
-    SSClientContainer *container = [SSClientContainer sharedClientContainer];
+    SSClientContainer *container = [self clientContainer];
 
     [container dismissViewControllerAnimated:YES
                                   completion:^
     {
-        SSClientViewController *firstClient = [[SSClientContainer worldDisplayDrawer] clientAtIndex:0];
+        SSClientViewController *firstClient = [[self worldDisplay] clientAtIndex:0];
         [firstClient connect];
     }];
 }

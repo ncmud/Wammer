@@ -139,7 +139,8 @@
                          }
                             barButtonItem:nil
                                sourceView:self.tableView
-                               sourceRect:self.tableView.frame];
+                               sourceRect:self.tableView.frame
+                      presentingController:self];
 }
 
 @end
