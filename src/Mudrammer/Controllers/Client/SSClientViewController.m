@@ -1062,6 +1062,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 - (void)mudsocket:(SSMUDSocket *)sock didReceiveAttributedLineGroup:(SSAttributedLineGroup *)group {
     NSString *worldId = [currentWorldIdentifier copy];
+    BOOL shouldSpeak = [self isViewVisible];
 
     @weakify(self);
 
@@ -1159,7 +1160,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         [self appendTextToLog:[[newGroup cleanTextLinesWithCommands:NO] componentsJoinedByString:@"\n"]];
 
         // pass lines to the tableview
-        [self.mudView appendAttributedLineGroup:newGroup speak:[self isViewVisible]];
+        [self.mudView appendAttributedLineGroup:newGroup speak:shouldSpeak];
 
         id del = self.delegate;
 
