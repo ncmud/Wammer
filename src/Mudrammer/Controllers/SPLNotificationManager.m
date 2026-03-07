@@ -53,7 +53,7 @@
     content.sound = [UNNotificationSound defaultSound];
 
     UNTimeIntervalNotificationTrigger *trigger =
-        [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:(8 * 60) repeats:NO];
+        [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:1 repeats:NO];
 
     UNNotificationRequest *request =
         [UNNotificationRequest requestWithIdentifier:@"sessionTimeout"

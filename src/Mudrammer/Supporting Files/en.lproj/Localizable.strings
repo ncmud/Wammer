@@ -167,8 +167,8 @@
 /* Save this world for next time? */
 "SAVE_WORLD" = "Save";
 
-/* Your session will timeout in two minutes. */
-"SESSION_TIMEOUT" = "Your Wammer session may time out soon.";
+/* Connection will close soon after backgrounding. */
+"SESSION_TIMEOUT" = "Your connection will close in about 30 seconds.";
 
 "SEMICOLON_CMDS" = "Semicolon Commands";
 "SEMICOLON_CMDS_DELIMITER" = "Command Separator";

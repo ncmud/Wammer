@@ -480,12 +480,14 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 }
 
 - (void)applicationDidEnterBackground:(NSNotification *)notification {
+#if !TARGET_OS_MACCATALYST
     for (NSInteger i = 0; i < [self numberOfClients]; i++) {
         if ([[self clientAtIndex:i] isConnected]) {
             [[SPLNotificationManager shared] scheduleTimeoutNotification];
             return;
         }
     }
+#endif
 }
 
 #pragma mark - Client Status Image

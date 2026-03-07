@@ -167,8 +167,8 @@
 /* Save this world for next time? */
 "SAVE_WORLD" = "Enregistrer";
 
-/* Your session will timeout in two minutes. */
-"SESSION_TIMEOUT" = "Votre session Wammer peut expirer bientôt.";
+/* Connection will close soon after backgrounding. */
+"SESSION_TIMEOUT" = "Votre connexion se fermera dans environ 30 secondes.";
 
 "SERVER_STATUS" = "Server Status";
 
