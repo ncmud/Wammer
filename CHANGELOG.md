@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Remove Core Data, MagicalRecord, and old ObjC models (#84)
+- Migrate SSAppDelegate and notifications to WorldStore (#83)
+- Migrate editor controllers to WorldStore (#82)
+- Migrate SPLWorldTickerManager to WorldStore (#81)
+- Migrate SSClientViewController + SSClientContainer to WorldStore (#80)
+- Migrate SSWorldListViewController to WorldStore (#79)
+- Port model business logic to Swift with tests (#78)
+- Add WorldStore singleton for JSON persistence (#77)
+- Add Swift model classes for World, Alias, Trigger, Gag, Ticker (#76)
 
 ### Fixed
 - Fix crash in itemWithAttributedString: on empty string (#57)
