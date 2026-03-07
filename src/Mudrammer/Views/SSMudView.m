@@ -21,7 +21,7 @@
 #import "NSAttributedString+SPLAdditions.h"
 @import SAMRateLimit;
 
-@interface SSMudView () <SSRadialDelegate, SSMUDToolbarDelegate>
+@interface SSMudView () <SSRadialDelegate, SSMUDToolbarDelegate, UIContextMenuInteractionDelegate>
 
 - (void) userDefaultsChanged:(NSNotification *)note;
 
@@ -71,6 +71,10 @@
             make.top.and.left.and.right.equalTo(self);
             make.bottom.equalTo(self.inputToolbar.mas_top);
         }];
+
+        // Context menu for text selection (right-click on Mac, long-press on iOS)
+        UIContextMenuInteraction *contextMenu = [[UIContextMenuInteraction alloc] initWithDelegate:self];
+        [self.tableView addInteraction:contextMenu];
 
         // movement control (touch-only, hidden on Catalyst)
         _movementControl = [SSRadialControl radialControl];
@@ -497,88 +501,72 @@
     return suggestedSize.height;
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
 
-    UIMenuController *menuController = [UIMenuController sharedMenuController];
+#pragma mark - UIContextMenuInteractionDelegate
 
-    if ([menuController isMenuVisible]) {
-        [menuController setMenuVisible:NO animated:YES];
-        return;
+- (UIContextMenuConfiguration *)contextMenuInteraction:(UIContextMenuInteraction *)interaction
+                        configurationForMenuAtLocation:(CGPoint)location {
+    CGPoint pointInTable = [interaction.view convertPoint:location toView:self.tableView];
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:pointInTable];
+
+    if (!indexPath) {
+        return nil;
     }
 
     SSAttributedLineGroupItem *line = [self.dataSource itemAtIndexPath:indexPath];
 
     if (!line || [line.line length] == 0) {
-        return;
+        return nil;
     }
 
-    self.lastSelectedText = line.line.string;
+    NSString *selectedText = line.line.string;
+    self.lastSelectedText = selectedText;
     self.lastMenuIndex = indexPath;
 
-    [self becomeFirstResponder];
+    return [UIContextMenuConfiguration configurationWithIdentifier:nil
+        previewProvider:nil
+        actionProvider:^UIMenu *(NSArray<UIMenuElement *> *suggestedActions) {
 
-    CGRect rowRect = [tableView rectForRowAtIndexPath:indexPath];
-    CGRect convertedRect = [self convertRect:rowRect fromView:tableView];
+            UIAction *copyAction = [UIAction actionWithTitle:NSLocalizedString(@"COPY", @"Copy")
+                                                       image:[UIImage systemImageNamed:@"doc.on.doc"]
+                                                  identifier:nil
+                                                     handler:^(UIAction *action) {
+                if ([selectedText length] > 0) {
+                    [[UIPasteboard generalPasteboard] setString:selectedText];
+                }
+            }];
 
-    menuController.arrowDirection = (CGRectGetMinY(convertedRect) <= 50
-                                     ? UIMenuControllerArrowUp
-                                     : UIMenuControllerArrowDefault);
+            UIAction *triggerAction = [UIAction actionWithTitle:NSLocalizedString(@"NEW_TRIGGER", nil)
+                                                          image:[UIImage systemImageNamed:@"bolt"]
+                                                     identifier:nil
+                                                        handler:^(UIAction *action) {
+                id del = self.delegate;
+                if ([del respondsToSelector:@selector(mudView:shouldCreateRecordWithText:type:)]) {
+                    [del mudView:self shouldCreateRecordWithText:selectedText type:[MUDTrigger class]];
+                }
+            }];
 
-    [menuController setTargetRect:convertedRect
-                           inView:self];
+            UIAction *gagAction = [UIAction actionWithTitle:NSLocalizedString(@"NEW_GAG", nil)
+                                                       image:[UIImage systemImageNamed:@"eye.slash"]
+                                                  identifier:nil
+                                                     handler:^(UIAction *action) {
+                id del = self.delegate;
+                if ([del respondsToSelector:@selector(mudView:shouldCreateRecordWithText:type:)]) {
+                    [del mudView:self shouldCreateRecordWithText:selectedText type:[MUDGag class]];
+                }
+            }];
 
-    menuController.menuItems = @[
-        [[UIMenuItem alloc] initWithTitle:NSLocalizedString(@"NEW_TRIGGER", nil) action:@selector(newTrigger:)],
-        [[UIMenuItem alloc] initWithTitle:NSLocalizedString(@"NEW_GAG", nil) action:@selector(newGag:)]
-    ];
-
-    [menuController setMenuVisible:YES animated:YES];
+            return [UIMenu menuWithTitle:@"" children:@[copyAction, triggerAction, gagAction]];
+        }];
 }
-#pragma clang diagnostic pop
 
 #pragma mark - UIResponder
 
 - (BOOL)canBecomeFirstResponder {
     return YES;
-}
-
-- (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
-    if (![self isFirstResponder]) {
-        return NO;
-    }
-
-    return action == NSSelectorFromString(@"copy:")
-        || action == @selector(newTrigger:)
-        || action == @selector(newGag:);
-}
-
-- (void)copy:(id)sender {
-    if ([self.lastSelectedText length] > 0) {
-        UIPasteboard *paste = [UIPasteboard generalPasteboard];
-        [paste setString:self.lastSelectedText];
-    }
-}
-
-#pragma mark - UIMenuController actions
-
-- (void)newTrigger:(id)sender {
-    id del = self.delegate;
-
-    if ([del respondsToSelector:@selector(mudView:shouldCreateRecordWithText:type:)]) {
-        [del mudView:self shouldCreateRecordWithText:self.lastSelectedText
-                type:[MUDTrigger class]];
-    }
-}
-
-- (void)newGag:(id)sender {
-    id del = self.delegate;
-
-    if ([del respondsToSelector:@selector(mudView:shouldCreateRecordWithText:type:)]) {
-        [del mudView:self shouldCreateRecordWithText:self.lastSelectedText
-                type:[MUDGag class]];
-    }
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -598,19 +586,6 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (self.lastMenuIndex && [[UIMenuController sharedMenuController] isMenuVisible]) {
-        if ([[self.tableView indexPathsForVisibleRows] containsObject:self.lastMenuIndex]) {
-            CGRect newRowRect = [self.tableView rectForRowAtIndexPath:self.lastMenuIndex];
-            CGRect convertedRect = [self convertRect:newRowRect fromView:self.tableView];
-
-            [[UIMenuController sharedMenuController] setTargetRect:convertedRect inView:self];
-        } else {
-            [[UIMenuController sharedMenuController] setMenuVisible:NO animated:YES];
-        }
-    }
-#pragma clang diagnostic pop
 
     if (!self.shouldHideTopNav || !self.isUserScrolling) {
         return;
