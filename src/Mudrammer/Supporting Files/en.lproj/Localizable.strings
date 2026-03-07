@@ -242,8 +242,8 @@
 /* Welcome to Wammer */
 "WELCOME" = "Welcome to Wammer";
 
-/* Wammer is a modern MUD client for iPhone and iPad. Let's get started with NANVAENT, one of the oldest and (in this humble developer's opinion) greatest MUDs around today. Say hi to me (Seuss)!\n\nOr, connect to your own favorite MUD. */
-"WELCOME_TEXT" = "Wammer is a modern MUD client for iPhone and iPad.\n\nLet's get started with NANVAENT, one of the oldest MUDs alive today. Say hi to Seuss!\n\nTo add your own MU*, tap Done, then tap the gear at top left.";
+/* Welcome body text */
+"WELCOME_TEXT" = "A modern MUD client for iPhone and iPad.\n\nLet's get started with NCMUD, one of the oldest MUDs alive today. Say hi to Heathen!\n\nTo add your own MU*, tap the gear at top left.";
 
 /* Worlds */
 "WORLDS" = "Worlds";

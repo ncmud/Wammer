@@ -104,11 +104,9 @@
 
         if (![[NSUserDefaults standardUserDefaults] boolForKey:kPrefInitialSetupComplete]) {
             SSWelcomeViewController *welcome = [SSWelcomeViewController new];
-            UINavigationController *nav = [welcome wrappedNavigationController];
-            nav.modalPresentationStyle = UIModalPresentationFormSheet;
-            nav.modalTransitionStyle = UIModalTransitionStyleCoverVertical;
+            welcome.modalPresentationStyle = UIModalPresentationFullScreen;
 
-            [self presentViewController:nav
+            [self presentViewController:welcome
                                animated:NO
                              completion:nil];
         }

@@ -240,8 +240,8 @@
 /* Welcome to Wammer */
 "WELCOME" = "Benvenuto in Wammer";
 
-/* Wammer is a modern MUD client for iPhone and iPad. Let's get started with NANVAENT, one of the oldest and (in this humble developer's opinion) greatest MUDs around today. Say hi to me (Seuss)!\n\nOr, connect to your own favorite MUD. */
-"WELCOME_TEXT" = "Wammer è un Mud Client moderno per iPhone e iPad.\n\nPer aggiungere un Mud, tocca Fine, Poi premi il pulsante nell’angolo in alto a sinistra.";
+/* Welcome body text */
+"WELCOME_TEXT" = "Un client MUD moderno per iPhone e iPad.\n\nIniziamo con NCMUD, uno dei MUD più antichi ancora attivi. Saluta Heathen!\n\nPer aggiungere il tuo MU*, tocca l’ingranaggio in alto a sinistra.";
 
 /* Worlds */
 "WORLDS" = "Mondi";

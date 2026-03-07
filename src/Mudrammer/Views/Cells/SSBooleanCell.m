@@ -23,7 +23,7 @@
 
 - (void)configureCell {
     _boolSwitch = [UISwitch new];
-    [self.boolSwitch setOnTintColor:[[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor]];
+    [self applySwitchTheme];
     [self.boolSwitch addTarget:self
                         action:@selector(switchDidChange:)
               forControlEvents:UIControlEventValueChanged];
@@ -40,12 +40,23 @@
                         keyPath:kThemeFontColor
                         options:NSKeyValueObservingOptionNew
                           block:^(SSBooleanCell *cell, id object, NSDictionary *change) {
-                              UIColor *newColor = change[NSKeyValueChangeNewKey];
-                              if (!newColor) newColor = [UIColor whiteColor];
-                              [cell.boolSwitch setOnTintColor:newColor];
+                              [cell applySwitchTheme];
                           }];
 
     [SSThemes configureCell:self];
+}
+
+- (void)applySwitchTheme {
+    UIColor *fontColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor];
+    [self.boolSwitch setOnTintColor:fontColor];
+
+    if ([[SSThemes sharedThemer] isUsingDarkTheme]) {
+        self.boolSwitch.layer.cornerRadius = 16;
+        self.boolSwitch.layer.borderWidth = 1;
+        self.boolSwitch.layer.borderColor = [[UIColor whiteColor] colorWithAlphaComponent:0.3].CGColor;
+    } else {
+        self.boolSwitch.layer.borderWidth = 0;
+    }
 }
 
 - (void)dealloc {

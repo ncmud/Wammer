@@ -24,15 +24,11 @@
 - (void)configureCell {
     _segmentControl = [UISegmentedControl new];
     self.segmentControl.momentary = NO;
-    self.segmentControl.backgroundColor = [UIColor clearColor];
-    [self.segmentControl setTintColor:[[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor]];
-    [self.segmentControl setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
-    [self.segmentControl setContentPositionAdjustment:UIOffsetMake(0, 1)
-                                       forSegmentType:UISegmentedControlSegmentAny
-                                           barMetrics:UIBarMetricsDefault];
     [self.segmentControl addTarget:self
                             action:@selector(segmentControlChanged:)
                   forControlEvents:UIControlEventValueChanged];
+
+    [self applySegmentTheme];
 
     self.selectionStyle = UITableViewCellSelectionStyleNone;
     self.accessoryView = self.segmentControl;
@@ -43,12 +39,25 @@
                         keyPath:kThemeFontColor
                         options:NSKeyValueObservingOptionNew
                           block:^(SSSegmentCell *cell, id object, NSDictionary *change) {
-                              UIColor *newColor = change[NSKeyValueChangeNewKey];
-                              if (!newColor) newColor = [UIColor whiteColor];
-                              [cell.segmentControl setTintColor:newColor];
+                              [cell applySegmentTheme];
                           }];
 
     [SSThemes configureCell:self];
+}
+
+- (void)applySegmentTheme {
+    UIColor *fontColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor];
+    UIColor *bgColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeBackgroundColor];
+
+    self.segmentControl.selectedSegmentTintColor = fontColor;
+
+    NSDictionary *normalAttrs = @{ NSForegroundColorAttributeName : [fontColor colorWithAlphaComponent:0.7] };
+    NSDictionary *selectedAttrs = @{ NSForegroundColorAttributeName : bgColor };
+
+    [self.segmentControl setTitleTextAttributes:normalAttrs forState:UIControlStateNormal];
+    [self.segmentControl setTitleTextAttributes:selectedAttrs forState:UIControlStateSelected];
+
+    self.segmentControl.backgroundColor = [fontColor colorWithAlphaComponent:0.12];
 }
 
 - (void)dealloc {

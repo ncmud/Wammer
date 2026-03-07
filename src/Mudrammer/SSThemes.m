@@ -250,41 +250,28 @@
     [self startSyncingToCloud];
     [self loadThemeFromDefaults];
 
-    // Navbar/toolbar background
-    UIImage *bgImage = [SPLImagesCatalog navBackgroundImage];
-
     // UINavigationBar
-    NSShadow *titleShadow = [NSShadow new];
-    [titleShadow setShadowColor:[UIColor labelColor]];
-    [titleShadow setShadowOffset:CGSizeMake(0, 1)];
-    [[UINavigationBar appearance] setTitleTextAttributes:@{
-           NSForegroundColorAttributeName : [UIColor whiteColor],
-           NSShadowAttributeName : titleShadow,
-           NSFontAttributeName : [UIFont boldSystemFontOfSize:([[UIDevice currentDevice] isIPad]
-                                                               ? 18.0f
-                                                               : 16.0f)]
-    }];
-    [[UINavigationBar appearance] setBackgroundImage:bgImage
-                                       forBarMetrics:UIBarMetricsDefault];
-
-    // iPad navbar
-    NSShadow *iPadShadow = [NSShadow new];
-    [iPadShadow setShadowColor:[UIColor whiteColor]];
-    [iPadShadow setShadowOffset:CGSizeMake(0, 1)];
-    [[UINavigationBar appearanceWhenContainedInInstancesOfClasses:@[[UIPopoverPresentationController class]]]
-     setBackgroundImage:nil
-     forBarMetrics:UIBarMetricsDefault];
-    [[UINavigationBar appearanceWhenContainedInInstancesOfClasses:@[[UIPopoverPresentationController class]]]
-     setTitleTextAttributes:@{
-          NSForegroundColorAttributeName : [UIColor labelColor],
-          NSShadowAttributeName : iPadShadow
-    }];
+    UINavigationBarAppearance *navAppearance = [[UINavigationBarAppearance alloc] init];
+    [navAppearance configureWithOpaqueBackground];
+    navAppearance.backgroundColor = [self valueForThemeKey:kThemeBackgroundColor];
+    navAppearance.titleTextAttributes = @{
+        NSForegroundColorAttributeName : [self valueForThemeKey:kThemeFontColor],
+        NSFontAttributeName : [UIFont boldSystemFontOfSize:([[UIDevice currentDevice] isIPad]
+                                                            ? 18.0f
+                                                            : 16.0f)]
+    };
+    [[UINavigationBar appearance] setStandardAppearance:navAppearance];
+    [[UINavigationBar appearance] setCompactAppearance:navAppearance];
+    [[UINavigationBar appearance] setScrollEdgeAppearance:navAppearance];
+    [[UINavigationBar appearance] setTintColor:[self valueForThemeKey:kThemeFontColor]];
 
     // UIToolbar
-    [[UIToolbar appearance] setBackgroundImage:bgImage
-                            forToolbarPosition:UIBarPositionAny
-                                    barMetrics:UIBarMetricsDefault];
-    [[UIToolbar appearance] setBarTintColor:[UIColor whiteColor]];
+    UIToolbarAppearance *toolbarAppearance = [[UIToolbarAppearance alloc] init];
+    [toolbarAppearance configureWithOpaqueBackground];
+    toolbarAppearance.backgroundColor = [self valueForThemeKey:kThemeBackgroundColor];
+    [[UIToolbar appearance] setStandardAppearance:toolbarAppearance];
+    [[UIToolbar appearance] setCompactAppearance:toolbarAppearance];
+    [[UIToolbar appearance] setScrollEdgeAppearance:toolbarAppearance];
 
     // Status bar style is now handled per-view-controller via preferredStatusBarStyle
 
@@ -501,8 +488,10 @@
 #pragma mark - table configure
 
 + (void)configureTable:(UITableView *)tableView {
+    UIColor *bgColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeBackgroundColor];
+
     if (tableView.style == UITableViewStylePlain) {
-        tableView.backgroundColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeBackgroundColor];
+        tableView.backgroundColor = bgColor;
 
         if (![[UIDevice currentDevice] isIPad]) {
             [tableView addCenteredFooterWithImage:([[self sharedThemer] isUsingDarkTheme]
@@ -511,10 +500,13 @@
                                             alpha:0.5f];
         }
     } else if (tableView.style == UITableViewStyleGrouped) {
+        tableView.backgroundColor = bgColor;
         tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
     }
 
-    tableView.separatorColor = [UIColor lightGrayColor];
+    tableView.separatorColor = [[self sharedThemer] isUsingDarkTheme]
+        ? [UIColor darkGrayColor]
+        : [UIColor lightGrayColor];
 }
 
 + (void)configureCell:(UITableViewCell *)cell {

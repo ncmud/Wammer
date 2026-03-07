@@ -13,18 +13,18 @@
 
 @interface SSWelcomeViewController ()
 
-@property (nonatomic, strong) UILabel *label;
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UILabel *bodyLabel;
 @property (nonatomic, strong) UIImageView *imageView;
+@property (nonatomic, strong) UIButton *getStartedButton;
 
-
-- (void) tappedButton:(id)sender;
 @end
 
 @implementation SSWelcomeViewController
 
 - (instancetype) init {
     if ((self = [super init])) {
-        self.title = NSLocalizedString(@"WELCOME", @"Welcome to MUDRammer");
+        self.modalPresentationStyle = UIModalPresentationFullScreen;
     }
 
     return self;
@@ -35,39 +35,65 @@
 
     self.view.backgroundColor = [[SSThemes sharedThemer] themeAtIndex:0][kThemeBackgroundColor];
 
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-                                                                                          target:self
-                                                                                          action:@selector(tappedButton:)];
-
+    // Shield image — centered in upper half
     _imageView = [[UIImageView alloc] initWithImage:[SPLImagesCatalog shieldImage]];
-    self.imageView.alpha = 0.2f;
+    self.imageView.alpha = 0.15f;
+    self.imageView.contentMode = UIViewContentModeScaleAspectFit;
 
     [self.view addSubview:self.imageView];
     [self.imageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.center.equalTo(self.view);
+        make.centerX.equalTo(self.view);
+        make.centerY.equalTo(self.view).offset(-80);
+        make.width.height.mas_equalTo(200);
     }];
 
-    // welcome label
-    _label = [UILabel new];
-    self.label.backgroundColor = [UIColor clearColor];
-    self.label.textAlignment = NSTextAlignmentCenter;
-    self.label.numberOfLines = 0;
+    // Title
+    _titleLabel = [UILabel new];
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
+    self.titleLabel.text = NSLocalizedString(@"WELCOME", nil);
+    self.titleLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightBold];
+    self.titleLabel.textColor = [UIColor whiteColor];
 
-    NSShadow *shadow = [NSShadow new];
-    shadow.shadowColor = [UIColor darkGrayColor];
-    shadow.shadowOffset = CGSizeMake(0, 1);
+    [self.view addSubview:self.titleLabel];
+    [self.titleLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerX.equalTo(self.view);
+        make.top.equalTo(self.imageView.mas_bottom).offset(32);
+        make.left.greaterThanOrEqualTo(self.view).offset(32);
+        make.right.lessThanOrEqualTo(self.view).offset(-32);
+    }];
 
-    self.label.attributedText = [[NSAttributedString alloc] initWithString:NSLocalizedString(@"WELCOME_TEXT", nil)
-                                                            attributes:@{
-                                 NSForegroundColorAttributeName : [UIColor whiteColor],
-                                 NSFontAttributeName : [UIFont fontWithName:kDefaultFontName size:20.],
-                                 NSShadowAttributeName : shadow,
-                            }];
+    // Body text
+    _bodyLabel = [UILabel new];
+    self.bodyLabel.textAlignment = NSTextAlignmentCenter;
+    self.bodyLabel.numberOfLines = 0;
+    self.bodyLabel.text = NSLocalizedString(@"WELCOME_TEXT", nil);
+    self.bodyLabel.font = [UIFont systemFontOfSize:17 weight:UIFontWeightRegular];
+    self.bodyLabel.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7];
 
-    [self.view addSubview:self.label];
-    [self.label mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.center.equalTo(self.view);
-        make.size.equalTo(self.view).sizeOffset(CGSizeMake(-40, -20));
+    [self.view addSubview:self.bodyLabel];
+    [self.bodyLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerX.equalTo(self.view);
+        make.top.equalTo(self.titleLabel.mas_bottom).offset(16);
+        make.left.greaterThanOrEqualTo(self.view).offset(40);
+        make.right.lessThanOrEqualTo(self.view).offset(-40);
+    }];
+
+    // Get Started button
+    UIButtonConfiguration *config = [UIButtonConfiguration filledButtonConfiguration];
+    config.title = @"Get Started";
+    config.cornerStyle = UIButtonConfigurationCornerStyleLarge;
+    config.baseBackgroundColor = [UIColor systemBlueColor];
+    config.baseForegroundColor = [UIColor whiteColor];
+    config.contentInsets = NSDirectionalEdgeInsetsMake(14, 40, 14, 40);
+
+    _getStartedButton = [UIButton buttonWithConfiguration:config primaryAction:nil];
+    self.getStartedButton.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightSemibold];
+    [self.getStartedButton addTarget:self action:@selector(tappedButton:) forControlEvents:UIControlEventTouchUpInside];
+
+    [self.view addSubview:self.getStartedButton];
+    [self.getStartedButton mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerX.equalTo(self.view);
+        make.bottom.equalTo(self.view.mas_bottom).offset(-60);
     }];
 }
 

@@ -32,13 +32,8 @@
         ];
     });
 
-    return [NSString stringWithFormat:@"%@\n"
-            @"%@\n"
-            @"%@\n\n"
-            @"%@",
+    return [NSString stringWithFormat:@"%@\n\n%@",
             [UIApplication applicationNameVersionBuild],
-            [self applicationCopyright],
-            [self applicationExtras],
             extras[arc4random_uniform((uint32_t)[extras count])]];
 }
 
