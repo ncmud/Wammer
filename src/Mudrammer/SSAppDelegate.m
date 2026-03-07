@@ -111,6 +111,94 @@
     };
 }
 
+#if TARGET_OS_MACCATALYST
+#pragma mark - Mac Menu Bar
+
+- (void)buildMenuWithBuilder:(id<UIMenuBuilder>)builder {
+    [super buildMenuWithBuilder:builder];
+
+    if (builder.system != UIMenuSystem.mainSystem) {
+        return;
+    }
+
+    // Remove menus that don't apply
+    [builder removeMenuForIdentifier:UIMenuFormat];
+
+    // Connection menu
+    UIKeyCommand *disconnectCommand = [UIKeyCommand commandWithTitle:NSLocalizedString(@"DISCONNECT", @"Disconnect")
+                                                               image:nil
+                                                              action:@selector(menuDisconnect:)
+                                                               input:@"w"
+                                                       modifierFlags:UIKeyModifierCommand
+                                                        propertyList:nil];
+
+    UIKeyCommand *cycleCommand = [UIKeyCommand commandWithTitle:NSLocalizedString(@"CYCLE_CONNECTIONS", @"Next Connection")
+                                                          image:nil
+                                                         action:@selector(menuCycleConnections:)
+                                                          input:@"]"
+                                                  modifierFlags:UIKeyModifierCommand
+                                                   propertyList:nil];
+
+    UIKeyCommand *clearCommand = [UIKeyCommand commandWithTitle:NSLocalizedString(@"CLEAR_SCREEN", @"Clear Screen")
+                                                          image:nil
+                                                         action:@selector(menuClearScreen:)
+                                                          input:@"k"
+                                                  modifierFlags:UIKeyModifierCommand
+                                                   propertyList:nil];
+
+    UIMenu *connectionMenu = [UIMenu menuWithTitle:NSLocalizedString(@"CONNECTION", @"Connection")
+                                          children:@[disconnectCommand, cycleCommand, clearCommand]];
+
+    [builder insertSiblingMenu:connectionMenu afterMenuForIdentifier:UIMenuFile];
+
+    // World list in File menu
+    UIKeyCommand *worldListCommand = [UIKeyCommand commandWithTitle:NSLocalizedString(@"WORLD_LIST", @"World List")
+                                                              image:nil
+                                                             action:@selector(menuShowWorldList:)
+                                                              input:@"l"
+                                                      modifierFlags:UIKeyModifierCommand
+                                                       propertyList:nil];
+
+    UIMenu *worldListMenu = [UIMenu menuWithTitle:@""
+                                            image:nil
+                                       identifier:nil
+                                          options:UIMenuOptionsDisplayInline
+                                         children:@[worldListCommand]];
+
+    [builder insertChildMenu:worldListMenu atStartOfMenuForIdentifier:UIMenuFile];
+}
+
+- (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
+    if (action == @selector(menuDisconnect:) ||
+        action == @selector(menuCycleConnections:) ||
+        action == @selector(menuClearScreen:) ||
+        action == @selector(menuShowWorldList:)) {
+        return YES;
+    }
+    return [super canPerformAction:action withSender:sender];
+}
+
+- (void)menuDisconnect:(id)sender {
+    SSClientViewController *client = [SSClientContainer worldDisplayDrawer].currentVisibleClient;
+    if (client) {
+        [client disconnect];
+    }
+}
+
+- (void)menuCycleConnections:(id)sender {
+    [[SSClientContainer worldDisplayDrawer] selectNextWorld];
+}
+
+- (void)menuClearScreen:(id)sender {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"MRMenuClearScreen" object:nil];
+}
+
+- (void)menuShowWorldList:(id)sender {
+    SSClientContainer *container = [SSClientContainer sharedClientContainer];
+    [container toggleLeftPanel:sender];
+}
+#endif
+
 - (void) ss_receivedApplicationEvent:(SSApplicationEvent)eventType {
 
     switch (eventType) {

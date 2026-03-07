@@ -352,3 +352,9 @@
 "SOUND_POURINGLIQUID" = "Pouring Liquid";
 "SOUND_SHOTMISSES" = "Shot Misses";
 "SOUND_SWISH" = "Swish";
+
+/* Mac Menu Bar */
+"CONNECTION" = "Connection";
+"CYCLE_CONNECTIONS" = "Next Connection";
+"CLEAR_SCREEN" = "Clear Screen";
+"WORLD_LIST" = "World List";
