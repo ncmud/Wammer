@@ -31,8 +31,6 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
         self.textContainerInset = kTextContainerInset;
 
         self.textContainer.lineFragmentPadding = 0;
-        self.textContainer.layoutManager.allowsNonContiguousLayout = NO;
-        self.textContainer.layoutManager.usesFontLeading = NO;
 
         self.textColor = [UIColor darkGrayColor];
         self.font = [UIFont systemFontOfSize:14.0f];
