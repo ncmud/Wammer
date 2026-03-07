@@ -36,6 +36,10 @@ MUDRammer's source code is available under the MIT license. See the `LICENSE` fi
 
 Fonts, images, and sounds bundled with MUDRammer are licensed free for commercial use.
 
+## About the Name
+
+The original MUDRammer was named after a character belonging to one of Jonathan's Dutch mudding friends. When forking the project, we wanted to pay homage to that tradition. Wammer is named after my friend who got me into MUDding, whose first character was named "Wam."
+
 ## Original Author
 
 MUDRammer was designed and developed by [Jonathan Hersh](https://her.sh) starting in November 2012. It saw [34 App Store updates](https://github.com/splinesoft/MUDRammer/blob/master/AppStore/updates.txt) and was open-sourced in June 2015.
