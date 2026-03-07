@@ -9,7 +9,7 @@
 
 #import "EXTRuntimeExtensions.h"
 #import <ctype.h>
-#import <libkern/OSAtomic.h>
+#include <os/lock.h>
 #import <objc/message.h>
 #import <pthread.h>
 #import <stdio.h>
@@ -487,13 +487,14 @@ ext_propertyAttributes *ext_copyPropertyAttributes (objc_property_t property) {
 
         if (className != next) {
             size_t classNameLength = next - className;
-            char trimmedName[classNameLength + 1];
+            char *trimmedName = (char *)malloc(classNameLength + 1);
 
             strncpy(trimmedName, className, classNameLength);
             trimmedName[classNameLength] = '\0';
 
             // attempt to look up the class in the runtime
             attributes->objectClass = objc_getClass(trimmedName);
+            free(trimmedName);
         }
     }
 
@@ -545,12 +546,13 @@ ext_propertyAttributes *ext_copyPropertyAttributes (objc_property_t property) {
                         goto errorOut;
                     }
 
-                    char selectorString[selectorLength + 1];
+                    char *selectorString = (char *)malloc(selectorLength + 1);
 
                     strncpy(selectorString, next, selectorLength);
                     selectorString[selectorLength] = '\0';
 
                     name = sel_registerName(selectorString);
+                    free(selectorString);
                     next = nextFlag;
                 }
 
@@ -617,7 +619,7 @@ ext_propertyAttributes *ext_copyPropertyAttributes (objc_property_t property) {
         // we want to transform the name to setProperty: style
         size_t setterLength = propertyNameLength + 4;
 
-        char setterName[setterLength + 1];
+        char *setterName = (char *)malloc(setterLength + 1);
         strncpy(setterName, "set", 3);
         strncpy(setterName + 3, propertyName, propertyNameLength);
 
@@ -628,6 +630,7 @@ ext_propertyAttributes *ext_copyPropertyAttributes (objc_property_t property) {
         setterName[setterLength] = '\0';
 
         attributes->setter = sel_registerName(setterName);
+        free(setterName);
     }
 
     return attributes;
@@ -736,20 +739,20 @@ NSMethodSignature *ext_globalMethodSignatureForSelector (SEL aSelector) {
 
     // set up a small & simple cache/hash to avoid repeatedly scouring every
     // class & protocol in the runtime.
-    static const size_t selectorCacheLength = 1 << 8;
-    static const uintptr_t selectorCacheMask = (selectorCacheLength - 1);
-    static ext_methodDescription volatile methodDescriptionCache[selectorCacheLength];
+    enum { selectorCacheLength = 1 << 8 };
+    enum { selectorCacheMask = selectorCacheLength - 1 };
+    static ext_methodDescription methodDescriptionCache[selectorCacheLength];
 
     // reads and writes need to be atomic, but will be ridiculously fast,
     // so we can stay in userland for locks, and keep the speed.
-    static OSSpinLock lock = OS_SPINLOCK_INIT;
+    static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
 
     uintptr_t hash = (uintptr_t)((void *)aSelector) & selectorCacheMask;
     ext_methodDescription methodDesc;
 
-    OSSpinLockLock(&lock);
+    os_unfair_lock_lock(&lock);
     methodDesc = methodDescriptionCache[hash];
-    OSSpinLockUnlock(&lock);
+    os_unfair_lock_unlock(&lock);
 
     // cache hit? check the selector to insure we aren't colliding
     if (methodDesc.name == aSelector) {
@@ -803,9 +806,9 @@ NSMethodSignature *ext_globalMethodSignatureForSelector (SEL aSelector) {
 
     if (methodDesc.name) {
         // if not locked, cache this value, but don't wait around
-        if (OSSpinLockTry(&lock)) {
+        if (os_unfair_lock_trylock(&lock)) {
             methodDescriptionCache[hash] = methodDesc;
-            OSSpinLockUnlock(&lock);
+            os_unfair_lock_unlock(&lock);
         }
 
         // NB: there are some esoteric system type encodings that cause -signatureWithObjCTypes: to fail,
@@ -999,7 +1002,7 @@ NSString *ext_stringFromTypedBytes (const void *bytes, const char *encoding) {
         case 'd': return @(*(double *)bytes).description;
         case 'B': return @(*(_Bool *)bytes).description;
         case 'v': return @"(void)";
-        case '*': return [NSString stringWithFormat:@"\"%s\"", bytes];
+        case '*': return [NSString stringWithFormat:@"\"%s\"", (const char *)bytes];
 
         case '@':
         case '#': {

@@ -9,7 +9,7 @@ let package = Package(
             name: "JASidePanels",
             path: "Sources",
             publicHeadersPath: "include",
-            cSettings: [.unsafeFlags(["-w"])]
+            cSettings: [.unsafeFlags(["-Wmost"])]
         )
     ]
 )

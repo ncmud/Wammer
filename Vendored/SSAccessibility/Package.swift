@@ -9,7 +9,7 @@ let package = Package(
             name: "SSAccessibility",
             path: "Sources",
             publicHeadersPath: "include",
-            cSettings: [.unsafeFlags(["-w"])]
+            cSettings: [.unsafeFlags(["-Wmost"])]
         )
     ]
 )

@@ -317,7 +317,7 @@ static const CGFloat VTLabelMargin = 20;
 - (void)openCocoaPodsWebsite:(id)sender
 {
     NSURL *URL = [NSURL URLWithString:VTCocoaPodsURLString];
-    [[UIApplication sharedApplication] openURL:URL];
+    [[UIApplication sharedApplication] openURL:URL options:@{} completionHandler:nil];
 }
 
 - (IBAction)dismissViewController:(id)sender

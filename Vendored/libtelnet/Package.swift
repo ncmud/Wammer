@@ -9,7 +9,7 @@ let package = Package(
             name: "libtelnet",
             path: "Sources",
             publicHeadersPath: "include",
-            cSettings: [.headerSearchPath("."), .define("HAVE_ZLIB"), .unsafeFlags(["-w"])],
+            cSettings: [.headerSearchPath("."), .define("HAVE_ZLIB"), .unsafeFlags(["-Wmost"])],
             linkerSettings: [.linkedLibrary("z")]
         )
     ]

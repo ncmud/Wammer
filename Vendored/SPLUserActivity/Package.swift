@@ -9,7 +9,7 @@ let package = Package(
             name: "SPLUserActivity",
             path: "Sources",
             publicHeadersPath: "include",
-            cSettings: [.unsafeFlags(["-w"])]
+            cSettings: [.unsafeFlags(["-Wmost"])]
         )
     ]
 )

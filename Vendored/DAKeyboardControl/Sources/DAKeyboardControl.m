@@ -133,7 +133,7 @@ static char UIViewKeyboardOpened;
     else
     {
         CGRect keyboardFrameInView = CGRectMake(0.0f,
-                                                [[UIScreen mainScreen] bounds].size.height,
+                                                self.window.screen.bounds.size.height,
                                                 0.0f,
                                                 0.0f);
         return keyboardFrameInView;

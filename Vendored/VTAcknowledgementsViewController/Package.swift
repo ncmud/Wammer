@@ -11,7 +11,7 @@ let package = Package(
             path: "Sources",
             resources: [.process("Resources")],
             publicHeadersPath: "include",
-            cSettings: [.unsafeFlags(["-w"])]
+            cSettings: [.unsafeFlags(["-Wmost"])]
         )
     ]
 )

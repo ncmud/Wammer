@@ -17,7 +17,11 @@
 }
 
 + (BOOL)isLandscape {
-    return UIInterfaceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
+    UIWindowScene *scene = (UIWindowScene *)[[[[UIApplication sharedApplication] connectedScenes] allObjects] firstObject];
+    if (scene && [scene isKindOfClass:[UIWindowScene class]]) {
+        return UIInterfaceOrientationIsLandscape(scene.effectiveGeometry.interfaceOrientation);
+    }
+    return NO;
 }
 
 + (void)vibrateWithBeepFallback:(BOOL)beep {

@@ -75,17 +75,17 @@ typedef UILineBreakMode TTTLineBreakMode;
 static inline CTTextAlignment CTTextAlignmentFromTTTTextAlignment(TTTTextAlignment alignment) {
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
     switch (alignment) {
-		case NSTextAlignmentLeft: return kCTLeftTextAlignment;
-		case NSTextAlignmentCenter: return kCTCenterTextAlignment;
-		case NSTextAlignmentRight: return kCTRightTextAlignment;
-		default: return kCTNaturalTextAlignment;
+		case NSTextAlignmentLeft: return kCTTextAlignmentLeft;
+		case NSTextAlignmentCenter: return kCTTextAlignmentCenter;
+		case NSTextAlignmentRight: return kCTTextAlignmentRight;
+		default: return kCTTextAlignmentNatural;
 	}
 #else
     switch (alignment) {
-		case UITextAlignmentLeft: return kCTLeftTextAlignment;
-		case UITextAlignmentCenter: return kCTCenterTextAlignment;
-		case UITextAlignmentRight: return kCTRightTextAlignment;
-		default: return kCTNaturalTextAlignment;
+		case UITextAlignmentLeft: return kCTTextAlignmentLeft;
+		case UITextAlignmentCenter: return kCTTextAlignmentCenter;
+		case UITextAlignmentRight: return kCTTextAlignmentRight;
+		default: return kCTTextAlignmentNatural;
 	}
 #endif
 }
@@ -214,7 +214,7 @@ static inline NSDictionary * NSAttributedStringAttributesFromLabel(TTTAttributed
         CTParagraphStyleSetting paragraphStyles[12] = {
             {.spec = kCTParagraphStyleSpecifierAlignment, .valueSize = sizeof(CTTextAlignment), .value = (const void *)&alignment},
             {.spec = kCTParagraphStyleSpecifierLineBreakMode, .valueSize = sizeof(CTLineBreakMode), .value = (const void *)&lineBreakMode},
-            {.spec = kCTParagraphStyleSpecifierLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&lineSpacing},
+            {.spec = kCTParagraphStyleSpecifierLineSpacingAdjustment, .valueSize = sizeof(CGFloat), .value = (const void *)&lineSpacing},
             {.spec = kCTParagraphStyleSpecifierMinimumLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&minimumLineHeight},
             {.spec = kCTParagraphStyleSpecifierMaximumLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&maximumLineHeight},
             {.spec = kCTParagraphStyleSpecifierLineSpacingAdjustment, .valueSize = sizeof (CGFloat), .value = (const void *)&lineSpacingAdjustment},

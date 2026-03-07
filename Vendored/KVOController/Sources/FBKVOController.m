@@ -9,7 +9,7 @@
 
 #import "FBKVOController.h"
 
-#import <libkern/OSAtomic.h>
+#include <os/lock.h>
 #import <objc/message.h>
 
 #if !__has_feature(objc_arc)
@@ -197,7 +197,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
 @implementation _FBKVOSharedController
 {
   NSHashTable *_infos;
-  OSSpinLock _lock;
+  os_unfair_lock _lock;
 }
 
 + (instancetype)sharedController
@@ -229,7 +229,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
     }
     
 #endif
-    _lock = OS_SPINLOCK_INIT;
+    _lock = OS_UNFAIR_LOCK_INIT;
   }
   return self;
 }
@@ -239,7 +239,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   NSMutableString *s = [NSMutableString stringWithFormat:@"<%@:%p", NSStringFromClass([self class]), self];
   
   // lock
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   
   NSMutableArray *infoDescriptions = [NSMutableArray arrayWithCapacity:_infos.count];
   for (_FBKVOInfo *info in _infos) {
@@ -249,7 +249,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   [s appendFormat:@" contexts:%@", infoDescriptions];
   
   // unlock
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   [s appendString:@">"];
   return s;
@@ -262,9 +262,9 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   }
   
   // register info
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   [_infos addObject:info];
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   // add observer
   [object addObserver:self forKeyPath:info->_keyPath options:info->_options context:(void *)info];
@@ -277,9 +277,9 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   }
   
   // unregister info
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   [_infos removeObject:info];
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   // remove observer
   [object removeObserver:self forKeyPath:info->_keyPath context:(void *)info];
@@ -292,11 +292,11 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   }
   
   // unregister info
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   for (_FBKVOInfo *info in infos) {
     [_infos removeObject:info];
   }
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   // remove observer
   for (_FBKVOInfo *info in infos) {
@@ -312,9 +312,9 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   
   {
     // lookup context in registered infos, taking out a strong reference only if it exists
-    OSSpinLockLock(&_lock);
+    os_unfair_lock_lock(&_lock);
     info = [_infos member:(__bridge id)context];
-    OSSpinLockUnlock(&_lock);
+    os_unfair_lock_unlock(&_lock);
   }
   
   if (nil != info) {
@@ -350,7 +350,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
 @implementation FBKVOController
 {
   NSMapTable *_objectInfosMap;
-  OSSpinLock _lock;
+  os_unfair_lock _lock;
 }
 
 #pragma mark Lifecycle -
@@ -367,7 +367,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
     _observer = observer;
     NSPointerFunctionsOptions keyOptions = retainObserved ? NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPointerPersonality : NSPointerFunctionsWeakMemory|NSPointerFunctionsObjectPointerPersonality;
     _objectInfosMap = [[NSMapTable alloc] initWithKeyOptions:keyOptions valueOptions:NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPersonality capacity:0];
-    _lock = OS_SPINLOCK_INIT;
+    _lock = OS_UNFAIR_LOCK_INIT;
   }
   return self;
 }
@@ -390,7 +390,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   [s appendFormat:@" observer:<%@:%p>", NSStringFromClass([_observer class]), _observer];
   
   // lock
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   
   if (0 != _objectInfosMap.count) {
     [s appendString:@"\n  "];
@@ -406,7 +406,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   }
   
   // unlock
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   [s appendString:@">"];
   return s;
@@ -417,7 +417,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
 - (void)_observe:(id)object info:(_FBKVOInfo *)info
 {
   // lock
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   
   NSMutableSet *infos = [_objectInfosMap objectForKey:object];
   
@@ -427,7 +427,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
     NSLog(@"observation info already exists %@", existingInfo);
     
     // unlock and return
-    OSSpinLockUnlock(&_lock);
+    os_unfair_lock_unlock(&_lock);
     return;
   }
   
@@ -441,7 +441,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   [infos addObject:info];
   
   // unlock prior to callout
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   [[_FBKVOSharedController sharedController] observe:object info:info];
 }
@@ -449,7 +449,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
 - (void)_unobserve:(id)object info:(_FBKVOInfo *)info
 {
   // lock
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   
   // get observation infos
   NSMutableSet *infos = [_objectInfosMap objectForKey:object];
@@ -467,7 +467,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   }
   
   // unlock
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   // unobserve
   [[_FBKVOSharedController sharedController] unobserve:object info:registeredInfo];
@@ -476,7 +476,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
 - (void)_unobserve:(id)object
 {
   // lock
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   
   NSMutableSet *infos = [_objectInfosMap objectForKey:object];
   
@@ -484,7 +484,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   [_objectInfosMap removeObjectForKey:object];
   
   // unlock
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   // unobserve
   [[_FBKVOSharedController sharedController] unobserve:object infos:infos];
@@ -493,7 +493,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
 - (void)_unobserveAll
 {
   // lock
-  OSSpinLockLock(&_lock);
+  os_unfair_lock_lock(&_lock);
   
   NSMapTable *objectInfoMaps = [_objectInfosMap copy];
   
@@ -501,7 +501,7 @@ static NSString *describe_options(NSKeyValueObservingOptions options)
   [_objectInfosMap removeAllObjects];
   
   // unlock
-  OSSpinLockUnlock(&_lock);
+  os_unfair_lock_unlock(&_lock);
   
   _FBKVOSharedController *shareController = [_FBKVOSharedController sharedController];
   
