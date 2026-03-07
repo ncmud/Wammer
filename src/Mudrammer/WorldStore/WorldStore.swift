@@ -80,7 +80,7 @@ final class WorldStore: NSObject {
 
     private static func loadDefaultWorlds() -> [MUDWorld] {
         let worlds = [
-            MUDWorld(hostname: "ncmud.net",                name: "NCMUD",               port: 9001, isSecure: true),
+            MUDWorld(hostname: "ncmud.net",                name: "NCMUD",               port: 9000),
             MUDWorld(hostname: "nanvaent.org",             name: "Nanvaent",             port:   23),
             MUDWorld(hostname: "achaea.com",               name: "Achaea",               port:   23),
             MUDWorld(hostname: "valhalla.com",             name: "Valhalla",             port: 4242),
