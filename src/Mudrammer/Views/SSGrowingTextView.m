@@ -141,55 +141,48 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
     static NSArray *keys;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        keys = @[
-             [UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
-                                 modifierFlags:kNilOptions
-                                        action:@selector(pressedArrowKey:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow
-                                 modifierFlags:kNilOptions
-                                        action:@selector(pressedArrowKey:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputLeftArrow
-                                 modifierFlags:UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputLeftArrow
-                                 modifierFlags:UIKeyModifierControl | UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputRightArrow
-                                 modifierFlags:UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputRightArrow
-                                 modifierFlags:UIKeyModifierControl | UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
-                                 modifierFlags:UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
-                                 modifierFlags:UIKeyModifierControl | UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow
-                                 modifierFlags:UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
-             [UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow
-                                 modifierFlags:UIKeyModifierControl | UIKeyModifierCommand
-                                        action:@selector(pressedDirectionalCommand:)],
+        NSMutableArray *cmds = [NSMutableArray array];
 
-             // Session navigation
-             [UIKeyCommand keyCommandWithInput:@"`"
-                                 modifierFlags:UIKeyModifierControl
-                                        action:@selector(keyCommandCycleActiveConnections:)],
-             [UIKeyCommand keyCommandWithInput:@"1"
-                                 modifierFlags:UIKeyModifierControl
-                                        action:@selector(keyCommandSwitchToActiveConnection:)],
-             [UIKeyCommand keyCommandWithInput:@"2"
-                                 modifierFlags:UIKeyModifierControl
-                                        action:@selector(keyCommandSwitchToActiveConnection:)],
-             [UIKeyCommand keyCommandWithInput:@"3"
-                                 modifierFlags:UIKeyModifierControl
-                                        action:@selector(keyCommandSwitchToActiveConnection:)],
-             [UIKeyCommand keyCommandWithInput:@"4"
-                                 modifierFlags:UIKeyModifierControl
-                                        action:@selector(keyCommandSwitchToActiveConnection:)],
-         ];
+        // History navigation
+        UIKeyCommand *histUp = [UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
+                                                   modifierFlags:kNilOptions
+                                                          action:@selector(pressedArrowKey:)];
+        histUp.discoverabilityTitle = @"Previous Command";
+        [cmds addObject:histUp];
+
+        UIKeyCommand *histDown = [UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow
+                                                     modifierFlags:kNilOptions
+                                                            action:@selector(pressedArrowKey:)];
+        histDown.discoverabilityTitle = @"Next Command";
+        [cmds addObject:histDown];
+
+        // Directional movement (Cmd+arrow = cardinal, Cmd+Ctrl+arrow = diagonal)
+        NSArray *arrowInputs = @[UIKeyInputLeftArrow, UIKeyInputRightArrow, UIKeyInputUpArrow, UIKeyInputDownArrow];
+        for (NSString *arrow in arrowInputs) {
+            [cmds addObject:[UIKeyCommand keyCommandWithInput:arrow
+                                                modifierFlags:UIKeyModifierCommand
+                                                       action:@selector(pressedDirectionalCommand:)]];
+            [cmds addObject:[UIKeyCommand keyCommandWithInput:arrow
+                                                modifierFlags:UIKeyModifierControl | UIKeyModifierCommand
+                                                       action:@selector(pressedDirectionalCommand:)]];
+        }
+
+        // Session navigation
+        UIKeyCommand *cycle = [UIKeyCommand keyCommandWithInput:@"`"
+                                                  modifierFlags:UIKeyModifierControl
+                                                         action:@selector(keyCommandCycleActiveConnections:)];
+        cycle.discoverabilityTitle = @"Cycle Connections";
+        [cmds addObject:cycle];
+
+        for (int i = 1; i <= 9; i++) {
+            UIKeyCommand *cmd = [UIKeyCommand keyCommandWithInput:[NSString stringWithFormat:@"%d", i]
+                                                    modifierFlags:UIKeyModifierControl
+                                                           action:@selector(keyCommandSwitchToActiveConnection:)];
+            cmd.discoverabilityTitle = [NSString stringWithFormat:@"Connection %d", i];
+            [cmds addObject:cmd];
+        }
+
+        keys = [cmds copy];
     });
 
     return keys;
