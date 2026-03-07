@@ -72,17 +72,22 @@
             make.bottom.equalTo(self.inputToolbar.mas_top);
         }];
 
-        // movement control
+        // movement control (touch-only, hidden on Catalyst)
         _movementControl = [SSRadialControl radialControl];
         self.movementControl.delegate = self;
         [self.movementControl setEnabled:NO];
         [self addSubview:self.movementControl];
 
-        // radial control
+        // radial control (touch-only, hidden on Catalyst)
         _radialControl = [SSRadialControl radialControl];
         self.radialControl.delegate = self;
         [self.radialControl setEnabled:NO];
         [self addSubview:self.radialControl];
+
+#if TARGET_OS_MACCATALYST
+        self.movementControl.hidden = YES;
+        self.radialControl.hidden = YES;
+#endif
 
         // Speech toolbar
         _synthesizer = [SSSpeechSynthesizer new];
@@ -142,6 +147,9 @@
 }
 
 - (void)setKeyboardPanningEnabled:(BOOL)enabled {
+#if TARGET_OS_MACCATALYST
+    return;
+#endif
     [self removeKeyboardControl];
 
     if( enabled ) {
@@ -221,6 +229,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         self.shouldHideTopNav = ![[NSUserDefaults standardUserDefaults] boolForKey:kPrefTopBarAlwaysVisible];
 
+#if !TARGET_OS_MACCATALYST
         [self.radialControl setEnabled:([self.inputToolbar.textView isEditable]
                                         && [SSRadialControl radialControlIsEnabled:kPrefRadialControl])];
 
@@ -228,6 +237,7 @@
                                           && [SSRadialControl radialControlIsEnabled:kPrefMoveControl])];
 
         [self repositionRadialControls];
+#endif
     });
 }
 
@@ -314,11 +324,13 @@
 - (void)setEditable:(BOOL)editable {
     [self setKeyboardPanningEnabled:editable];
 
+#if !TARGET_OS_MACCATALYST
     [SSRadialControl validateRadialPositions];
 
     [self.movementControl setEnabled:([SSRadialControl radialControlIsEnabled:kPrefMoveControl] && editable)];
 
     [self.radialControl setEnabled:([SSRadialControl radialControlIsEnabled:kPrefRadialControl] && editable)];
+#endif
 
     self.inputToolbar.textView.alpha = ( editable ? 1.0f : 0.3f );
 
