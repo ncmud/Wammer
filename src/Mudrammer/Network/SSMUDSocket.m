@@ -202,11 +202,6 @@
 }
 
 - (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port {
-    // try to background it
-    [sock performBlock:^{
-        [sock enableBackgroundingOnSocket];
-    }];
-
     // reset telnet lib
     _telnetLib = [[SPLTelnetLib alloc] initWithStringCoder:[SSStringCoder new]];
     self.telnetLib.delegate = self;

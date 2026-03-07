@@ -4,6 +4,7 @@ import UserNotifications
 @objc(WammerSceneDelegate)
 class WammerSceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
+    private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
 
     func scene(
         _ scene: UIScene,
@@ -31,6 +32,22 @@ class WammerSceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         SSRadialControl.validateRadialPositions()
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+            self?.endBackgroundTask()
+        }
+    }
+
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        endBackgroundTask()
+    }
+
+    private func endBackgroundTask() {
+        guard backgroundTaskID != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(backgroundTaskID)
+        backgroundTaskID = .invalid
     }
 
     private func handleURL(_ url: URL) {
