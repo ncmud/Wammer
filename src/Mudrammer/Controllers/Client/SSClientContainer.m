@@ -245,7 +245,7 @@
 }
 
 - (void)menuShowWorldList:(id)sender {
-    [self showRightPanelAnimated:YES];
+    [self toggleRightPanel:sender];
 }
 #endif
 
