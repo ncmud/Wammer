@@ -7,7 +7,17 @@ on:
     branches: [trunk]
 
 jobs:
-  build-and-test:
+  lint:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SwiftLint
+        run: |
+          brew install swiftlint
+          swiftlint lint --strict --reporter github-actions-logging src/
+
+  build:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
@@ -15,8 +25,8 @@ jobs:
       - name: Select Xcode 26.3
         run: sudo xcode-select -s /Applications/Xcode_26.3.0.app/Contents/Developer
 
-      - name: Install Tuist
-        run: brew install tuist
+      - name: Install tools
+        run: brew install tuist xcbeautify
 
       - name: Generate project
         run: tuist generate --no-open
@@ -28,7 +38,22 @@ jobs:
             -scheme Wammer \
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -skipPackagePluginValidation \
-            | xcpretty
+            | xcbeautify
+
+  test:
+    runs-on: macos-26
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26.3
+        run: sudo xcode-select -s /Applications/Xcode_26.3.0.app/Contents/Developer
+
+      - name: Install tools
+        run: brew install tuist xcbeautify
+
+      - name: Generate project
+        run: tuist generate --no-open
 
       - name: Test
         run: |
@@ -37,4 +62,28 @@ jobs:
             -scheme MRTests \
             -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             -skipPackagePluginValidation \
-            | xcpretty
+            | xcbeautify
+
+  analyze:
+    runs-on: macos-26
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26.3
+        run: sudo xcode-select -s /Applications/Xcode_26.3.0.app/Contents/Developer
+
+      - name: Install tools
+        run: brew install tuist xcbeautify
+
+      - name: Generate project
+        run: tuist generate --no-open
+
+      - name: Analyze
+        run: |
+          xcodebuild analyze \
+            -workspace Wammer.xcworkspace \
+            -scheme Wammer \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            -skipPackagePluginValidation \
+            | xcbeautify
