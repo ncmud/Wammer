@@ -123,8 +123,6 @@ let project = Project(
                 .package(product: "SSOperations"),
                 .package(product: "SPLUserActivity"),
                 .package(product: "libextobjc"),
-                .sdk(name: "MessageUI", type: .framework),
-                .sdk(name: "Social", type: .framework),
                 .sdk(name: "QuartzCore", type: .framework),
                 .sdk(name: "CoreText", type: .framework),
                 .sdk(name: "CFNetwork", type: .framework),

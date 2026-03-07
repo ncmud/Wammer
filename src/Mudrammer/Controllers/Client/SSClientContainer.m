@@ -18,11 +18,9 @@
 #import "SPLAlerts.h"
 #import <FBKVOController.h>
 
-@import MessageUI;
-
 #import "SSWelcomeViewController.h"
 
-@interface SSClientContainer () <MFMailComposeViewControllerDelegate>
+@interface SSClientContainer ()
 
 @property (nonatomic, strong) FBKVOController *kvoController;
 
@@ -139,16 +137,7 @@
 
     dispatch_async(dispatch_get_main_queue(), ^{
         if ([[url scheme] isEqualToString:@"mailto"]) {
-            if ([MFMailComposeViewController canSendMail]) {
-                MFMailComposeViewController *mvc = [MFMailComposeViewController new];
-                [mvc setToRecipients:@[ [[url absoluteString] stringByReplacingOccurrencesOfString:@"mailto:"
-                                                                                        withString:@""] ]];
-                mvc.mailComposeDelegate = self;
-
-                [self presentViewController:mvc
-                                   animated:YES
-                                 completion:nil];
-            }
+            [UIApplication.sharedApplication openURL:url options:@{} completionHandler:nil];
         } else {
             SPLHandoffWebViewController *webView = [[SPLHandoffWebViewController alloc] initWithURL:url];
 
@@ -206,14 +195,6 @@
     if (self.state != JASidePanelCenterVisible) {
         [self showCenterPanelAnimated:animated];
     }
-}
-
-#pragma mark - MFMailComposeViewControllerDelegate
-
-- (void)mailComposeController:(MFMailComposeViewController *)controller
-          didFinishWithResult:(MFMailComposeResult)result
-                        error:(NSError *)error {
-    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 #if TARGET_OS_MACCATALYST

@@ -6,8 +6,6 @@
 //  Copyright (c) 2014 Jonathan Hersh. All rights reserved.
 //
 
-@import MessageUI;
-
 #import "SPLMSSPViewController.h"
 @import SSDataSources;
 @import TTTAttributedLabel;
@@ -44,7 +42,7 @@
 
 @end
 
-@interface SPLMSSPViewController () <TTTAttributedLabelDelegate, MFMailComposeViewControllerDelegate>
+@interface SPLMSSPViewController () <TTTAttributedLabelDelegate>
 
 @property (nonatomic, copy) NSDictionary *MSSPData;
 @property (nonatomic, strong) SSSectionedDataSource *dataSource;
@@ -111,29 +109,12 @@
 
 - (void)attributedLabel:(TTTAttributedLabel *)label didSelectLinkWithURL:(NSURL *)url {
     if ([[url scheme] isEqualToString:@"mailto"]) {
-        if ([MFMailComposeViewController canSendMail]) {
-            MFMailComposeViewController *mvc = [MFMailComposeViewController new];
-            [mvc setToRecipients:@[ [[url absoluteString] stringByReplacingOccurrencesOfString:@"mailto:"
-                                                                                    withString:@""] ]];
-            mvc.mailComposeDelegate = self;
-
-            [self presentViewController:mvc
-                               animated:YES
-                             completion:nil];
-        }
+        [UIApplication.sharedApplication openURL:url options:@{} completionHandler:nil];
     } else {
         SPLHandoffWebViewController *webView = [[SPLHandoffWebViewController alloc] initWithURL:url];
 
         [self presentViewController:webView animated:YES completion:nil];
     }
-}
-
-#pragma mark - MFMailComposeViewControllerDelegate
-
-- (void)mailComposeController:(MFMailComposeViewController *)controller
-          didFinishWithResult:(MFMailComposeResult)result
-                        error:(NSError *)error {
-    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

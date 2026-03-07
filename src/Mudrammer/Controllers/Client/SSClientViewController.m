@@ -6,8 +6,6 @@
 //  Copyright (c) 2012 Jonathan Hersh. All rights reserved.
 //
 
-@import MessageUI;
-
 #import "SSClientViewController.h"
 #import "SSMudView.h"
 #import "SSThemePickerController.h"
@@ -41,8 +39,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 @interface SSClientViewController () <SSMUDSocketDelegate,
                                       SSMudViewDelegate,
                                       UIPopoverPresentationControllerDelegate,
-                                      SettingsDelegate,
-                                      MFMailComposeViewControllerDelegate>
+                                      SettingsDelegate>
 - (SSClientViewController *) init;
 
 // socket
@@ -653,7 +650,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self closeSettingsWithCompletion:^{
         @strongify(self);
 
-        if (![MFMailComposeViewController canSendMail] || [self->logFileName length] == 0) {
+        if ([self->logFileName length] == 0) {
             return;
         }
 
@@ -667,14 +664,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
             logString = [logString stringByAppendingString:NSLocalizedString(@"LOG_FOOTER", @"Log footer")];
 
             dispatch_async( dispatch_get_main_queue(), ^{
-                MFMailComposeViewController *mailView = [MFMailComposeViewController new];
-                [mailView setSubject:[NSString stringWithFormat:@"%@ log",
-                                      self.hostname]];
-                [mailView setMessageBody:logString
-                                  isHTML:NO];
-                mailView.mailComposeDelegate = self;
+                UIActivityViewController *activityVC = [[UIActivityViewController alloc]
+                    initWithActivityItems:@[logString]
+                    applicationActivities:nil];
+                activityVC.popoverPresentationController.sourceView = self.view;
 
-                [self presentViewController:mailView
+                [self presentViewController:activityVC
                                    animated:YES
                                  completion:nil];
             });
@@ -733,14 +728,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self.readParsingQueue cancelAllOperations];
     [self.writeQueue cancelAllOperations];
     [self.mudView clearText];
-}
-
-#pragma mark - MFMailComposeViewControllerDelegate
-
-- (void)mailComposeController:(MFMailComposeViewController *)controller
-          didFinishWithResult:(MFMailComposeResult)result
-                        error:(NSError *)error {
-    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)dismissMSSPViewController:(id)sender {

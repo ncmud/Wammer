@@ -451,20 +451,6 @@
 
             if (indexPath.row == SettingsLoggingMailLog) {
 
-                if (![MFMailComposeViewController canSendMail]) {
-                    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-
-                    [SPLAlerts SPLShowAlertViewWithTitle:NSLocalizedString(@"MAIL_LOG", @"Mail Log")
-                                                 message:NSLocalizedString(@"MAIL_LOG_ENABLE_EMAIL", nil)
-                                             cancelTitle:@"OK"
-                                             cancelBlock:nil
-                                                 okTitle:nil
-                                                 okBlock:nil
-                                    presentingController:self];
-
-                    return;
-                }
-
                 if ([[NSUserDefaults standardUserDefaults] boolForKey:kPrefLogging]
                     && [del respondsToSelector:@selector(settingsViewShouldSendSessionLog:)]) {
                     [del settingsViewShouldSendSessionLog:self];
