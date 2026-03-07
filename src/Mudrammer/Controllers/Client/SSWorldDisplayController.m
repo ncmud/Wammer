@@ -9,7 +9,7 @@
 #import "SSWorldDisplayController.h"
 #import "SSWorldCell.h"
 #import "SSWorldListViewController.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 #import "SPLNotificationManager.h"
 @import SSDataSources;
 @import Masonry;

@@ -1,9 +1,8 @@
 import Foundation
 import UIKit
 
-/// ObjC-visible wrapper around MUDWorld for use by ObjC code that cannot
-/// import Wammer-Swift.h (header generation issue with Tuist/Xcode).
-/// The matching WorldStoreBridge.h provides the ObjC declaration.
+/// ObjC-visible wrapper around MUDWorld for use by ObjC code.
+/// ObjC files import Wammer-Swift.h to access this type.
 @objc(MUDWorldBridge)
 @objcMembers
 final class MUDWorldBridge: NSObject {

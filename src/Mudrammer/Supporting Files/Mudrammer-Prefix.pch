@@ -27,9 +27,6 @@
     // Assetgen
     #import "SPLImagesCatalog.h"
 
-    // Models
-    #import "MUDModels.h"
-
     // Mudrammer
     #import "SSAppDelegate.h"
     #import "SSMRConstants.h"

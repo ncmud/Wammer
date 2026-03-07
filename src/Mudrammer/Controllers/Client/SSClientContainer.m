@@ -9,7 +9,7 @@
 #import "SSClientContainer.h"
 #import "SSClientViewController.h"
 #import "SSWorldListViewController.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 #import <QuartzCore/QuartzCore.h>
 #import "SSClientViewController.h"
 #import "SSWorldDisplayController.h"

@@ -9,7 +9,7 @@
 #import "SSAliasForm.h"
 #import "SSTGAEditor.h"
 #import "SSMultilineElement.h"
-#import "MUDModels.h"
+#import "Wammer-Swift.h"
 
 @implementation SSAliasForm
 

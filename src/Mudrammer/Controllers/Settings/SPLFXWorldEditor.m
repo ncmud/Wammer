@@ -7,7 +7,7 @@
 //
 
 #import "SPLFXWorldEditor.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 #import "SPLTickerForm.h"
 #import "SSSoundPickerViewController.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"

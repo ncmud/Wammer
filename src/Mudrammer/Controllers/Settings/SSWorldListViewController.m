@@ -9,7 +9,7 @@
 #import "SSWorldListViewController.h"
 #import "SSWorldEditViewController.h"
 #import "SSWorldCell.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 
 @interface SSWorldListViewController ()
 

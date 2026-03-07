@@ -42,7 +42,7 @@ All app source is under `src/Mudrammer/`. Tests are in `src/MRTests/`.
 
 - **Network/** — Telnet/ANSI networking stack. Data flows: socket → `SPLTelnetLib` (telnet protocol + zlib) → `SSANSIEngine` (ANSI → NSAttributedString) → `SSMUDSocket` (delivers attributed line groups to UI)
 - **Models/** — Currently empty; legacy Core Data models have been removed.
-- **WorldStore/** — Swift Codable models (`MUDWorld`, `MUDAlias`, `MUDTrigger`, `MUDGag`, `MUDTicker` in `Models.swift`) with JSON flat-file persistence (`WorldStore.swift`). Business logic in `Models+Logic.swift`. ObjC bridging via `WorldStoreBridge.swift/.h` and `MUDModels.h`.
+- **WorldStore/** — Swift Codable models (`MUDWorld`, `MUDAlias`, `MUDTrigger`, `MUDGag`, `MUDTicker` in `Models.swift`) with JSON flat-file persistence (`WorldStore.swift`). Business logic in `Models+Logic.swift`. ObjC bridging via `WorldStoreBridge.swift` and the auto-generated `Wammer-Swift.h`.
 - **Controllers/Client/** — Active MUD session UI: `SSClientViewController` (terminal), `SSSessionLogger` (transcripts), `SPLWorldTickerManager` (periodic commands)
 - **Controllers/Settings/** — World list, world editor, theme/sound/encoding pickers
 - **Forms/** — QuickDialog/FXForms-based editors for aliases, triggers, gags, tickers
@@ -66,7 +66,7 @@ World data is stored as JSON in `Documents/worlds.json` via `WorldStore` (single
 
 ### ObjC/Swift Bridging
 
-**Swift → ObjC:** The auto-generated `Wammer-Swift.h` works and contains all `@objc` classes. ObjC files can `#import "Wammer-Swift.h"` to use Swift types. Hand-written ObjC headers (`MUDModels.h`, `WorldStoreBridge.h`) also exist for types that predate the fix.
+**Swift → ObjC:** The auto-generated `Wammer-Swift.h` works and contains all `@objc` classes. ObjC files import `#import "Wammer-Swift.h"` to use Swift types.
 
 **ObjC → Swift:** A bridging header at `src/Mudrammer/Supporting Files/Wammer-Bridging-Header.h` exposes ObjC types to Swift. Some ObjC headers that use `@import` for vendored SPM packages can't be imported directly in the bridging header — use forward declarations instead.
 
