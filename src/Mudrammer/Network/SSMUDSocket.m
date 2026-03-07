@@ -216,7 +216,8 @@
             if ([del mudsocketShouldAttemptSSL:self]) {
                 DLog(@"ATTEMPTING SSL");
                 [sock startTLS:@{
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLPeerName : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
+                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLPeerName                  : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
+                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLValidatesCertificateChain : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
                 }];
             }
         });
