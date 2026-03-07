@@ -241,7 +241,7 @@
 }
 
 - (void)menuClearScreen:(id)sender {
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"MRMenuClearScreen" object:nil];
+    [self.worldDisplay.currentVisibleClient clearText];
 }
 
 - (void)menuShowWorldList:(id)sender {
