@@ -7,11 +7,13 @@ private let kPatternRandom = "\\#(\\d{1,6})\\#"
 private let kPatternCommandIndex = "\\$\\d{1,2}(\\$)?"
 private let kPatternWord = "\\b(\\w)+(\\$)?\\b"
 
+// swiftlint:disable:next force_try
 private let randomRegex = try! NSRegularExpression(
     pattern: kPatternRandom,
     options: [.useUnixLineSeparators, .useUnicodeWordBoundaries]
 )
 
+// swiftlint:disable:next force_try
 private let patternLocationMatcher = try! NSRegularExpression(
     pattern: kPatternCommandIndex,
     options: [.useUnixLineSeparators, .useUnicodeWordBoundaries]
@@ -38,7 +40,7 @@ private extension String {
             guard NSMaxRange(range) <= matchString.length else { continue }
             let match = matchString.substring(with: range).replacingOccurrences(of: "#", with: "")
             guard let matchValue = UInt32(match), matchValue > 0, matchValue <= 999999 else { continue }
-            let replacement = "\(1 + arc4random_uniform(matchValue))"
+            let replacement = "\(Int.random(in: 1...Int(matchValue)))"
             matchString = matchString.replacingCharacters(in: range, with: replacement) as NSString
         }
 
@@ -215,6 +217,7 @@ extension MUDAlias {
 
         let targetInput = inputWords.isEmpty ? "" : inputWords.joined(separator: " ")
 
+        // swiftlint:disable:next force_try
         let commandIndexer = try! NSRegularExpression(
             pattern: "\\$..?\\$",
             options: [.caseInsensitive, .useUnixLineSeparators]

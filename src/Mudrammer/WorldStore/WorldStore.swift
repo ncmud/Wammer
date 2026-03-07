@@ -80,18 +80,18 @@ final class WorldStore: NSObject {
 
     private static func loadDefaultWorlds() -> [MUDWorld] {
         let worlds = [
-            MUDWorld(hostname: "ncmud.net",                name: "NCMUD",                port: 9001, isSecure: true),
-            MUDWorld(hostname: "nanvaent.org",             name: "Nanvaent",             port:   23),
-            MUDWorld(hostname: "achaea.com",               name: "Achaea",               port:   23),
-            MUDWorld(hostname: "valhalla.com",             name: "Valhalla",             port: 4242),
-            MUDWorld(hostname: "tharel.net",               name: "Adventures Unlimited", port: 5005),
-            MUDWorld(hostname: "aardmud.org",              name: "Aardwolf",             port: 4010),
-            MUDWorld(hostname: "discworld.starturtle.net", name: "Discworld",            port:   23),
-            MUDWorld(hostname: "lusternia.com",            name: "Lusternia",            port:   23),
-            MUDWorld(hostname: "swmud.org",                name: "Star Wars MUD",        port: 6666),
-            MUDWorld(hostname: "8bit.fansi.org",           name: "8bit MUSH",            port: 4201),
-            MUDWorld(hostname: "furscape.com",             name: "Furscape",             port: 2001),
-            MUDWorld(hostname: "ancient.anguish.org",      name: "Ancient Anguish",      port: 2222),
+            MUDWorld(hostname: "ncmud.net", name: "NCMUD", port: 9001, isSecure: true),
+            MUDWorld(hostname: "nanvaent.org", name: "Nanvaent", port: 23),
+            MUDWorld(hostname: "achaea.com", name: "Achaea", port: 23),
+            MUDWorld(hostname: "valhalla.com", name: "Valhalla", port: 4242),
+            MUDWorld(hostname: "tharel.net", name: "Adventures Unlimited", port: 5005),
+            MUDWorld(hostname: "aardmud.org", name: "Aardwolf", port: 4010),
+            MUDWorld(hostname: "discworld.starturtle.net", name: "Discworld", port: 23),
+            MUDWorld(hostname: "lusternia.com", name: "Lusternia", port: 23),
+            MUDWorld(hostname: "swmud.org", name: "Star Wars MUD", port: 6666),
+            MUDWorld(hostname: "8bit.fansi.org", name: "8bit MUSH", port: 4201),
+            MUDWorld(hostname: "furscape.com", name: "Furscape", port: 2001),
+            MUDWorld(hostname: "ancient.anguish.org", name: "Ancient Anguish", port: 2222),
         ]
         worlds[0].isDefault = true
         return worlds
