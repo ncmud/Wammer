@@ -8,6 +8,7 @@
 
 #import "SSClientViewController.h"
 #import "SSMudView.h"
+#import "SSMUDToolbar.h"
 #import "SSThemePickerController.h"
 #import "SSSettingsViewController.h"
 #import "SSWorldEditViewController.h"
@@ -949,6 +950,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             [self.mudView setEditable:YES];
             [self.mudView setKeyboardPanningEnabled:YES];
+            [self.mudView.inputToolbar.textView becomeFirstResponder];
 
             self.tickerIdentifier = [self.tickerManager enableAndObserveTickersForWorldIdentifier:self->currentWorldIdentifier
                                                                                         tickerBlock:^(NSString *tickerId, NSString *worldId)
