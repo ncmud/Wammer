@@ -297,100 +297,96 @@ NSUInteger const kMaxLineQueueSize = (kMaxLineHistory * 2);
                 return;
             }
 
-            [tableView beginUpdates];
+            [UIView performWithoutAnimation:^{
+                [tableView beginUpdates];
 
-            if ([self numberOfItems] > kMaxLineHistory) {
-                [self removeItemsInRange:NSMakeRange(0, kLineDeleteAmount)];
+                if ([self numberOfItems] > kMaxLineHistory) {
+                    [self removeItemsInRange:NSMakeRange(0, kLineDeleteAmount)];
 
-                if (self.cursorPosition.vertical >= kLineDeleteAmount) {
-                    self->_cursorPosition = UIOffsetMake(self.cursorPosition.horizontal,
-                                                       self.cursorPosition.vertical - kLineDeleteAmount);
+                    if (self.cursorPosition.vertical >= kLineDeleteAmount) {
+                        self->_cursorPosition = UIOffsetMake(self.cursorPosition.horizontal,
+                                                           self.cursorPosition.vertical - kLineDeleteAmount);
+                    }
                 }
-            }
 
-            if ([operation isCancelled]) {
-                return;
-            }
-
-            for (SSAttributedLineGroupItem *item in self.lineQueue.lines) {
                 if ([operation isCancelled]) {
                     return;
                 }
 
-                // Special handling for screen clears.
-                if (item.command && item.command.command == SSLineGroupCommandDisplayClear) {
-                    [self processScreenClearItem:item.command];
-                } else if (item.command) {
-                    [self processCommand:item.command];
-                } else {
-                    [self processLineItem:item];
-                }
-            }
-
-            if ([operation isCancelled]) {
-                return;
-            }
-
-            NSArray *sortedRows = [[self.changeDictionary allKeys] sortedArrayUsingSelector:@selector(compare:)];
-            NSUInteger initialRowCount = [self numberOfItems];
-
-            NSMutableArray *replaceItems = [NSMutableArray array];
-            NSMutableArray *blankItems = [NSMutableArray array];
-            NSMutableArray *insertItems = [NSMutableArray array];
-
-            NSMutableIndexSet *replaceIndexes = [NSMutableIndexSet indexSet];
-            NSMutableIndexSet *blankIndexes = [NSMutableIndexSet indexSet];
-            NSMutableIndexSet *insertIndexes = [NSMutableIndexSet indexSet];
-            NSMutableIndexSet *deleteIndexes = [NSMutableIndexSet indexSet];
-
-            for (NSNumber *row in sortedRows) {
-                NSUInteger index = [row unsignedIntegerValue];
-
-                if ([self.changeDictionary[row] isKindOfClass:[NSNull class]]) {
-                    if (index < initialRowCount) {
-                        [deleteIndexes addIndex:index];
-                    }
-                } else if (index < initialRowCount) {
-                    [replaceIndexes addIndex:index];
-                    [replaceItems addObject:self.changeDictionary[row]];
-                } else {
-                    for (NSUInteger i = initialRowCount + [blankIndexes count] + [insertIndexes count]; i < index; i++) {
-                        [blankIndexes addIndex:i];
-                        [blankItems addObject:[SSAttributedLineGroupItem itemWithBlankLine]];
+                for (SSAttributedLineGroupItem *item in self.lineQueue.lines) {
+                    if ([operation isCancelled]) {
+                        return;
                     }
 
-                    [insertIndexes addIndex:index];
-                    [insertItems addObject:self.changeDictionary[row]];
+                    // Special handling for screen clears.
+                    if (item.command && item.command.command == SSLineGroupCommandDisplayClear) {
+                        [self processScreenClearItem:item.command];
+                    } else if (item.command) {
+                        [self processCommand:item.command];
+                    } else {
+                        [self processLineItem:item];
+                    }
                 }
-            }
 
-//            DLog(@"%@\n%@ %@\n%@ %@\n%@ %@",
-//                 deleteIndexes,
-//                 replaceIndexes, replaceItems,
-//                 blankIndexes, blankItems,
-//                 insertIndexes, insertItems);
+                if ([operation isCancelled]) {
+                    return;
+                }
 
-            if ([deleteIndexes count] > 0) {
-                [self removeItemsAtIndexes:deleteIndexes];
+                NSArray *sortedRows = [[self.changeDictionary allKeys] sortedArrayUsingSelector:@selector(compare:)];
+                NSUInteger initialRowCount = [self numberOfItems];
 
-                [blankIndexes spl_shiftIndexesWithDeletedIndexes:deleteIndexes];
-                [insertIndexes spl_shiftIndexesWithDeletedIndexes:deleteIndexes];
-                [replaceIndexes spl_shiftIndexesWithDeletedIndexes:deleteIndexes];
-            }
+                NSMutableArray *replaceItems = [NSMutableArray array];
+                NSMutableArray *blankItems = [NSMutableArray array];
+                NSMutableArray *insertItems = [NSMutableArray array];
 
-            if ([blankIndexes count] > 0) {
-                [self insertItems:blankItems atIndexes:blankIndexes];
-            }
+                NSMutableIndexSet *replaceIndexes = [NSMutableIndexSet indexSet];
+                NSMutableIndexSet *blankIndexes = [NSMutableIndexSet indexSet];
+                NSMutableIndexSet *insertIndexes = [NSMutableIndexSet indexSet];
+                NSMutableIndexSet *deleteIndexes = [NSMutableIndexSet indexSet];
 
-            if ([insertIndexes count] > 0) {
-                [self insertItems:insertItems atIndexes:insertIndexes];
-            }
+                for (NSNumber *row in sortedRows) {
+                    NSUInteger index = [row unsignedIntegerValue];
 
-            if ([replaceIndexes count] > 0) {
-                [self replaceItemsAtIndexes:replaceIndexes withItemsFromArray:replaceItems];
-            }
+                    if ([self.changeDictionary[row] isKindOfClass:[NSNull class]]) {
+                        if (index < initialRowCount) {
+                            [deleteIndexes addIndex:index];
+                        }
+                    } else if (index < initialRowCount) {
+                        [replaceIndexes addIndex:index];
+                        [replaceItems addObject:self.changeDictionary[row]];
+                    } else {
+                        for (NSUInteger i = initialRowCount + [blankIndexes count] + [insertIndexes count]; i < index; i++) {
+                            [blankIndexes addIndex:i];
+                            [blankItems addObject:[SSAttributedLineGroupItem itemWithBlankLine]];
+                        }
 
-            [tableView endUpdates];
+                        [insertIndexes addIndex:index];
+                        [insertItems addObject:self.changeDictionary[row]];
+                    }
+                }
+
+                if ([deleteIndexes count] > 0) {
+                    [self removeItemsAtIndexes:deleteIndexes];
+
+                    [blankIndexes spl_shiftIndexesWithDeletedIndexes:deleteIndexes];
+                    [insertIndexes spl_shiftIndexesWithDeletedIndexes:deleteIndexes];
+                    [replaceIndexes spl_shiftIndexesWithDeletedIndexes:deleteIndexes];
+                }
+
+                if ([blankIndexes count] > 0) {
+                    [self insertItems:blankItems atIndexes:blankIndexes];
+                }
+
+                if ([insertIndexes count] > 0) {
+                    [self insertItems:insertItems atIndexes:insertIndexes];
+                }
+
+                if ([replaceIndexes count] > 0) {
+                    [self replaceItemsAtIndexes:replaceIndexes withItemsFromArray:replaceItems];
+                }
+
+                [tableView endUpdates];
+            }];
 
             if ([operation isCancelled]) {
                 return;
