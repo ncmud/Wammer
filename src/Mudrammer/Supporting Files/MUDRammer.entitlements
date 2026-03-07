@@ -12,5 +12,9 @@
 	</array>
 	<key>com.apple.developer.team-identifier</key>
 	<string>H3R5ZX3287</string>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
 </dict>
 </plist>
