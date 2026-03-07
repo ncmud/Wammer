@@ -1,6 +1,8 @@
 # Wammer
 
-[![CI](https://github.com/ncmud/Wammer/actions/workflows/ci.yml/badge.svg)](https://github.com/ncmud/Wammer/actions/workflows/ci.yml)
+[![Build](https://github.com/ncmud/Wammer/actions/workflows/ci.yml/badge.svg)](https://github.com/ncmud/Wammer/actions/workflows/ci.yml)
+[![Swift](https://img.shields.io/badge/Swift-6.2-orange)](https://swift.org)
+[![Platform](https://img.shields.io/badge/platform-iOS%2026-blue)](https://developer.apple.com/ios/)
 
 This is a fork of [MUDRammer](https://github.com/splinesoft/MUDRammer), a MUD client for iPhone and iPad originally created by [Jonathan Hersh](https://github.com/jhersh). MUDRammer was a fantastic piece of work — a polished, accessible, and thoughtfully designed MUD client that served the community well from its first App Store release in February 2013 through its removal in March 2025.
 
