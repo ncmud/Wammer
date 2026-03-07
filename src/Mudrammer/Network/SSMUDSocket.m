@@ -216,14 +216,7 @@
             if ([del mudsocketShouldAttemptSSL:self]) {
                 DLog(@"ATTEMPTING SSL");
                 [sock startTLS:@{
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLLevel                     : (SPLSOCKET_BRIDGE_STRING)kCFStreamSocketSecurityLevelNegotiatedSSL,
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLAllowsExpiredCertificates : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLAllowsExpiredRoots        : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLAllowsAnyRoot             : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanTrue,
-        #pragma clang diagnostic pop
-                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLValidatesCertificateChain : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanTrue,
+                     (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLPeerName : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
                 }];
             }
         });
