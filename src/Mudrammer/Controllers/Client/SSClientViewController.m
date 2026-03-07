@@ -870,10 +870,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
             if (aliasCommands) {
                 [commands addObjectsFromArray:aliasCommands];
 
-                [self appendText:[NSString stringWithFormat:@"(%@)%@",
-                                      NSLocalizedString(@"ALIAS", @"Alias"),
-                                      text]
-                     isUserInput:YES];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self appendText:[NSString stringWithFormat:@"(%@)%@",
+                                          NSLocalizedString(@"ALIAS", @"Alias"),
+                                          text]
+                         isUserInput:YES];
+                });
 
                 didPrint = YES;
             }
@@ -887,8 +889,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
         }
 
         if (!didPrint && [self.socket shouldEchoText]) {
-            [self appendText:text
-                 isUserInput:YES];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self appendText:text
+                     isUserInput:YES];
+            });
         }
 
         [self.socket sendUserCommands:commands];
