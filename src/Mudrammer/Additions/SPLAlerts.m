@@ -30,6 +30,7 @@
                       cancelBlock:(void (^)(void))cancelBlock
                           okTitle:(NSString *)okTitle
                           okBlock:(void (^)(void))okBlock
+             presentingController:(UIViewController *)presenter
 {
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title
                                                                              message:message
@@ -59,9 +60,9 @@
         [alertController addAction:okAction];
     }
 
-    [[[SSAppDelegate sharedApplication].window.rootViewController SPLFrontViewController] presentViewController:alertController
-                                                                                                       animated:YES
-                                                                                                     completion:nil];
+    [[presenter SPLFrontViewController] presentViewController:alertController
+                                                     animated:YES
+                                                   completion:nil];
 }
 
 + (void)SPLShowActionViewWithTitle:(NSString *)title
@@ -72,6 +73,7 @@
                      barButtonItem:(UIBarButtonItem *)barButtonItem
                         sourceView:(UIView *)sourceView
                         sourceRect:(CGRect)sourceRect
+              presentingController:(UIViewController *)presenter
 {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                    message:nil
@@ -102,9 +104,9 @@
         [alert addAction:action];
     }
 
-    [[[SSAppDelegate sharedApplication].window.rootViewController SPLFrontViewController] presentViewController:alert
-                                                                                                       animated:YES
-                                                                                                     completion:nil];
+    [[presenter SPLFrontViewController] presentViewController:alert
+                                                     animated:YES
+                                                   completion:nil];
 
     if (alert.modalPresentationStyle == UIModalPresentationPopover) {
         UIPopoverPresentationController *popover = alert.popoverPresentationController;

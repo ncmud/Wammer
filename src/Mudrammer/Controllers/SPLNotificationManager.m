@@ -10,6 +10,15 @@
 
 @implementation SPLNotificationManager
 
++ (instancetype)shared {
+    static SPLNotificationManager *instance;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        instance = [SPLNotificationManager new];
+    });
+    return instance;
+}
+
 - (instancetype)init {
     if ((self = [super init])) {
         _askedForLocalNotifications = NO;

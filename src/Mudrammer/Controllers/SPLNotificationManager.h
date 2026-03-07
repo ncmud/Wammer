@@ -11,6 +11,8 @@
 
 @interface SPLNotificationManager : NSObject <UNUserNotificationCenterDelegate>
 
++ (instancetype)shared;
+
 @property (nonatomic, readonly) BOOL askedForLocalNotifications;
 
 - (void) registerForLocalNotifications;

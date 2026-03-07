@@ -18,18 +18,34 @@
 @interface SSClientContainer : JASidePanelController
 
 /**
- * Assumed to be the app window's rootViewController.
- */
-+ (instancetype) sharedClientContainer;
-
-/**
- * Access the shared side drawer - world picker list.
- */
-+ (SSWorldDisplayController *) worldDisplayDrawer;
-
-/**
  * Close pane drawer if open.
  */
 - (void)closeDrawerAnimated:(BOOL)animated;
+
+/**
+ * Access the world display drawer for this container.
+ */
+@property (nonatomic, readonly) SSWorldDisplayController *worldDisplay;
+
+#if TARGET_OS_MACCATALYST
+- (void)menuDisconnect:(id)sender;
+- (void)menuCycleConnections:(id)sender;
+- (void)menuClearScreen:(id)sender;
+- (void)menuShowWorldList:(id)sender;
+#endif
+
+@end
+
+@interface UIViewController (SSClientContainerAccess)
+
+/**
+ * Walk the parent/presenting chain to find the nearest SSClientContainer.
+ */
+@property (nonatomic, readonly, nullable) SSClientContainer *clientContainer;
+
+/**
+ * Shortcut: self.clientContainer.worldDisplay.
+ */
+@property (nonatomic, readonly, nullable) SSWorldDisplayController *worldDisplay;
 
 @end

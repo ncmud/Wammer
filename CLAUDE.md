@@ -66,12 +66,15 @@ World data is stored as JSON in `Documents/worlds.json` via `WorldStore` (single
 
 ### ObjC/Swift Bridging
 
-The auto-generated `Wammer-Swift.h` header is broken (only contains `WammerResources`). Instead, hand-written ObjC headers declare Swift class interfaces:
+**Swift → ObjC:** The auto-generated `Wammer-Swift.h` works and contains all `@objc` classes. ObjC files can `#import "Wammer-Swift.h"` to use Swift types. Hand-written ObjC headers (`MUDModels.h`, `WorldStoreBridge.h`) also exist for types that predate the fix.
 
-- `MUDModels.h` — ObjC interface declarations for all model types
-- `WorldStoreBridge.h/.swift` — Static methods exposing WorldStore to ObjC
+**ObjC → Swift:** A bridging header at `src/Mudrammer/Supporting Files/Wammer-Bridging-Header.h` exposes ObjC types to Swift. Some ObjC headers that use `@import` for vendored SPM packages can't be imported directly in the bridging header — use forward declarations instead.
 
-Swift classes use `@objc(ClassName)` and `@objcMembers` so ObjC can instantiate and use them at runtime. When adding new Swift APIs callable from ObjC, you must add the declaration to the corresponding `.h` file manually.
+Swift classes use `@objc(ClassName)` and `@objcMembers` for ObjC interop. New Swift code should be written in Swift; avoid adding new ObjC classes.
+
+### Multi-Window Architecture
+
+The app uses the UIScene lifecycle for multi-window support on iPad and Mac Catalyst. Each window gets its own `WammerSceneDelegate` (Swift) which creates an independent `SSClientContainer` as root. There is no singleton container — view controllers find their container via the `UIViewController(SSClientContainerAccess)` category (`self.clientContainer` / `self.worldDisplay`). Menu bar actions are on `SSClientContainer` and route through the responder chain to the focused window.
 
 ### Data Flow
 

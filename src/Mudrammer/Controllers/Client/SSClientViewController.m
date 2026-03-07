@@ -14,6 +14,7 @@
 #import "SSSettingsViewController.h"
 #import "SSWorldEditViewController.h"
 #import "SSClientContainer.h"
+#import "SPLNotificationManager.h"
 #import "SSMUDSocket.h"
 #import "SSConnectButton.h"
 #import "SSSessionLogger.h"
@@ -204,7 +205,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [super viewDidAppear:animated];
 
     if ([self isConnected] && [[NSUserDefaults standardUserDefaults] boolForKey:kPrefInitialSetupComplete]) {
-        [[SSAppDelegate sharedApplication].notificationObserver registerForLocalNotifications];
+        [[SPLNotificationManager shared] registerForLocalNotifications];
     }
 }
 
@@ -263,7 +264,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     if (!self.worldSelectButton) {
         // DRAWS ON MAIN THREAD
-        UIImage *worldSelectImage = [[SSClientContainer worldDisplayDrawer] worldSelectButtonImage];
+        UIImage *worldSelectImage = [[self worldDisplay] worldSelectButtonImage];
 
         _worldSelectButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [self.worldSelectButton addTarget:self
@@ -423,7 +424,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         [self.mudView setKeyboardPanningEnabled:YES];
     }
 
-    [SSClientContainer sharedClientContainer].recognizesPanGesture = YES;
+    [self clientContainer].recognizesPanGesture = YES;
 }
 
 #pragma mark - UINavigationControllerDelegate
@@ -446,7 +447,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self.mudView setKeyboardPanningEnabled:YES];
         }
 
-        [SSClientContainer sharedClientContainer].recognizesPanGesture = YES;
+        [self clientContainer].recognizesPanGesture = YES;
     }
 
     if (self.SSPopoverController.presentingViewController != nil && [navigationController isEqual:self.SSPopoverController]) {
@@ -548,7 +549,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     if( self.SSPopoverController.presentingViewController != nil )
         [self.SSPopoverController dismissViewControllerAnimated:NO completion:nil];
 
-    [[SSClientContainer sharedClientContainer] showRightPanelAnimated:YES];
+    [[self clientContainer] showRightPanelAnimated:YES];
 }
 
 #pragma mark - current world
@@ -620,7 +621,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self.mudView setKeyboardPanningEnabled:YES];
         }
 
-        [SSClientContainer sharedClientContainer].recognizesPanGesture = YES;
+        [self clientContainer].recognizesPanGesture = YES;
 
         if (completion) {
             completion();
@@ -941,7 +942,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
             @strongify(self);
 
             if ([self isViewVisible] && [[NSUserDefaults standardUserDefaults] boolForKey:kPrefInitialSetupComplete]) {
-                [[SSAppDelegate sharedApplication].notificationObserver registerForLocalNotifications];
+                [[SPLNotificationManager shared] registerForLocalNotifications];
             }
 
             if ([operation isCancelled]) {

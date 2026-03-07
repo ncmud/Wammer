@@ -180,6 +180,7 @@ typedef NS_ENUM(NSUInteger, SSTGARecordType) {
                              @strongify(self);
                              NSString *recordId = [self.record valueForKey:@"identifier"];
 
+
                              switch (self.recordType) {
                                  case SSTGARecordTypeTrigger:
                                      [WorldStoreBridge removeTriggerWithIdentifier:recordId
@@ -199,7 +200,8 @@ typedef NS_ENUM(NSUInteger, SSTGARecordType) {
                          }
                             barButtonItem:nil
                                sourceView:self.quickDialogTableView
-                               sourceRect:self.quickDialogTableView.frame];
+                               sourceRect:self.quickDialogTableView.frame
+                      presentingController:self];
 }
 
 - (void)SPLDismiss {

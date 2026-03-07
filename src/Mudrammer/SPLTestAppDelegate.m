@@ -10,14 +10,11 @@
 
 @implementation SPLTestAppDelegate
 
-#pragma mark - SSApplication
-
-- (void)ss_willFinishLaunchingWithOptions:(NSDictionary *)options {
-    // WorldStore.shared auto-loads on first access; no setup needed
-}
-
-- (UIViewController *)ss_appRootViewController {
-    return [UIViewController new];
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.window.rootViewController = [UIViewController new];
+    [self.window makeKeyAndVisible];
+    return YES;
 }
 
 @end

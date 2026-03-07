@@ -31,13 +31,15 @@
  *  @param cancelBlock cancel block
  *  @param okTitle     ok button
  *  @param okBlock     ok block
+ *  @param presenter   view controller to present from
  */
 + (void) SPLShowAlertViewWithTitle:(NSString *)title
                            message:(NSString *)message
                        cancelTitle:(NSString *)cancelTitle
                        cancelBlock:(void (^)(void))cancelBlock
                            okTitle:(NSString *)okTitle
-                           okBlock:(void (^)(void))okBlock;
+                           okBlock:(void (^)(void))okBlock
+              presentingController:(UIViewController *)presenter;
 
 /**
  *  Show an action sheet with a cancel and destructive button.
@@ -50,6 +52,7 @@
  *  @param barButtonItem    target bar button, or...
  *  @param sourceView       ...target view, with
  *  @param sourceRect       source Rect
+ *  @param presenter        view controller to present from
  */
 + (void) SPLShowActionViewWithTitle:(NSString *)title
                         cancelTitle:(NSString *)cancelTitle
@@ -58,6 +61,7 @@
                    destructiveBlock:(void (^)(void))destructiveBlock
                       barButtonItem:(UIBarButtonItem *)barButtonItem
                          sourceView:(UIView *)sourceView
-                         sourceRect:(CGRect)sourceRect;
+                         sourceRect:(CGRect)sourceRect
+               presentingController:(UIViewController *)presenter;
 
 @end

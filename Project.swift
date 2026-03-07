@@ -22,7 +22,6 @@ let project = Project(
         .local(path: "Vendored/SSAccessibility"),
         .local(path: "Vendored/SSDataSources"),
         .local(path: "Vendored/SSOperations"),
-        .local(path: "Vendored/SSApplication"),
         .local(path: "Vendored/SPLUserActivity"),
         .local(path: "Vendored/libextobjc"),
         .local(path: "Vendored/Expecta"),
@@ -77,6 +76,17 @@ let project = Project(
                     .string("UIInterfaceOrientationLandscapeRight"),
                 ]),
                 "UILaunchStoryboardName": .string("LaunchScreen"),
+                "UIApplicationSceneManifest": .dictionary([
+                    "UIApplicationSupportsMultipleScenes": .boolean(true),
+                    "UISceneConfigurations": .dictionary([
+                        "UIWindowSceneSessionRoleApplication": .array([
+                            .dictionary([
+                                "UISceneConfigurationName": .string("Default Configuration"),
+                                "UISceneDelegateClassName": .string("WammerSceneDelegate"),
+                            ]),
+                        ]),
+                    ]),
+                ]),
             ]),
             sources: [
                 "src/Mudrammer/**",
@@ -112,7 +122,6 @@ let project = Project(
                 .package(product: "SSAccessibility"),
                 .package(product: "SSDataSources"),
                 .package(product: "SSOperations"),
-                .package(product: "SSApplication"),
                 .package(product: "SPLUserActivity"),
                 .package(product: "libextobjc"),
                 .sdk(name: "MessageUI", type: .framework),
@@ -138,6 +147,7 @@ let project = Project(
                         "$(SRCROOT)/src/Mudrammer/**",
                     ]),
                     "GCC_PREFIX_HEADER": "$(SRCROOT)/src/Mudrammer/Supporting Files/Mudrammer-Prefix.pch",
+                    "SWIFT_OBJC_BRIDGING_HEADER": "$(SRCROOT)/src/Mudrammer/Supporting Files/Wammer-Bridging-Header.h",
                 ]
             )
         ),

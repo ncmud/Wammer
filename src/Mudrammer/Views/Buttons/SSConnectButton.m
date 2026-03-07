@@ -45,6 +45,7 @@
 
     if (self.isConnected) {
         @weakify(self);
+        UIViewController *presenter = self.window.rootViewController;
         [SPLAlerts SPLShowActionViewWithTitle:nil
                                   cancelTitle:NSLocalizedString(@"CANCEL", @"Cancel")
                                   cancelBlock:nil
@@ -58,7 +59,8 @@
                              }
                                 barButtonItem:self.targetBarButton
                                    sourceView:nil
-                                   sourceRect:CGRectZero];
+                                   sourceRect:CGRectZero
+                        presentingController:presenter];
     } else {
         if ([del respondsToSelector:@selector(connectButton:didChangeState:)])
             [del connectButton:self

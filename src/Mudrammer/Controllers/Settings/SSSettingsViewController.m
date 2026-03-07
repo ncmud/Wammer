@@ -459,7 +459,8 @@
                                              cancelTitle:@"OK"
                                              cancelBlock:nil
                                                  okTitle:nil
-                                                 okBlock:nil];
+                                                 okBlock:nil
+                                    presentingController:self];
 
                     return;
                 }
