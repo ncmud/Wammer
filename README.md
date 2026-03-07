@@ -10,15 +10,6 @@ This is a fork of [MUDRammer](https://github.com/splinesoft/MUDRammer), a MUD cl
 
 This fork aims to re-release the app under new branding with proper attribution to Jonathan and the original MUDRammer project. The codebase has been modernized to build with current tools and target iOS 26.
 
-## What's Changed
-
-- Replaced CocoaPods with vendored Swift Package Manager packages
-- Replaced Xcode project with [Tuist](https://tuist.io) project generation
-- Removed dead services (HockeyApp, UserVoice, IFTTTLaunchImage, cocoapods-keys)
-- Replaced BlocksKit with native code
-- Fixed removed/deprecated APIs (UIPopoverController, UIAlertView, UNUserNotificationCenter, etc.)
-- 140 tests passing
-
 ## Getting Started
 
 You'll need Xcode 26+ and [Tuist](https://tuist.io).
