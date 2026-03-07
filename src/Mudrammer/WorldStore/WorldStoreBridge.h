@@ -86,8 +86,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 // Alias / Gag / Trigger matching
 + (nullable NSArray<NSString *> *)commandsIfMatchingAliasForIdentifier:(NSString *)identifier input:(NSString *)input;
-+ (NSIndexSet *)filteredIndexesByMatchingGagsForIdentifier:(NSString *)identifier lines:(NSArray<NSString *> *)lines;
-+ (nullable MUDTriggerResultBridge *)runTriggersForIdentifier:(NSString *)identifier lines:(NSArray<NSString *> *)lines;
++ (NSIndexSet *)filteredIndexesByMatchingGagsForIdentifier:(NSString *)identifier lines:(NSArray *)lines;
++ (nullable MUDTriggerResultBridge *)runTriggersForIdentifier:(NSString *)identifier lines:(NSArray *)lines;
 
 @end
 

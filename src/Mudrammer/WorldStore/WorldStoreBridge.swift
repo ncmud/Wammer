@@ -159,16 +159,18 @@ final class WorldStoreBridge: NSObject {
         return world.commandsIfMatchingAlias(forInput: input)
     }
 
-    @objc static func filteredIndexesByMatchingGags(forIdentifier identifier: String, lines: [String]) -> IndexSet {
+    @objc static func filteredIndexesByMatchingGags(forIdentifier identifier: String, lines: [Any]) -> IndexSet {
+        let stringLines = lines.map { ($0 as? String) ?? "" }
         guard let world = WorldStore.shared.world(forIdentifier: identifier) else {
-            return IndexSet(integersIn: 0..<lines.count)
+            return IndexSet(integersIn: 0..<stringLines.count)
         }
-        return world.filteredIndexesByMatchingGags(inLines: lines)
+        return world.filteredIndexesByMatchingGags(inLines: stringLines)
     }
 
-    @objc static func runTriggers(forIdentifier identifier: String, lines: [String]) -> MUDTriggerResultBridge? {
+    @objc static func runTriggers(forIdentifier identifier: String, lines: [Any]) -> MUDTriggerResultBridge? {
+        let stringLines = lines.map { ($0 as? String) ?? "" }
         guard let world = WorldStore.shared.world(forIdentifier: identifier) else { return nil }
-        let result = world.runTriggers(forLines: lines)
+        let result = world.runTriggers(forLines: stringLines)
         return MUDTriggerResultBridge(result: result)
     }
 }
