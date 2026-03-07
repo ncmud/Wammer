@@ -79,19 +79,22 @@ final class WorldStore: NSObject {
     // MARK: - Default Worlds
 
     private static func loadDefaultWorlds() -> [MUDWorld] {
-        guard let url = Bundle.main.url(forResource: "DefaultWorlds", withExtension: "plist"),
-              let data = try? Data(contentsOf: url),
-              let array = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [[String: Any]]
-        else { return [] }
-
-        return array.map { dict in
-            MUDWorld(
-                hostname: dict["hostname"] as? String ?? "",
-                name: dict["name"] as? String ?? "",
-                port: Int16(dict["port"] as? Int ?? 0),
-                isDefault: (dict["isDefault"] as? Int ?? 0) != 0
-            )
-        }
+        let worlds = [
+            MUDWorld(hostname: "ncmud.net",                name: "NCMUD",               port: 9001, isSecure: true),
+            MUDWorld(hostname: "nanvaent.org",             name: "Nanvaent",             port:   23),
+            MUDWorld(hostname: "achaea.com",               name: "Achaea",               port:   23),
+            MUDWorld(hostname: "valhalla.com",             name: "Valhalla",             port: 4242),
+            MUDWorld(hostname: "tharel.net",               name: "Adventures Unlimited", port: 5005),
+            MUDWorld(hostname: "aardmud.org",              name: "Aardwolf",             port: 4010),
+            MUDWorld(hostname: "discworld.starturtle.net", name: "Discworld",            port:   23),
+            MUDWorld(hostname: "lusternia.com",            name: "Lusternia",            port:   23),
+            MUDWorld(hostname: "swmud.org",                name: "Star Wars MUD",        port: 6666),
+            MUDWorld(hostname: "8bit.fansi.org",           name: "8bit MUSH",            port: 4201),
+            MUDWorld(hostname: "furscape.com",             name: "Furscape",             port: 2001),
+            MUDWorld(hostname: "ancient.anguish.org",      name: "Ancient Anguish",      port: 2222),
+        ]
+        worlds[0].isDefault = true
+        return worlds
     }
 
     // MARK: - Notifications

@@ -97,7 +97,6 @@ let project = Project(
                 "src/Mudrammer/Supporting Files/en.lproj/**",
                 "src/Mudrammer/Supporting Files/fr.lproj/**",
                 "src/Mudrammer/Supporting Files/it.lproj/**",
-                "src/Mudrammer/Supporting Files/DefaultWorlds.plist",
                 "src/Mudrammer/Images.xcassets",
                 "src/Mudrammer/Supporting Files/LaunchScreen.storyboard",
             ],
