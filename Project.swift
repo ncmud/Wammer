@@ -35,6 +35,7 @@ let project = Project(
             bundleId: "org.ncmud.wammer",
             deploymentTargets: .iOS("26.0"),
             infoPlist: .extendingDefault(with: [
+                "LSApplicationCategoryType": .string("public.app-category.games"),
                 "CFBundleDisplayName": .string("MUDWammer"),
                 "ITSAppUsesNonExemptEncryption": .boolean(false),
                 "CFBundleShortVersionString": .string("1.0.0"),
@@ -139,6 +140,7 @@ let project = Project(
                     "SWIFT_INSTALL_OBJC_HEADER": "YES",
                     "SWIFT_OBJC_INTERFACE_HEADER_NAME": "Wammer-Swift.h",
                     "SWIFT_ENABLE_EXPLICIT_MODULES": "NO",
+                    "DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER": "NO",
                     "HEADER_SEARCH_PATHS": .array([
                         "$(SRCROOT)/Vendored/**",
                         "$(SRCROOT)/src/Mudrammer/**",
