@@ -28,7 +28,7 @@ xcodebuild test -workspace Wammer.xcworkspace -scheme MRTests -destination 'plat
 
 ## About MUDs
 
-[MUDs (Multi-User Dungeons)](https://en.wikipedia.org/wiki/MUD) are online multiplayer text-based games. Thousands of players today are on hundreds of MUDs in all manner of worlds: fantasy, absurdist, sci-fi, horror, and more. Many MUDs have been continuously online for decades. The app includes a `DefaultWorlds.plist` with a few interesting default worlds you can try, or you can add your own.
+[MUDs (Multi-User Dungeons)](https://en.wikipedia.org/wiki/MUD) are online multiplayer text-based games. Thousands of players today are on hundreds of MUDs in all manner of worlds: fantasy, absurdist, sci-fi, horror, and more. Many MUDs have been continuously online for decades. The app ships with a curated list of default worlds defined in `WorldStore.swift` to help new players get started, and you can add your own.
 
 ## License
 
