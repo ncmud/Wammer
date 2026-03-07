@@ -147,6 +147,13 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                                      name:WorldStoreBridge.didChangeNotification
                                                    object:nil];
 
+#if TARGET_OS_MACCATALYST
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(menuClearScreen:)
+                                                     name:@"MRMenuClearScreen"
+                                                   object:nil];
+#endif
+
         // font changes cause NAWS
         for (NSString *observed in kObservedProperties) {
             [self.kvoController observe:[SSThemes sharedThemer].currentTheme
@@ -733,6 +740,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self.writeQueue cancelAllOperations];
     [self.mudView clearText];
 }
+
+#if TARGET_OS_MACCATALYST
+- (void)menuClearScreen:(NSNotification *)note {
+    [self clearText];
+}
+#endif
 
 #pragma mark - MFMailComposeViewControllerDelegate
 
