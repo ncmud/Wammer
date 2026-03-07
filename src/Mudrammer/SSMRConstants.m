@@ -71,5 +71,5 @@ NSTimeInterval const kConnectCommandsDelay = 5;
 NSString * const kPrefLeftHanded           = @"Leftie-Movement";
 
 // URLs
-NSString * const kMUDRammerHelpURL         = @"http://splinesoft.net/mudrammer/";
-NSString * const kMUDRammerSupportEmail    = @"mudrammer@splinesoft.net";
+NSString * const kMUDRammerHelpURL         = @"https://github.com/ncmud/Wammer";
+NSString * const kMUDRammerSupportEmail    = @"heathen79@gmail.com";
