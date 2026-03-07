@@ -9,7 +9,7 @@
 #import "MRTestHelpers.h"
 #import "SPLTimerManager.h"
 #import "SPLWorldTickerManager.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 
 @interface MRTimerTests : XCTestCase
 

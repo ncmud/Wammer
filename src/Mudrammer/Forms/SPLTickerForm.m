@@ -7,7 +7,7 @@
 //
 
 #import "SPLTickerForm.h"
-#import "MUDModels.h"
+#import "Wammer-Swift.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
 #import "SSSoundPickerViewController.h"
 

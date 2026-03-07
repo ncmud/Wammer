@@ -12,7 +12,7 @@
 #import "SSMultilineElement.h"
 #import "SSFormAppearance.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"
-#import "MUDModels.h"
+#import "Wammer-Swift.h"
 
 NSString * const kSoundElement = @"soundFileName";
 

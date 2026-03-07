@@ -7,7 +7,7 @@
 //
 
 #import "SSTGAEditor.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 
 #import "SSSoundPickerViewController.h"
 #import "JSQSystemSoundPlayer+SSAdditions.h"

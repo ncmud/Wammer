@@ -9,7 +9,7 @@
 #import "SSGagForm.h"
 #import "SSTGAEditor.h"
 #import "SSFormAppearance.h"
-#import "MUDModels.h"
+#import "Wammer-Swift.h"
 
 @implementation SSGagForm
 

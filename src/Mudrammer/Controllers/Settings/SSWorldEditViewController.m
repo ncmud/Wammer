@@ -8,7 +8,7 @@
 
 @import UIKit;
 #import "SSWorldEditViewController.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 #import "SSTGAEditor.h"
 #import "SSWorldForm.h"
 #import "SPLTickerForm.h"

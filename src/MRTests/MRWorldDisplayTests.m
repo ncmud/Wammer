@@ -9,7 +9,7 @@
 #import "MRTestHelpers.h"
 #import "SSWorldDisplayController.h"
 #import "SSClientContainer.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 
 @interface MRWorldDisplayTests : XCTestCase
 

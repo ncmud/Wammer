@@ -7,7 +7,7 @@
 //
 
 #import "SPLWorldTickerManager.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 #import "SPLTimerManager.h"
 
 @interface SPLWorldTickerData : NSObject

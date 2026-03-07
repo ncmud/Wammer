@@ -171,6 +171,7 @@ let project = Project(
                     "HEADER_SEARCH_PATHS": .array([
                         "$(SRCROOT)/Vendored/**",
                         "$(SRCROOT)/src/Mudrammer/**",
+                        "$(TARGET_TEMP_DIR)/../Wammer.build/DerivedSources",
                     ]),
                     "GCC_PREFIX_HEADER": "$(SRCROOT)/src/MRTests/MRTests-Prefix.pch",
                 ]

@@ -10,8 +10,7 @@
 // which tests the Swift Codable models directly.
 
 #import "MRTestHelpers.h"
-#import "MUDModels.h"
-#import "WorldStoreBridge.h"
+#import "Wammer-Swift.h"
 
 @interface MRModelTests : XCTestCase
 
