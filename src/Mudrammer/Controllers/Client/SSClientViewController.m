@@ -12,7 +12,6 @@
 #import "SSThemePickerController.h"
 #import "SSSettingsViewController.h"
 #import "SSWorldEditViewController.h"
-#import "SSClientContainer.h"
 #import "SPLNotificationManager.h"
 #import "SSMUDSocket.h"
 #import "SSConnectButton.h"
@@ -308,26 +307,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     NSMutableArray *leftItems = [NSMutableArray array];
 
-    if ([[UIDevice currentDevice] isIPad]) {
-        [leftItems addObject:[UIBarButtonItem fixedWidthBarButtonItemWithWidth:20.0f]];
-    }
-
     [leftItems addObject:self.settingsButton];
 
     if (currentWorldIdentifier) {
-        if ([[UIDevice currentDevice] isIPad]) {
-            [leftItems addObjectsFromArray:@[
-                [UIBarButtonItem fixedWidthBarButtonItemWithWidth:50.0f],
-                self.editWorldButton,
-                [UIBarButtonItem fixedWidthBarButtonItemWithWidth:50.0f],
-                self.musicButton,
-                self.playPauseButton
-            ]];
-        } else {
-            [leftItems addObject:self.editWorldButton];
-            [leftItems addObject:self.musicButton];
-            [leftItems addObject:self.playPauseButton];
-        }
+        [leftItems addObject:self.editWorldButton];
+        [leftItems addObject:self.musicButton];
+        [leftItems addObject:self.playPauseButton];
     }
 
     self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
@@ -337,17 +322,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     NSMutableArray *rightItems = [NSMutableArray array];
 
-    if ([[UIDevice currentDevice] isIPad]) {
-        [rightItems addObject:[UIBarButtonItem fixedWidthBarButtonItemWithWidth:20.0f]];
-    }
-
     UIBarButtonItem *connectBarButton = [self.connectButton wrappedBarButtonItem];
     self.connectButton.targetBarButton = connectBarButton;
     [rightItems addObject:connectBarButton];
-
-    if (([[UIDevice currentDevice] isIPad])) {
-        [rightItems addObject:[UIBarButtonItem fixedWidthBarButtonItemWithWidth:50.0f]];
-    }
 
     [rightItems addObject:[self.worldSelectButton wrappedBarButtonItem]];
 
@@ -456,8 +433,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
     if ([self isConnected]) {
         [self.mudView setKeyboardPanningEnabled:YES];
     }
-
-    [self clientContainer].recognizesPanGesture = YES;
 }
 
 #pragma mark - UINavigationControllerDelegate
@@ -479,8 +454,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
         if ([self isConnected]) {
             [self.mudView setKeyboardPanningEnabled:YES];
         }
-
-        [self clientContainer].recognizesPanGesture = YES;
     }
 
     if (self.SSPopoverController.presentingViewController != nil && [navigationController isEqual:self.SSPopoverController]) {
@@ -665,7 +638,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     if( self.SSPopoverController.presentingViewController != nil )
         [self.SSPopoverController dismissViewControllerAnimated:NO completion:nil];
 
-    [[self clientContainer] showRightPanelAnimated:YES];
+    [[self clientContainer] showSidebarAnimated:YES];
 }
 
 #pragma mark - current world
@@ -737,8 +710,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
         if ([self isConnected]) {
             [self.mudView setKeyboardPanningEnabled:YES];
         }
-
-        [self clientContainer].recognizesPanGesture = YES;
 
         if (completion) {
             completion();

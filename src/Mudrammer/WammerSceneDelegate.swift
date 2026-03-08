@@ -14,7 +14,7 @@ class WammerSceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: windowScene)
         window.backgroundColor = .black
-        window.rootViewController = SSClientContainer()
+        window.rootViewController = ClientContainer()
         window.makeKeyAndVisible()
         self.window = window
 

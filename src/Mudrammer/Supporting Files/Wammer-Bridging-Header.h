@@ -8,12 +8,10 @@
 #import "SSMRConstants.h"
 #import "SPLNotificationManager.h"
 
-// SSClientContainer.h can't be imported here (uses @import JASidePanels
-// which isn't available in the bridging header module context).
-@class SSClientContainer;
-@interface SSClientContainer : UIViewController
-- (instancetype)init;
-@end
+#import "SSWorldDisplayController.h"
+#import "SPLHandoffWebViewController.h"
+#import "SSWelcomeViewController.h"
+#import "SPLAlerts.h"
 
 @class SSRadialControl;
 @interface SSRadialControl : UIControl
