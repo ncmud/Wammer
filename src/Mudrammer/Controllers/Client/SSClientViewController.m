@@ -76,6 +76,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 @property (nonatomic, strong) UIBarButtonItem *settingsButton;
 @property (nonatomic, strong) UIBarButtonItem *editWorldButton;
+@property (nonatomic, strong) UIBarButtonItem *musicButton;
+@property (nonatomic, strong) UIBarButtonItem *playPauseButton;
 
 @property (nonatomic, strong) UIViewController *SSPopoverController;
 
@@ -145,6 +147,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(worldStoreDidChange:)
                                                      name:WorldStoreBridge.didChangeNotification
+                                                   object:nil];
+
+        // Music state changes
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(musicStateDidChange:)
+                                                     name:@"GMCPMusicStateChanged"
                                                    object:nil];
 
 
@@ -255,6 +263,26 @@ typedef void (^SPLSettingsCloseBlock) (void);
         self.editWorldButton.accessibilityHint = @"Edits the current world.";
     }
 
+    // music button
+    if (!self.musicButton) {
+        UIImage *musicImage = [UIImage systemImageNamed:@"music.note"];
+        _musicButton = [[UIBarButtonItem alloc] initWithImage:musicImage
+                                                        style:UIBarButtonItemStylePlain
+                                                       target:nil
+                                                       action:nil];
+        self.musicButton.accessibilityLabel = NSLocalizedString(@"BACKGROUND_MUSIC", nil);
+        self.musicButton.accessibilityHint = @"Controls background music.";
+    }
+
+    if (!self.playPauseButton) {
+        _playPauseButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"pause.fill"]
+                                                             style:UIBarButtonItemStylePlain
+                                                            target:self
+                                                            action:@selector(tappedPlayPause:)];
+        self.playPauseButton.accessibilityLabel = NSLocalizedString(@"PAUSE_MUSIC", nil);
+    }
+    [self updateMusicMenu];
+
     if (!self.worldSelectButton) {
         // DRAWS ON MAIN THREAD
         UIImage *worldSelectImage = [[self worldDisplay] worldSelectButtonImage];
@@ -290,10 +318,15 @@ typedef void (^SPLSettingsCloseBlock) (void);
         if ([[UIDevice currentDevice] isIPad]) {
             [leftItems addObjectsFromArray:@[
                 [UIBarButtonItem fixedWidthBarButtonItemWithWidth:50.0f],
-                self.editWorldButton
+                self.editWorldButton,
+                [UIBarButtonItem fixedWidthBarButtonItemWithWidth:50.0f],
+                self.musicButton,
+                self.playPauseButton
             ]];
         } else {
             [leftItems addObject:self.editWorldButton];
+            [leftItems addObject:self.musicButton];
+            [leftItems addObject:self.playPauseButton];
         }
     }
 
@@ -371,6 +404,13 @@ typedef void (^SPLSettingsCloseBlock) (void);
     if (!visible && UIAccessibilityIsVoiceOverRunning()) {
         return;
     }
+
+#if TARGET_OS_MACCATALYST
+    // Never hide the nav bar on Mac — there's no intuitive gesture to bring it back.
+    if (!visible) {
+        return;
+    }
+#endif
 
     if( !self.presentedViewController ) {
         _shouldHideStatusBar = !visible;
@@ -517,6 +557,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
     UINavigationController *nav = [editor wrappedNavigationController];
     nav.delegate = self;
 
+#if TARGET_OS_MACCATALYST
+    nav.modalPresentationStyle = UIModalPresentationFormSheet;
+    [self presentViewController:nav animated:YES completion:nil];
+#else
     if( [[UIDevice currentDevice] isIPad] ) {
         nav.modalPresentationStyle = UIModalPresentationPopover;
         UIPopoverPresentationController *popover = nav.popoverPresentationController;
@@ -534,6 +578,85 @@ typedef void (^SPLSettingsCloseBlock) (void);
                            animated:YES
                          completion:nil];
     }
+#endif
+}
+
+- (void)updateMusicMenu {
+    __weak typeof(self) weakSelf = self;
+
+    // Update the play/pause button visibility and icon.
+    BOOL playing = self.gmcpHandler.isMusicPlaying;
+    BOOL paused = self.gmcpHandler.isMusicPaused;
+    BOOL showPlayPause = playing || paused;
+
+    if (showPlayPause) {
+        NSString *imageName = playing ? @"pause.fill" : @"play.fill";
+        self.playPauseButton.image = [UIImage systemImageNamed:imageName];
+    }
+    self.playPauseButton.enabled = showPlayPause;
+    self.playPauseButton.tintColor = showPlayPause ? [UIColor whiteColor] : [UIColor clearColor];
+
+    // Build the pull-down menu for the music note button.
+    UIDeferredMenuElement *deferred = [UIDeferredMenuElement elementWithUncachedProvider:^(void (^completion)(NSArray<UIMenuElement *> *)) {
+        __strong typeof(weakSelf) self = weakSelf;
+        if (!self) { completion(@[]); return; }
+
+        NSMutableArray<UIMenuElement *> *items = [NSMutableArray array];
+
+        // Track list
+        NSArray<NSDictionary<NSString *, NSString *> *> *musicTracks = [MusicLibrary shared].musicTrackDictionaries;
+        if ([musicTracks count] > 0) {
+            for (NSDictionary<NSString *, NSString *> *trackInfo in musicTracks) {
+                NSString *title = [NSString stringWithFormat:@"%@ — %@", trackInfo[@"hostname"], trackInfo[@"filename"]];
+                NSString *path = trackInfo[@"relativePath"];
+                [items addObject:[UIAction actionWithTitle:title
+                                                     image:[UIImage systemImageNamed:@"music.note"]
+                                                identifier:nil
+                                                   handler:^(UIAction *a) {
+                    [weakSelf.gmcpHandler startAmbientWithRelativePath:path];
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
+                    MUDWorld *world = strongSelf ? [WorldStoreBridge mudWorldForIdentifier:strongSelf->currentWorldIdentifier] : nil;
+                    if (world) {
+                        world.ambientMusicPath = path;
+                        [WorldStoreBridge updateMUDWorld:world];
+                    }
+                }]];
+            }
+        } else {
+            UIAction *empty = [UIAction actionWithTitle:NSLocalizedString(@"NO_MUSIC_TRACKS", nil)
+                                                  image:nil identifier:nil handler:^(UIAction *a) {}];
+            empty.attributes = UIMenuElementAttributesDisabled;
+            [items addObject:empty];
+        }
+
+        // Stop
+        if (self.gmcpHandler.isMusicPlaying || self.gmcpHandler.isMusicPaused) {
+            UIAction *stop = [UIAction actionWithTitle:NSLocalizedString(@"STOP_MUSIC", nil)
+                                                 image:[UIImage systemImageNamed:@"stop.fill"]
+                                            identifier:nil
+                                               handler:^(UIAction *a) {
+                [weakSelf.gmcpHandler stopMusic];
+            }];
+            stop.attributes = UIMenuElementAttributesDestructive;
+            [items addObject:stop];
+        }
+
+        completion(items);
+    }];
+
+    self.musicButton.menu = [UIMenu menuWithChildren:@[deferred]];
+}
+
+- (void)tappedPlayPause:(id)sender {
+    if (self.gmcpHandler.isMusicPlaying) {
+        [self.gmcpHandler pauseMusic];
+    } else if (self.gmcpHandler.isMusicPaused) {
+        [self.gmcpHandler resumeMusic];
+    }
+}
+
+- (void)musicStateDidChange:(NSNotification *)note {
+    [self updateMusicMenu];
 }
 
 - (void)tappedWorldSelect:(id)sender {
@@ -722,6 +845,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 - (BOOL)isConnected {
     return self.socket && ![self.socket isDisconnected];
+}
+
+- (BOOL)isMusicPlaying {
+    return self.gmcpHandler.isMusicPlaying;
 }
 
 - (void)disconnect {
@@ -936,6 +1063,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self appendText:[NSLocalizedString(@"CONNECTED", @"Connected") stringByAppendingString:@"\n"]
                  isUserInput:NO];
 
+            self.gmcpHandler.serverHostname = self.hostname;
+
             NSString *desc = [WorldStoreBridge worldDescriptionForIdentifier:self->currentWorldIdentifier];
             if ([desc length] > 0)
                 [self updateTitle:desc];
@@ -982,8 +1111,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
                 }
             }];
 
-            // Connect command
+            // Ambient music and connect command
             MUDWorldBridge *connectWorld = [WorldStoreBridge worldForIdentifier:self->currentWorldIdentifier];
+
+            self.gmcpHandler.worldName = [connectWorld.name length] > 0 ? connectWorld.name : connectWorld.hostname;
+            self.gmcpHandler.overrideGameMusic = connectWorld.overrideGameMusic;
+
             if ([connectWorld.connectCommand length] > 0) {
                 NSString *connectCmd = [connectWorld.connectCommand copy];
                 DLog(@"Scheduling connect commands");

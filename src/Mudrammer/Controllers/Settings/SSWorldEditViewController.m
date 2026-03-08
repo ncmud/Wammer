@@ -59,7 +59,13 @@
 }
 
 - (CGSize)preferredContentSize {
+#if TARGET_OS_MACCATALYST
+    // QuickDialog's sizeThatFits returns a tiny size on Catalyst because the table
+    // hasn't laid out yet. Use a fixed size for the form sheet presentation.
+    return CGSizeMake(540.0f, 680.0f);
+#else
     return [self.quickDialogTableView sizeThatFits:CGSizeMake(320.0f, CGFLOAT_MAX)];
+#endif
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -199,6 +205,47 @@
      [SPLFXWorldEditor editorForTicker:tickerIdentifier
                        worldIdentifier:currentWorld.identifier]
                                          animated:YES];
+}
+
+- (void)chooseAmbientMusic {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"BACKGROUND_MUSIC", nil)
+                                                                  message:nil
+                                                           preferredStyle:UIAlertControllerStyleActionSheet];
+
+    // "None" option to clear
+    [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"NONE", nil)
+                                              style:UIAlertActionStyleDestructive
+                                            handler:^(UIAlertAction *action) {
+        self->currentWorld.ambientMusicPath = nil;
+        [WorldStoreBridge updateMUDWorld:self->currentWorld];
+        [(SSWorldForm *)self.root refreshWorldFormForController:self];
+        [self.quickDialogTableView reloadData];
+    }]];
+
+    // List music tracks from library
+    NSArray<NSDictionary<NSString *, NSString *> *> *musicTracks = [MusicLibrary shared].musicTrackDictionaries;
+    for (NSDictionary<NSString *, NSString *> *trackInfo in musicTracks) {
+        NSString *title = [NSString stringWithFormat:@"%@ — %@", trackInfo[@"hostname"], trackInfo[@"filename"]];
+        NSString *path = trackInfo[@"relativePath"];
+        [alert addAction:[UIAlertAction actionWithTitle:title
+                                                  style:UIAlertActionStyleDefault
+                                                handler:^(UIAlertAction *action) {
+            self->currentWorld.ambientMusicPath = path;
+            [WorldStoreBridge updateMUDWorld:self->currentWorld];
+            [(SSWorldForm *)self.root refreshWorldFormForController:self];
+            [self.quickDialogTableView reloadData];
+        }]];
+    }
+
+    [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"CANCEL", nil)
+                                              style:UIAlertActionStyleCancel
+                                            handler:nil]];
+
+    alert.popoverPresentationController.sourceView = self.view;
+    alert.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(self.view.bounds),
+                                                                 CGRectGetMidY(self.view.bounds), 0, 0);
+
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 @end

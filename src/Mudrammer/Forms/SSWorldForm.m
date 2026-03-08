@@ -105,6 +105,33 @@ NSUInteger const kFormMaxInputLength = 1024;
     if( self.isNewWorld )
         return;
 
+    // Audio
+    QSection *audioSection = [[QSection alloc] initWithTitle:NSLocalizedString(@"AUDIO", nil)];
+    audioSection.footer = NSLocalizedString(@"AUDIO_SECTION_FOOTER", nil);
+
+    NSString *trackDisplay = NSLocalizedString(@"NONE", nil);
+    if ([_world.ambientMusicPath length] > 0) {
+        NSString *name = [[MusicLibrary shared] displayNameForRelativePath:_world.ambientMusicPath];
+        trackDisplay = name ?: [_world.ambientMusicPath lastPathComponent];
+    }
+
+    QLabelElement *ambientElement = [[QLabelElement alloc] initWithTitle:NSLocalizedString(@"BACKGROUND_MUSIC", nil)
+                                                                   Value:trackDisplay];
+    ambientElement.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    ambientElement.keepSelected = NO;
+    ambientElement.onSelected = ^{
+        @strongify(controller);
+        [controller chooseAmbientMusic];
+    };
+    [audioSection addElement:ambientElement];
+
+    QBooleanElement *overrideElement = [[QBooleanElement alloc] initWithTitle:NSLocalizedString(@"OVERRIDE_GAME_MUSIC", nil)
+                                                                    BoolValue:_world.overrideGameMusic];
+    overrideElement.key = @"overrideGameMusic";
+    [audioSection addElement:overrideElement];
+
+    [self addSection:audioSection];
+
     // Triggers
     QSection *triggerSection = [[QSection alloc] initWithTitle:NSLocalizedString(@"TRIGGERS", @"Triggers")];
     triggerSection.footer = NSLocalizedString(@"TRIGGER_HELP", @"Fire some actions whenever specified text is received.");

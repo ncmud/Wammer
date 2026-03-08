@@ -19,6 +19,8 @@ final class MUDWorldBridge: NSObject {
     var isDefault: Bool { swiftWorld.isDefault }
     var isSecure: Bool { swiftWorld.isSecure }
     var connectCommand: String? { swiftWorld.connectCommand }
+    var ambientMusicPath: String? { swiftWorld.ambientMusicPath }
+    var overrideGameMusic: Bool { swiftWorld.overrideGameMusic }
 }
 
 /// ObjC-visible bridge to WorldStore singleton.

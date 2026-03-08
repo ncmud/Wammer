@@ -28,5 +28,6 @@ typedef void (^SSWorldSaveCompletionBlock) (BOOL);
 - (void) newGag;
 - (void) newTicker;
 - (void) deepClone;
+- (void) chooseAmbientMusic;
 
 @end
