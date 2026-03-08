@@ -153,7 +153,7 @@
 - (void)setKeyboardPanningEnabled:(BOOL)enabled {
 #if TARGET_OS_MACCATALYST
     return;
-#endif
+#else
     [self removeKeyboardControl];
 
     if( enabled ) {
@@ -195,6 +195,7 @@
 
         [self setNeedsLayout];
     }
+#endif
 }
 
 - (void)dealloc {

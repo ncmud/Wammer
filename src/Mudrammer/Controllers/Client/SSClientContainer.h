@@ -11,6 +11,8 @@
 
 @class SSWorldDisplayController, SSClientViewController;
 
+NS_ASSUME_NONNULL_BEGIN
+
 /*
  * Container for multiple active clients.
  */
@@ -49,3 +51,5 @@
 @property (nonatomic, readonly, nullable) SSWorldDisplayController *worldDisplay;
 
 @end
+
+NS_ASSUME_NONNULL_END

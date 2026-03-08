@@ -6657,6 +6657,7 @@ static OSStatus SSLWriteFunction(SSLConnectionRef connection, const void *data, 
 		cfstreamThread = [[NSThread alloc] initWithTarget:self
 		                                         selector:@selector(cfstreamThread)
 		                                           object:nil];
+		cfstreamThread.qualityOfService = NSQualityOfServiceUserInitiated;
 		[cfstreamThread start];
 	});
 }
