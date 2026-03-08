@@ -433,3 +433,39 @@ import Testing
         #expect(handler.roomState.roomNumber == 0)
     }
 }
+
+// MARK: - GMCPMediaManager cache paths
+
+@Suite struct GMCPMediaCacheTests {
+    @Test func cachePathNamespacedByServer() {
+        let manager = GMCPMediaManager()
+        let base = URL(string: "https://ncmud.net/sounds/")!
+        let path = manager.cachePath(baseURL: base, name: "NC/backstab.wav")
+        #expect(path.pathComponents.suffix(4) == ["ncmud.net", "sounds", "NC", "backstab.wav"])
+    }
+
+    @Test func cachePathDifferentServersDoNotCollide() {
+        let manager = GMCPMediaManager()
+        let base1 = URL(string: "https://server1.com/sounds/")!
+        let base2 = URL(string: "https://server2.com/sounds/")!
+        let path1 = manager.cachePath(baseURL: base1, name: "sword.wav")
+        let path2 = manager.cachePath(baseURL: base2, name: "sword.wav")
+        #expect(path1 != path2)
+        #expect(path1.pathComponents.contains("server1.com"))
+        #expect(path2.pathComponents.contains("server2.com"))
+    }
+
+    @Test func cachePathFlatName() {
+        let manager = GMCPMediaManager()
+        let base = URL(string: "https://example.com/audio/")!
+        let path = manager.cachePath(baseURL: base, name: "thunder.wav")
+        #expect(path.pathComponents.suffix(3) == ["example.com", "audio", "thunder.wav"])
+    }
+
+    @Test func cachePathBaseWithoutTrailingSlash() {
+        let manager = GMCPMediaManager()
+        let base = URL(string: "https://ncmud.net/sounds")!
+        let path = manager.cachePath(baseURL: base, name: "hit.wav")
+        #expect(path.pathComponents.suffix(3) == ["ncmud.net", "sounds", "hit.wav"])
+    }
+}
