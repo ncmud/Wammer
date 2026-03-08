@@ -27,6 +27,11 @@ let project = Project(
         .local(path: "Vendored/Expecta"),
         .local(path: "Vendored/OCMock"),
     ],
+    settings: .settings(
+        base: [
+            "SWIFT_EMIT_LOC_STRINGS": "YES",
+        ]
+    ),
     targets: [
         .target(
             name: "Wammer",
@@ -148,6 +153,7 @@ let project = Project(
                     "GCC_PREFIX_HEADER": "$(SRCROOT)/src/Mudrammer/Supporting Files/Mudrammer-Prefix.pch",
                     "SWIFT_OBJC_BRIDGING_HEADER": "$(SRCROOT)/src/Mudrammer/Supporting Files/Wammer-Bridging-Header.h",
                     "ENABLE_MODULE_VERIFIER": "YES",
+                    "MODULE_VERIFIER_SUPPORTED_LANGUAGES": "objective-c objective-c++",
                     "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
                 ]
             )
@@ -175,6 +181,7 @@ let project = Project(
                         "$(TARGET_TEMP_DIR)/../Wammer.build/DerivedSources",
                     ]),
                     "GCC_PREFIX_HEADER": "$(SRCROOT)/src/MRTests/MRTests-Prefix.pch",
+                    "OTHER_CFLAGS": "-Wno-implicit-retain-self",
                 ]
             )
         ),
