@@ -435,19 +435,21 @@
 
     NSArray *changedKeys = userinfo[NSUbiquitousKeyValueStoreChangedKeysKey];
 
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:NSUserDefaultsDidChangeNotification
-                                                  object:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:NSUserDefaultsDidChangeNotification
+                                                      object:nil];
 
-    for (NSString *key in changedKeys) {
-        [[NSUserDefaults standardUserDefaults] setObject:[cloud objectForKey:key] forKey:key];
-    }
+        for (NSString *key in changedKeys) {
+            [[NSUserDefaults standardUserDefaults] setObject:[cloud objectForKey:key] forKey:key];
+        }
 
-    [self loadThemeFromDefaults];
+        [self loadThemeFromDefaults];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(updateToCloud:)
-                                                 name:NSUserDefaultsDidChangeNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(updateToCloud:)
+                                                     name:NSUserDefaultsDidChangeNotification object:nil];
+    });
 }
 
 - (void)updateToCloud:(NSNotification *)notification {
