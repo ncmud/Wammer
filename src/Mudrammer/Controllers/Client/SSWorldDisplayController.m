@@ -312,10 +312,10 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
         [self.unreadClientIndexes removeIndex:(NSUInteger)selectedIndex];
     }
 
-    [self clientContainer].centerPanel =
-     (UIViewController *)[self.dataSource itemAtIndexPath:
-                          [NSIndexPath indexPathForRow:(NSInteger)_selectedIndex
-                                             inSection:0]];
+    UIViewController *detail = (UIViewController *)[self.dataSource itemAtIndexPath:
+                                [NSIndexPath indexPathForRow:(NSInteger)_selectedIndex
+                                                   inSection:0]];
+    [[self clientContainer] setDetailViewController:detail];
 
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0]
                   withRowAnimation:UITableViewRowAnimationFade];
@@ -374,7 +374,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
                               withRowAnimation:UITableViewRowAnimationFade];
     }
 
-    [self clientContainer].centerPanel = nav;
+    [[self clientContainer] setDetailViewController:nav];
 
     [self updateWorldStatusButtons];
 
@@ -409,8 +409,9 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 
     [self.dataSource removeItemAtIndex:(NSUInteger)index];
 
-    _selectedIndex = [self.dataSource indexPathForItem:
-                      [self clientContainer].centerPanel].row;
+    UIViewController *currentDetail = [[self clientContainer] viewControllerForColumn:UISplitViewControllerColumnSecondary];
+    NSIndexPath *detailPath = [self.dataSource indexPathForItem:currentDetail];
+    _selectedIndex = detailPath ? detailPath.row : 0;
 
     [self updateWorldStatusButtons];
 }

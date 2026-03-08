@@ -9,9 +9,9 @@
 #import "SSClientViewController+Interactions.h"
 #import "SSMudView.h"
 #import "SSMUDSocket.h"
-#import "SSClientContainer.h"
 #import "SSWorldDisplayController.h"
 #import "SSMUDToolbar.h"
+#import "Wammer-Swift.h"
 
 @implementation SSClientViewController (Interactions)
 

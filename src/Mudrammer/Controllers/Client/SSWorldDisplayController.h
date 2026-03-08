@@ -8,8 +8,9 @@
 
 @import UIKit;
 
-#import "SSClientContainer.h"
 #import "SSClientViewController.h"
+
+@class SSClientContainer;
 
 extern CGFloat const kWorldDisplayWidth;
 

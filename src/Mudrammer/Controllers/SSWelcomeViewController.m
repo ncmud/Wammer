@@ -8,8 +8,8 @@
 
 #import "SSWelcomeViewController.h"
 @import Masonry;
-#import "SSClientContainer.h"
 #import "SSWorldDisplayController.h"
+#import "Wammer-Swift.h"
 
 @interface SSWelcomeViewController ()
 
