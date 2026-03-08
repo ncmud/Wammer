@@ -483,6 +483,11 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 #if !TARGET_OS_MACCATALYST
     for (NSInteger i = 0; i < [self numberOfClients]; i++) {
         if ([[self clientAtIndex:i] isConnected]) {
+            // If any client has music playing, the audio session keeps the app alive —
+            // no need for the timeout notification.
+            if ([[self clientAtIndex:i] isMusicPlaying]) {
+                return;
+            }
             [[SPLNotificationManager shared] scheduleTimeoutNotification];
             return;
         }

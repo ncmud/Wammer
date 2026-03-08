@@ -46,6 +46,9 @@
 // Connected?
 @property (nonatomic, getter=isConnected, readonly) BOOL connected;
 
+// Is ambient or server music currently playing?
+@property (nonatomic, readonly) BOOL isMusicPlaying;
+
 // Disconnect the socket
 - (void) disconnect;
 

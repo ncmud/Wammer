@@ -27,6 +27,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix libtelnet missing HAVE_ZLIB define causing MCCP2 gibberish (#56)
 
 ### Changed
+- Update background transition to preserve connection when audio is playing (#120)
+- Add ambient music picker UI (#118)
+- Implement ambient music playback in GMCPMediaManager (#117)
+- Add ambient music property to MUDWorld (#116)
+- Build persistent music library from GMCP media cache (#115)
+- Switch AVAudioSession to .playback and add background audio entitlement (#114)
 - Add arrow key command history navigation in input field (iPad/iPhone keyboard, Mac Catalyst). (#111)
 - Fix CocoaAsyncSocket SecureTransport deprecations (#99)
 - Fix deprecated kTLSProtocol12 warning in SSMUDSocket. (#110)

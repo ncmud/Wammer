@@ -2,6 +2,8 @@
 "ACTIVE_WORLDS" = "Active";
 "ADD_CONNECTION" = "Add Connection";
 "ADVANCED" = "Advanced";
+"AUDIO" = "Audio";
+"AUDIO_SECTION_FOOTER" = "Set background music to play while connected to this world.";
 
 "ACK_HEADER" = "Wammer is grateful for the following libraries and projects:";
 
@@ -20,11 +22,14 @@
 "AUTOCAPITALIZE" = "Autocapitalize Sentences";
 
 
+"BACKGROUND_MUSIC" = "Background Music";
+
 "BTKEYBOARD" = "Bluetooth Keyboard";
 "BTKEYBOARD_HELP" = "Enable if you have a hardware Bluetooth keyboard connected. Wammer's UI will ignore the software keyboard.";
 
 /* Cancel */
 "CANCEL" = "Cancel";
+"CHOOSE_TRACK" = "Choose Track";
 
 "CHARACTER_BAR" = "Character Bar";
 "CHARACTER_BAR_HELP" = "Fast access to special keys while typing.";
@@ -145,12 +150,17 @@
 /* New World */
 "NEW_WORLD" = "New World";
 
+"NO_MUSIC_TRACKS" = "Connect to a game with music support to build your library.";
 "NO_WORLDS" = "No Worlds";
+"NONE" = "None";
 
 "ON" = "ON";
 "OFF" = "OFF";
+"OVERRIDE_GAME_MUSIC" = "Mute Server Music";
 
 "OPTIONAL" = "Optional";
+"PAUSE_MUSIC" = "Pause";
+"PLAY_MUSIC" = "Play";
 
 /* Open World */
 "OPEN_WORLD" = "Open World";
@@ -352,6 +362,8 @@
 "SOUND_POURINGLIQUID" = "Pouring Liquid";
 "SOUND_SHOTMISSES" = "Shot Misses";
 "SOUND_SWISH" = "Swish";
+
+"STOP_MUSIC" = "Stop Music";
 
 /* Mac Menu Bar */
 "CONNECTION" = "Connection";

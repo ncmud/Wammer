@@ -43,8 +43,8 @@ let project = Project(
                 "LSApplicationCategoryType": .string("public.app-category.games"),
                 "CFBundleDisplayName": .string("MUDWammer"),
                 "ITSAppUsesNonExemptEncryption": .boolean(false),
-                "CFBundleShortVersionString": .string("1.0.0"),
-                "CFBundleVersion": .string("1"),
+                "CFBundleShortVersionString": .string("1.0.1"),
+                "CFBundleVersion": .string("2"),
                 "UIAppFonts": .array([
                     .string("AndaleMono.ttf"),
                     .string("AnonymousProMinusB.ttf"),
@@ -82,6 +82,9 @@ let project = Project(
                     .string("UIInterfaceOrientationLandscapeRight"),
                 ]),
                 "UILaunchStoryboardName": .string("LaunchScreen"),
+                "UIBackgroundModes": .array([
+                    .string("audio"),
+                ]),
                 "UIApplicationSceneManifest": .dictionary([
                     "UIApplicationSupportsMultipleScenes": .boolean(true),
                     "UISceneConfigurations": .dictionary([

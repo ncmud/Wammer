@@ -231,6 +231,10 @@ final class MUDWorld: NSObject, Codable {
     var triggers: [MUDTrigger]
     var gags: [MUDGag]
     var tickers: [MUDTicker]
+    /// Relative path within the GMCPMedia cache to the ambient music track for this world.
+    var ambientMusicPath: String?
+    /// When true, all server-sent music (GMCP type=music) is muted. Sounds and manual ambient tracks still play.
+    var overrideGameMusic: Bool
 
     override convenience init() {
         self.init(hostname: "", name: "", port: 0)
@@ -249,7 +253,9 @@ final class MUDWorld: NSObject, Codable {
         aliases: [MUDAlias] = [],
         triggers: [MUDTrigger] = [],
         gags: [MUDGag] = [],
-        tickers: [MUDTicker] = []
+        tickers: [MUDTicker] = [],
+        ambientMusicPath: String? = nil,
+        overrideGameMusic: Bool = false
     ) {
         self.identifier = identifier
         self.isHidden = isHidden
@@ -264,5 +270,34 @@ final class MUDWorld: NSObject, Codable {
         self.triggers = triggers
         self.gags = gags
         self.tickers = tickers
+        self.ambientMusicPath = ambientMusicPath
+        self.overrideGameMusic = overrideGameMusic
+    }
+
+    // Custom Codable to handle migration from JSON without ambient music fields.
+    enum CodingKeys: String, CodingKey {
+        case identifier, isHidden, lastModified, hostname, name, port
+        case isDefault, isSecure, connectCommand
+        case aliases, triggers, gags, tickers
+        case ambientMusicPath, overrideGameMusic
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        identifier = try container.decode(String.self, forKey: .identifier)
+        isHidden = try container.decode(Bool.self, forKey: .isHidden)
+        lastModified = try container.decode(Date.self, forKey: .lastModified)
+        hostname = try container.decode(String.self, forKey: .hostname)
+        name = try container.decode(String.self, forKey: .name)
+        port = try container.decode(Int16.self, forKey: .port)
+        isDefault = try container.decode(Bool.self, forKey: .isDefault)
+        isSecure = try container.decode(Bool.self, forKey: .isSecure)
+        connectCommand = try container.decodeIfPresent(String.self, forKey: .connectCommand)
+        aliases = try container.decode([MUDAlias].self, forKey: .aliases)
+        triggers = try container.decode([MUDTrigger].self, forKey: .triggers)
+        gags = try container.decode([MUDGag].self, forKey: .gags)
+        tickers = try container.decode([MUDTicker].self, forKey: .tickers)
+        ambientMusicPath = try container.decodeIfPresent(String.self, forKey: .ambientMusicPath)
+        overrideGameMusic = try container.decodeIfPresent(Bool.self, forKey: .overrideGameMusic) ?? false
     }
 }
