@@ -53,26 +53,15 @@ class WammerSceneDelegate: UIResponder, UIWindowSceneDelegate {
     private func handleURL(_ url: URL) {
         guard url.scheme == "telnet", let host = url.host?.lowercased() else { return }
 
-        var existingIdentifier: String?
-        for world in WorldStoreBridge.allWorlds() {
-            guard let w = world as? MUDWorldBridge else { continue }
-            if w.hostname == host {
-                existingIdentifier = w.identifier
-                break
-            }
-        }
+        var existingIdentifier = WorldStoreBridge.allWorlds()
+            .first(where: { $0.hostname == host })?.identifier
 
         if existingIdentifier == nil {
             let port = Int16(url.port ?? 23)
             WorldStoreBridge.addWorld(hostname: host, name: "", port: port)
 
-            for world in WorldStoreBridge.allWorlds() {
-                guard let w = world as? MUDWorldBridge else { continue }
-                if w.hostname == host {
-                    existingIdentifier = w.identifier
-                    break
-                }
-            }
+            existingIdentifier = WorldStoreBridge.allWorlds()
+                .first(where: { $0.hostname == host })?.identifier
         }
 
         if let identifier = existingIdentifier {

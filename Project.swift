@@ -147,6 +147,8 @@ let project = Project(
                     ]),
                     "GCC_PREFIX_HEADER": "$(SRCROOT)/src/Mudrammer/Supporting Files/Mudrammer-Prefix.pch",
                     "SWIFT_OBJC_BRIDGING_HEADER": "$(SRCROOT)/src/Mudrammer/Supporting Files/Wammer-Bridging-Header.h",
+                    "ENABLE_MODULE_VERIFIER": "YES",
+                    "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
                 ]
             )
         ),
