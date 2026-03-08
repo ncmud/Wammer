@@ -27,7 +27,7 @@
 - (void)setUp {
     [super setUp];
 
-    tableView = [[SSTextTableView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    tableView = [[SSTextTableView alloc] initWithFrame:CGRectMake(0, 0, 375, 667)];
     dataSource = [[SPLTerminalDataSource alloc] initWithItems:nil];
     dataSource.tableView = tableView;
     charSize = [tableView charSize];
