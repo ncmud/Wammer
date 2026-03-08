@@ -299,7 +299,7 @@ CG_INLINE void SPLTelnetEventHandler(telnet_t *telnet,
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         ttypes = @[
-           @"MUDRAMMER",
+           @"WAMMER",
            @"XTERM",
            @"ANSI",
         ];

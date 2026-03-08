@@ -41,7 +41,7 @@ Wammer connects over TCP with full telnet negotiation via [libtelnet](https://gi
 | **MSSP** | Mud Server Status Protocol — displays server metadata when available |
 | **GMCP** | Generic MUD Communication Protocol — out-of-band JSON messaging for character stats, room info, and audio |
 | **NAWS** | Negotiate About Window Size — reports terminal dimensions to the server |
-| **TTYPE** | Terminal Type negotiation (sends MUDRAMMER, XTERM, ANSI) |
+| **TTYPE** | Terminal Type negotiation (sends WAMMER, XTERM, ANSI) |
 | **TLS/SSL** | Encrypted connections with per-world configuration |
 | **Client.Media** | GMCP media package — downloads and plays server-triggered sound effects and music |
 
