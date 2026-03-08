@@ -30,6 +30,21 @@ xcodebuild test -workspace Wammer.xcworkspace -scheme MRTests -destination 'plat
 
 [MUDs (Multi-User Dungeons)](https://en.wikipedia.org/wiki/MUD) are online multiplayer text-based games. Thousands of players today are on hundreds of MUDs in all manner of worlds: fantasy, absurdist, sci-fi, horror, and more. Many MUDs have been continuously online for decades. The app ships with a curated list of default worlds defined in `WorldStore.swift` to help new players get started, and you can add your own.
 
+## Supported Protocols
+
+Wammer connects over TCP with full telnet negotiation via [libtelnet](https://github.com/seanmiddleditch/libtelnet). The following MUD protocols are supported:
+
+| Protocol | Description |
+|----------|-------------|
+| **ANSI color** | 16 and 256 color rendering with bold, underline, reverse, and strikethrough |
+| **MCCP2** | Mud Client Compression Protocol v2 (zlib) for compressed data transfer |
+| **MSSP** | Mud Server Status Protocol — displays server metadata when available |
+| **GMCP** | Generic MUD Communication Protocol — out-of-band JSON messaging for character stats, room info, and audio |
+| **NAWS** | Negotiate About Window Size — reports terminal dimensions to the server |
+| **TTYPE** | Terminal Type negotiation (sends MUDRAMMER, XTERM, ANSI) |
+| **TLS/SSL** | Encrypted connections with per-world configuration |
+| **Client.Media** | GMCP media package — downloads and plays server-triggered sound effects and music |
+
 ## License
 
 MUDRammer's source code is available under the MIT license. See the `LICENSE` file for details.
