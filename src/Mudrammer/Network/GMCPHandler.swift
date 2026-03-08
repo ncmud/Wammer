@@ -7,6 +7,7 @@ final class GMCPHandler: NSObject {
 
     let characterState = GMCPCharacterState()
     let roomState = GMCPRoomState()
+    private let mediaManager = GMCPMediaManager()
 
     func handleModule(_ module: String, data: [String: Any]) {
         NSLog("GMCP [%@] %@", module, data as NSDictionary)
@@ -19,14 +20,9 @@ final class GMCPHandler: NSObject {
         case "room.info":
             roomState.update(data: data)
         case "client.media.play":
-            NSLog("GMCP MEDIA PLAY: name=%@ type=%@ url=%@ volume=%@ loops=%@",
-                  data["name"] as? String ?? "(none)",
-                  data["type"] as? String ?? "(none)",
-                  data["url"] as? String ?? "(none)",
-                  String(describing: data["volume"]),
-                  String(describing: data["loops"]))
+            mediaManager.play(data: data)
         case "client.media.stop":
-            NSLog("GMCP MEDIA STOP: type=%@", data["type"] as? String ?? "(all)")
+            mediaManager.stop(data: data)
         default:
             NSLog("GMCP unhandled module: %@", module)
         }
@@ -35,5 +31,6 @@ final class GMCPHandler: NSObject {
     func reset() {
         characterState.reset()
         roomState.reset()
+        mediaManager.stopAll()
     }
 }
