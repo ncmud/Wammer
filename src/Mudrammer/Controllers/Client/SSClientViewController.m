@@ -71,6 +71,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 @property (nonatomic, strong) SSConnectButton *connectButton;
 @property (nonatomic, strong) SPLMUDTitleView *titleView;
 
+@property (nonatomic, strong) GMCPHandler *gmcpHandler;
 @property (nonatomic, strong) FBKVOController *kvoController;
 
 @property (nonatomic, strong) UIBarButtonItem *settingsButton;
@@ -108,6 +109,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
         _socket = [[SSMUDSocket alloc] initWithSocket:[GCDAsyncSocket new]];
         self.socket.delegate = self;
+        _gmcpHandler = [[GMCPHandler alloc] init];
         _kvoController = [FBKVOController controllerWithObserver:self];
 
         // text processing
@@ -1034,7 +1036,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             [self updateTitle:NSLocalizedString(@"DISCONNECTED", @"Disconnected")];
             [self.titleView setMSSPData:nil];
-            [[GMCPHandler shared] reset];
+            [self.gmcpHandler reset];
 
             [self setNavVisible:YES];
 
@@ -1179,7 +1181,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (void)mudsocket:(SSMUDSocket *)socket receivedGMCPModule:(NSString *)module data:(NSDictionary *)data {
-    [[GMCPHandler shared] handleModule:module data:data];
+    [self.gmcpHandler handleModule:module data:data];
 }
 
 #pragma mark - world store observation

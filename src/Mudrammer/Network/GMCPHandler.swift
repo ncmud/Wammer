@@ -3,8 +3,6 @@ import Foundation
 @objc(GMCPHandler)
 @objcMembers
 final class GMCPHandler: NSObject {
-    static let shared = GMCPHandler()
-
     let characterState = GMCPCharacterState()
     let roomState = GMCPRoomState()
     private let mediaManager = GMCPMediaManager()
