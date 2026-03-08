@@ -35,8 +35,6 @@ final class GMCPMediaManager {
     /// e.g. `GMCPMedia/ncmud.net/sounds/NC/backstab.wav`
     /// This mirrors the URL structure so you can reconstruct the full URL from the path.
     func cachePath(baseURL: URL, name: String) -> URL {
-        // Use host + path from the base URL as the namespace directory
-        // e.g. https://ncmud.net/sounds/ → "ncmud.net/sounds"
         var components: [String] = []
         if let host = baseURL.host { components.append(host) }
         let basePath = baseURL.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -81,28 +79,34 @@ final class GMCPMediaManager {
         let cachedFile = cachePath(baseURL: baseURL, name: name)
         let cachedDir = cachedFile.deletingLastPathComponent()
         try? FileManager.default.createDirectory(at: cachedDir, withIntermediateDirectories: true)
+
+        let normalizedVolume = volume / 100.0
         if FileManager.default.fileExists(atPath: cachedFile.path) {
             NSLog("GMCP Media: playing cached %@", name)
-            startPlayback(fileURL: cachedFile, type: type, volume: volume / 100.0,
+            startPlayback(fileURL: cachedFile, type: type, volume: normalizedVolume,
                           loops: loops, priority: priority)
-            return
+        } else {
+            let fileURL = baseURL.appendingPathComponent(name)
+            NSLog("GMCP Media: downloading %@", fileURL.absoluteString)
+            downloadAndPlay(fileURL: fileURL, cachedFile: cachedFile) {
+                self.startPlayback(fileURL: cachedFile, type: type, volume: normalizedVolume,
+                                   loops: loops, priority: priority)
+            }
         }
+    }
 
-        let fileURL = baseURL.appendingPathComponent(name)
-
-        NSLog("GMCP Media: downloading %@", fileURL.absoluteString)
-        let task = session.downloadTask(with: fileURL) { [weak self] tempURL, response, error in
-            guard let self else { return }
+    private func downloadAndPlay(fileURL: URL, cachedFile: URL, completion: @escaping () -> Void) {
+        let task = session.downloadTask(with: fileURL) { tempURL, response, error in
             if let error {
-                NSLog("GMCP Media: download failed for %@: %@", name, error.localizedDescription)
+                NSLog("GMCP Media: download failed: %@", error.localizedDescription)
                 return
             }
             guard let tempURL else {
-                NSLog("GMCP Media: no temp file for %@", name)
+                NSLog("GMCP Media: no temp file for %@", fileURL.lastPathComponent)
                 return
             }
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-                NSLog("GMCP Media: HTTP %d for %@", httpResponse.statusCode, name)
+                NSLog("GMCP Media: HTTP %d for %@", httpResponse.statusCode, fileURL.lastPathComponent)
                 return
             }
 
@@ -112,14 +116,13 @@ final class GMCPMediaManager {
                 }
                 try FileManager.default.moveItem(at: tempURL, to: cachedFile)
             } catch {
-                NSLog("GMCP Media: cache failed for %@: %@", name, error.localizedDescription)
+                NSLog("GMCP Media: cache failed: %@", error.localizedDescription)
                 return
             }
 
             DispatchQueue.main.async {
-                NSLog("GMCP Media: playing downloaded %@", name)
-                self.startPlayback(fileURL: cachedFile, type: type, volume: volume / 100.0,
-                                   loops: loops, priority: priority)
+                NSLog("GMCP Media: playing downloaded %@", fileURL.lastPathComponent)
+                completion()
             }
         }
         task.resume()
