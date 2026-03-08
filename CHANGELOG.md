@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix libtelnet missing HAVE_ZLIB define causing MCCP2 gibberish (#56)
 
 ### Changed
+- Add arrow key command history navigation in input field (iPad/iPhone keyboard, Mac Catalyst). (#111)
 - Fix CocoaAsyncSocket SecureTransport deprecations (#99)
 - Fix deprecated kTLSProtocol12 warning in SSMUDSocket. (#110)
 - Replace UIMenuController with context menus (#89)
