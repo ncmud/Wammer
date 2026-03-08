@@ -102,4 +102,13 @@
  */
 - (void) telnetLibrary:(SPLTelnetLib *)library receivedMSSPData:(NSDictionary *)MSSPData;
 
+/**
+ *  The telnet library has received a GMCP subnegotiation and parsed it.
+ *
+ *  @param library the telnet library
+ *  @param module  GMCP module name (e.g. "char.vitals", "Client.Media.Play")
+ *  @param data    parsed JSON payload as a dictionary, or empty dictionary if no payload
+ */
+- (void) telnetLibrary:(SPLTelnetLib *)library receivedGMCPModule:(NSString *)module data:(NSDictionary *)data;
+
 @end

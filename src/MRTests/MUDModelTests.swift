@@ -1,189 +1,188 @@
-import XCTest
+import Testing
 @testable import Wammer
 
-final class MUDModelTests: XCTestCase {
+// MARK: - MUDGag
 
-    // MARK: - MUDGag matchesLine
-
-    func testGagStartOfLine() {
+@Suite struct GagTests {
+    @Test func startOfLine() {
         let gag = MUDGag(gagType: .startOfLine, gag: "Hello")
-        XCTAssertTrue(gag.matchesLine("Hello world"))
-        XCTAssertFalse(gag.matchesLine("Say Hello"))
+        #expect(gag.matchesLine("Hello world"))
+        #expect(!gag.matchesLine("Say Hello"))
     }
 
-    func testGagLineContains() {
+    @Test func lineContains() {
         let gag = MUDGag(gagType: .lineContains, gag: "secret")
-        XCTAssertTrue(gag.matchesLine("This is a secret message"))
-        XCTAssertTrue(gag.matchesLine("secret"))
-        XCTAssertFalse(gag.matchesLine("nothing here"))
+        #expect(gag.matchesLine("This is a secret message"))
+        #expect(gag.matchesLine("secret"))
+        #expect(!gag.matchesLine("nothing here"))
     }
 
-    func testGagLineEquals() {
+    @Test func lineEquals() {
         let gag = MUDGag(gagType: .lineEquals, gag: "exact match")
-        XCTAssertTrue(gag.matchesLine("exact match"))
-        XCTAssertFalse(gag.matchesLine("exact match plus more"))
-        XCTAssertFalse(gag.matchesLine("not exact match"))
+        #expect(gag.matchesLine("exact match"))
+        #expect(!gag.matchesLine("exact match plus more"))
+        #expect(!gag.matchesLine("not exact match"))
     }
 
-    func testGagEmptyPattern() {
+    @Test func emptyPattern() {
         let gag = MUDGag(gagType: .lineContains, gag: "")
-        XCTAssertTrue(gag.matchesLine(""))
-        XCTAssertFalse(gag.matchesLine("non-empty"))
+        #expect(gag.matchesLine(""))
+        #expect(!gag.matchesLine("non-empty"))
     }
 
-    func testGagEmptyLine() {
+    @Test func emptyLine() {
         let gag = MUDGag(gagType: .lineContains, gag: "something")
-        XCTAssertFalse(gag.matchesLine(""))
+        #expect(!gag.matchesLine(""))
     }
 
-    func testGagTrimsWhitespace() {
+    @Test func trimsWhitespace() {
         let gag = MUDGag(gagType: .lineEquals, gag: "  hello  ")
-        XCTAssertTrue(gag.matchesLine("hello"))
+        #expect(gag.matchesLine("hello"))
     }
+}
 
-    // MARK: - MUDTrigger matchesLine
+// MARK: - MUDTrigger
 
-    func testTriggerMatchesSimple() {
+@Suite struct TriggerTests {
+    @Test func matchesSimple() {
         let trigger = MUDTrigger(trigger: "attacks you")
-        XCTAssertTrue(trigger.matchesLine("The orc attacks you!"))
-        XCTAssertFalse(trigger.matchesLine("You attack the orc"))
+        #expect(trigger.matchesLine("The orc attacks you!"))
+        #expect(!trigger.matchesLine("You attack the orc"))
     }
 
-    func testTriggerEmptyPattern() {
+    @Test func emptyPattern() {
         let trigger = MUDTrigger(trigger: "")
-        XCTAssertFalse(trigger.matchesLine("anything"))
+        #expect(!trigger.matchesLine("anything"))
     }
+}
 
-    // MARK: - MUDAlias aliasCommands
+// MARK: - MUDAlias
 
-    func testAliasSimple() {
+@Suite struct AliasTests {
+    @Test func simple() {
         let alias = MUDAlias(name: "k", commands: "kill")
         let result = alias.aliasCommands(forInput: "k orc")
-        XCTAssertEqual(result, ["kill orc"])
+        #expect(result == ["kill orc"])
     }
 
-    func testAliasWithPositionalArgs() {
+    @Test func positionalArgs() {
         let alias = MUDAlias(name: "kk", commands: "kill $1$")
         let result = alias.aliasCommands(forInput: "kk orc")
-        XCTAssertEqual(result, ["kill orc"])
+        #expect(result == ["kill orc"])
     }
 
-    func testAliasWithStar() {
+    @Test func starArg() {
         let alias = MUDAlias(name: "s", commands: "say $*$")
         let result = alias.aliasCommands(forInput: "s hello world")
-        XCTAssertEqual(result, ["say hello world"])
+        #expect(result == ["say hello world"])
     }
 
-    func testAliasNoMatch() {
+    @Test func noArgs() {
         let alias = MUDAlias(name: "k", commands: "kill")
         let result = alias.aliasCommands(forInput: "k")
-        XCTAssertEqual(result, ["kill "])
+        #expect(result == ["kill "])
     }
 
-    func testAliasMultipleCommands() {
+    @Test func multipleCommands() {
         let alias = MUDAlias(name: "prep", commands: "wield sword;cast shield")
         let result = alias.aliasCommands(forInput: "prep")
-        XCTAssertEqual(result?.count, 2)
+        #expect(result?.count == 2)
     }
+}
 
-    // MARK: - MUDWorld commandsIfMatchingAlias
+// MARK: - MUDWorld aliases
 
-    func testWorldAliasLookup() {
+@Suite struct WorldAliasTests {
+    @Test func lookup() {
         let world = MUDWorld()
-        world.aliases = [
-            MUDAlias(name: "k", commands: "kill"),
-        ]
+        world.aliases = [MUDAlias(name: "k", commands: "kill")]
         let result = world.commandsIfMatchingAlias(forInput: "k orc")
-        XCTAssertEqual(result, ["kill orc"])
+        #expect(result == ["kill orc"])
     }
 
-    func testWorldAliasNoMatch() {
+    @Test func noMatch() {
         let world = MUDWorld()
-        world.aliases = [
-            MUDAlias(name: "k", commands: "kill"),
-        ]
-        XCTAssertNil(world.commandsIfMatchingAlias(forInput: "flee"))
+        world.aliases = [MUDAlias(name: "k", commands: "kill")]
+        #expect(world.commandsIfMatchingAlias(forInput: "flee") == nil)
     }
 
-    func testWorldAliasEmpty() {
+    @Test func emptyAliases() {
         let world = MUDWorld()
-        XCTAssertNil(world.commandsIfMatchingAlias(forInput: "k orc"))
+        #expect(world.commandsIfMatchingAlias(forInput: "k orc") == nil)
     }
+}
 
-    // MARK: - MUDWorld filteredIndexesByMatchingGags
+// MARK: - MUDWorld gag filtering
 
-    func testGagFiltering() {
+@Suite struct GagFilteringTests {
+    @Test func filtersMatchingLines() {
         let world = MUDWorld()
-        world.gags = [
-            MUDGag(gagType: .lineContains, gag: "spam"),
-        ]
+        world.gags = [MUDGag(gagType: .lineContains, gag: "spam")]
         let lines = ["hello", "this is spam", "goodbye"]
         let indexes = world.filteredIndexesByMatchingGags(inLines: lines)
-        XCTAssertTrue(indexes.contains(0))
-        XCTAssertFalse(indexes.contains(1))
-        XCTAssertTrue(indexes.contains(2))
+        #expect(indexes.contains(0))
+        #expect(!indexes.contains(1))
+        #expect(indexes.contains(2))
     }
 
-    func testGagFilteringNoGags() {
+    @Test func noGagsPassesAll() {
         let world = MUDWorld()
         let lines = ["hello", "world"]
         let indexes = world.filteredIndexesByMatchingGags(inLines: lines)
-        XCTAssertEqual(indexes, IndexSet(integersIn: 0..<2))
+        #expect(indexes == IndexSet(integersIn: 0..<2))
     }
+}
 
-    // MARK: - MUDWorld runTriggers
+// MARK: - MUDWorld triggers
 
-    func testRunTriggersCommands() {
+@Suite struct WorldTriggerTests {
+    @Test func triggersCommands() {
         let world = MUDWorld()
-        world.triggers = [
-            MUDTrigger(trigger: "attacks you", commands: "flee"),
-        ]
+        world.triggers = [MUDTrigger(trigger: "attacks you", commands: "flee")]
         let result = world.runTriggers(forLines: ["The orc attacks you"])
-        XCTAssertEqual(result.commands, ["flee"])
+        #expect(result.commands == ["flee"])
     }
 
-    func testRunTriggersHighlightColor() {
+    @Test func triggersHighlightColor() {
         let world = MUDWorld()
-        world.triggers = [
-            MUDTrigger(trigger: "danger", highlightColor: .red),
-        ]
+        world.triggers = [MUDTrigger(trigger: "danger", highlightColor: .red)]
         let result = world.runTriggers(forLines: ["danger ahead"])
-        XCTAssertNotNil(result.colors[0])
+        #expect(result.colors[0] != nil)
     }
 
-    func testRunTriggersSound() {
+    @Test func triggersSound() {
         let world = MUDWorld()
-        world.triggers = [
-            MUDTrigger(trigger: "ding", soundFileName: "bell.wav"),
-        ]
+        world.triggers = [MUDTrigger(trigger: "ding", soundFileName: "bell.wav")]
         let result = world.runTriggers(forLines: ["ding ding"])
-        XCTAssertEqual(result.soundName, "bell.wav")
+        #expect(result.soundName == "bell.wav")
     }
 
-    func testRunTriggersSoundNone() {
+    @Test func triggersSoundNone() {
         let world = MUDWorld()
-        world.triggers = [
-            MUDTrigger(trigger: "ding", soundFileName: "None"),
-        ]
+        world.triggers = [MUDTrigger(trigger: "ding", soundFileName: "None")]
         let result = world.runTriggers(forLines: ["ding ding"])
-        XCTAssertNil(result.soundName)
+        #expect(result.soundName == nil)
     }
+}
 
-    // MARK: - MUDWorld worldDescription
+// MARK: - MUDWorld description
 
-    func testWorldDescriptionWithName() {
+@Suite struct WorldDescriptionTests {
+    @Test func withName() {
         let world = MUDWorld(name: "Test MUD")
-        XCTAssertEqual(world.worldDescription, "Test MUD ")
+        #expect(world.worldDescription == "Test MUD ")
     }
 
-    func testWorldDescriptionWithoutName() {
+    @Test func withoutName() {
         let world = MUDWorld(hostname: "mud.example.com", port: 4000)
-        XCTAssertEqual(world.worldDescription, "mud.example.com:4000")
+        #expect(world.worldDescription == "mud.example.com:4000")
     }
+}
 
-    // MARK: - MUDWorld deepClone
+// MARK: - MUDWorld deepClone
 
-    func testDeepClone() {
+@Suite struct DeepCloneTests {
+    @Test func clonesAllFields() {
         let world = MUDWorld(
             hostname: "test.com", name: "Test", port: 23,
             isDefault: true, isSecure: true, connectCommand: "login",
@@ -195,33 +194,49 @@ final class MUDModelTests: XCTestCase {
 
         let clone = world.deepClone()
 
-        XCTAssertNotEqual(clone.identifier, world.identifier)
-        XCTAssertEqual(clone.hostname, "test.com")
-        XCTAssertEqual(clone.name, "Test")
-        XCTAssertFalse(clone.isDefault)
-        XCTAssertTrue(clone.isSecure)
-        XCTAssertEqual(clone.connectCommand, "login")
-        XCTAssertEqual(clone.aliases.count, 1)
-        XCTAssertNotEqual(clone.aliases[0].identifier, world.aliases[0].identifier)
-        XCTAssertEqual(clone.aliases[0].name, "k")
-        XCTAssertEqual(clone.triggers.count, 1)
-        XCTAssertEqual(clone.gags.count, 1)
-        XCTAssertEqual(clone.tickers.count, 1)
+        #expect(clone.identifier != world.identifier)
+        #expect(clone.hostname == "test.com")
+        #expect(clone.name == "Test")
+        #expect(!clone.isDefault)
+        #expect(clone.isSecure)
+        #expect(clone.connectCommand == "login")
+        #expect(clone.aliases.count == 1)
+        #expect(clone.aliases[0].identifier != world.aliases[0].identifier)
+        #expect(clone.aliases[0].name == "k")
+        #expect(clone.triggers.count == 1)
+        #expect(clone.gags.count == 1)
+        #expect(clone.tickers.count == 1)
+    }
+}
+
+// MARK: - MUDWorld cleanedHostName
+
+@Suite struct CleanedHostNameTests {
+    @Test func lowercases() {
+        #expect(MUDWorld.cleanedHostName(for: "MUD.Example.Com") == "mud.example.com")
     }
 
-    // MARK: - MUDWorld cleanedHostName
-
-    func testCleanedHostName() {
-        XCTAssertEqual(MUDWorld.cleanedHostName(for: "MUD.Example.Com"), "mud.example.com")
-        XCTAssertEqual(MUDWorld.cleanedHostName(for: "telnet://mud.com"), "mud.com")
-        XCTAssertEqual(MUDWorld.cleanedHostName(for: ""), "")
-        XCTAssertEqual(MUDWorld.cleanedHostName(for: "mud-server.net"), "mud-server.net")
-        XCTAssertEqual(MUDWorld.cleanedHostName(for: "bad host!@#"), "badhost")
+    @Test func stripsTelnetScheme() {
+        #expect(MUDWorld.cleanedHostName(for: "telnet://mud.com") == "mud.com")
     }
 
-    // MARK: - MUDWorld ordered accessors
+    @Test func emptyString() {
+        #expect(MUDWorld.cleanedHostName(for: "") == "")
+    }
 
-    func testOrderedAliases() {
+    @Test func preservesHyphens() {
+        #expect(MUDWorld.cleanedHostName(for: "mud-server.net") == "mud-server.net")
+    }
+
+    @Test func stripsInvalidChars() {
+        #expect(MUDWorld.cleanedHostName(for: "bad host!@#") == "badhost")
+    }
+}
+
+// MARK: - MUDWorld ordered accessors
+
+@Suite struct OrderedAccessorTests {
+    @Test func orderedAliases() {
         let world = MUDWorld()
         world.aliases = [
             MUDAlias(name: "z"),
@@ -229,12 +244,12 @@ final class MUDModelTests: XCTestCase {
             MUDAlias(isHidden: true, name: "hidden"),
         ]
         let ordered = world.orderedAliases
-        XCTAssertEqual(ordered.count, 2)
-        XCTAssertEqual(ordered[0].name, "a")
-        XCTAssertEqual(ordered[1].name, "z")
+        #expect(ordered.count == 2)
+        #expect(ordered[0].name == "a")
+        #expect(ordered[1].name == "z")
     }
 
-    func testOrderedTriggers() {
+    @Test func orderedTriggers() {
         let world = MUDWorld()
         world.triggers = [
             MUDTrigger(trigger: "zzz"),
@@ -243,17 +258,19 @@ final class MUDModelTests: XCTestCase {
             MUDTrigger(isEnabled: false, trigger: "disabled"),
         ]
         let active = world.orderedTriggers(active: true)
-        XCTAssertEqual(active.count, 2)
-        XCTAssertEqual(active[0].trigger, "aaa")
+        #expect(active.count == 2)
+        #expect(active[0].trigger == "aaa")
 
         let inactive = world.orderedTriggers(active: false)
-        XCTAssertEqual(inactive.count, 1)
-        XCTAssertEqual(inactive[0].trigger, "disabled")
+        #expect(inactive.count == 1)
+        #expect(inactive[0].trigger == "disabled")
     }
+}
 
-    // MARK: - Codable round-trip
+// MARK: - Codable round-trip
 
-    func testWorldCodableRoundTrip() throws {
+@Suite struct CodableTests {
+    @Test func worldRoundTrip() throws {
         let world = MUDWorld(
             hostname: "test.com", name: "Test", port: 4000,
             isSecure: true, connectCommand: "login",
@@ -271,15 +288,148 @@ final class MUDModelTests: XCTestCase {
         decoder.dateDecodingStrategy = .iso8601
         let decoded = try decoder.decode(MUDWorld.self, from: data)
 
-        XCTAssertEqual(decoded.identifier, world.identifier)
-        XCTAssertEqual(decoded.hostname, "test.com")
-        XCTAssertEqual(decoded.port, 4000)
-        XCTAssertTrue(decoded.isSecure)
-        XCTAssertEqual(decoded.aliases.count, 1)
-        XCTAssertEqual(decoded.triggers.count, 1)
-        XCTAssertNotNil(decoded.triggers[0].highlightColor)
-        XCTAssertEqual(decoded.gags.count, 1)
-        XCTAssertEqual(decoded.gags[0].gagType, .lineEquals)
-        XCTAssertEqual(decoded.tickers.count, 1)
+        #expect(decoded.identifier == world.identifier)
+        #expect(decoded.hostname == "test.com")
+        #expect(decoded.port == 4000)
+        #expect(decoded.isSecure)
+        #expect(decoded.aliases.count == 1)
+        #expect(decoded.triggers.count == 1)
+        #expect(decoded.triggers[0].highlightColor != nil)
+        #expect(decoded.gags.count == 1)
+        #expect(decoded.gags[0].gagType == .lineEquals)
+        #expect(decoded.tickers.count == 1)
+    }
+}
+
+// MARK: - GMCPCharacterState
+
+@Suite struct GMCPCharacterStateTests {
+    @Test func vitalsUpdate() {
+        let state = GMCPCharacterState()
+        state.updateVitals(data: ["hp": 50, "maxhp": 100, "mana": 75, "maxmana": 150, "moves": 120, "maxmoves": 200])
+        #expect(state.hp == 50)
+        #expect(state.maxHP == 100)
+        #expect(state.mana == 75)
+        #expect(state.maxMana == 150)
+        #expect(state.moves == 120)
+        #expect(state.maxMoves == 200)
+    }
+
+    @Test func vitalsPartialUpdate() {
+        let state = GMCPCharacterState()
+        state.updateVitals(data: ["hp": 50, "maxhp": 100])
+        #expect(state.hp == 50)
+        #expect(state.mana == 0)
+
+        state.updateVitals(data: ["hp": 30])
+        #expect(state.hp == 30)
+        #expect(state.maxHP == 100)
+    }
+
+    @Test func statusUpdate() {
+        let state = GMCPCharacterState()
+        state.updateStatus(data: ["level": 10, "align": 500, "gold": 1234, "tnl": 5000])
+        #expect(state.level == 10)
+        #expect(state.alignment == 500)
+        #expect(state.gold == 1234)
+        #expect(state.tnl == 5000)
+    }
+
+    @Test func reset() {
+        let state = GMCPCharacterState()
+        state.updateVitals(data: ["hp": 50, "maxhp": 100])
+        state.updateStatus(data: ["level": 10])
+        state.reset()
+        #expect(state.hp == 0)
+        #expect(state.maxHP == 0)
+        #expect(state.level == 0)
+    }
+
+    @Test func postsNotification() async {
+        let state = GMCPCharacterState()
+        await confirmation { confirm in
+            let observer = NotificationCenter.default.addObserver(
+                forName: GMCPCharacterState.didUpdateNotification,
+                object: state,
+                queue: nil
+            ) { _ in confirm() }
+            state.updateVitals(data: ["hp": 50])
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+}
+
+// MARK: - GMCPRoomState
+
+@Suite struct GMCPRoomStateTests {
+    @Test func roomInfoUpdate() {
+        let state = GMCPRoomState()
+        state.update(data: ["num": 3001, "exits": ["north": 3002, "south": 3000]])
+        #expect(state.roomNumber == 3001)
+        #expect(state.exits["north"] == 3002)
+        #expect(state.exits["south"] == 3000)
+    }
+
+    @Test func reset() {
+        let state = GMCPRoomState()
+        state.update(data: ["num": 3001, "exits": ["north": 3002]])
+        state.reset()
+        #expect(state.roomNumber == 0)
+        #expect(state.exits.isEmpty)
+    }
+
+    @Test func postsNotification() async {
+        let state = GMCPRoomState()
+        await confirmation { confirm in
+            let observer = NotificationCenter.default.addObserver(
+                forName: GMCPRoomState.didUpdateNotification,
+                object: state,
+                queue: nil
+            ) { _ in confirm() }
+            state.update(data: ["num": 3001])
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+}
+
+// MARK: - GMCPHandler routing
+
+@Suite struct GMCPHandlerTests {
+    @Test func routesVitals() {
+        let handler = GMCPHandler()
+        handler.handleModule("char.vitals", data: ["hp": 42, "maxhp": 100])
+        #expect(handler.characterState.hp == 42)
+    }
+
+    @Test func routesStatus() {
+        let handler = GMCPHandler()
+        handler.handleModule("char.status", data: ["level": 5])
+        #expect(handler.characterState.level == 5)
+    }
+
+    @Test func routesRoomInfo() {
+        let handler = GMCPHandler()
+        handler.handleModule("room.info", data: ["num": 3001])
+        #expect(handler.roomState.roomNumber == 3001)
+    }
+
+    @Test func caseInsensitive() {
+        let handler = GMCPHandler()
+        handler.handleModule("Char.Vitals", data: ["hp": 99])
+        #expect(handler.characterState.hp == 99)
+    }
+
+    @Test func unknownModuleDoesNotCrash() {
+        let handler = GMCPHandler()
+        handler.handleModule("Unknown.Module", data: ["foo": "bar"])
+    }
+
+    @Test func reset() {
+        let handler = GMCPHandler()
+        handler.handleModule("char.vitals", data: ["hp": 50])
+        handler.handleModule("room.info", data: ["num": 3001])
+        handler.reset()
+        #expect(handler.characterState.hp == 0)
+        #expect(handler.roomState.roomNumber == 0)
     }
 }

@@ -8,6 +8,7 @@
 
 #import "MRTestHelpers.h"
 #import "SSMUDSocket.h"
+#import "SPLTelnetLib.h"
 
 @interface MRSocketTests : XCTestCase
 
@@ -76,6 +77,23 @@
     [sut socket:socket didReadData:[@"Hello world" dataUsingEncoding:NSASCIIStringEncoding] withTag:0];
 
     [mockSocketDelegate verifyWithDelay:3];
+}
+
+#pragma mark - GMCP
+
+- (void)testSocketForwardsGMCPToDelegate {
+    // SSMUDSocket conforms to SPLTelnetLibDelegate, so we can call the method directly
+    id<SPLTelnetLibDelegate> telnetDelegate = (id<SPLTelnetLibDelegate>)sut;
+
+    NSDictionary *testData = @{ @"hp": @50, @"maxhp": @100 };
+
+    [[mockSocketDelegate expect] mudsocket:sut
+                         receivedGMCPModule:@"char.vitals"
+                                      data:testData];
+
+    [telnetDelegate telnetLibrary:nil receivedGMCPModule:@"char.vitals" data:testData];
+
+    [mockSocketDelegate verifyWithDelay:1];
 }
 
 @end
