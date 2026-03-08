@@ -1034,6 +1034,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             [self updateTitle:NSLocalizedString(@"DISCONNECTED", @"Disconnected")];
             [self.titleView setMSSPData:nil];
+            [[GMCPHandler shared] reset];
 
             [self setNavVisible:YES];
 
@@ -1175,6 +1176,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 - (void)mudsocket:(SSMUDSocket *)socket receivedMSSPData:(NSDictionary *)MSSPData {
     [self.titleView setMSSPData:MSSPData];
+}
+
+- (void)mudsocket:(SSMUDSocket *)socket receivedGMCPModule:(NSString *)module data:(NSDictionary *)data {
+    [[GMCPHandler shared] handleModule:module data:data];
 }
 
 #pragma mark - world store observation

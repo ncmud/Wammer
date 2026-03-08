@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Store char.vitals, char.status, room.info GMCP data for future UI (#108)
+- Add GMCP delegate methods through networking stack (#106)
+- Register GMCP telopt 201 and parse subnegotiation in SPLTelnetLib (#105)
 - Remove Core Data, MagicalRecord, and old ObjC models (#84)
 - Migrate SSAppDelegate and notifications to WorldStore (#83)
 - Migrate editor controllers to WorldStore (#82)

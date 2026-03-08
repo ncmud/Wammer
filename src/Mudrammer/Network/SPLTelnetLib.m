@@ -11,6 +11,8 @@
 #import "SSStringCoder.h"
 #import "NSData+SPLDataParsing.h"
 
+#define TELNET_TELOPT_GMCP 201
+
 typedef struct telnet_t * telnet_t_p;
 
 @interface SPLTelnetLib ()
@@ -40,6 +42,7 @@ static const telnet_telopt_t SPLTelOpts[] = {
     { TELNET_TELOPT_MSSP,      TELNET_WILL, TELNET_DO },
     { TELNET_TELOPT_BINARY,    TELNET_WONT, TELNET_DONT },
     { TELNET_TELOPT_NAWS,      TELNET_WILL, TELNET_DO },
+    { TELNET_TELOPT_GMCP,      TELNET_WONT, TELNET_DO },
     { -1, 0, 0 }
 };
 
@@ -149,7 +152,33 @@ CG_INLINE void SPLTelnetEventHandler(telnet_t *telnet,
         /* respond to particular subnegotiations */
         case TELNET_EV_SUBNEGOTIATION:
 
-            DLog(@"SUB %@", @(ev->sub.telopt));
+            if (ev->sub.telopt == TELNET_TELOPT_GMCP && ev->sub.size > 0) {
+                NSData *subData = [NSData dataWithBytes:ev->sub.buffer length:ev->sub.size];
+                NSString *subString = [[NSString alloc] initWithData:subData encoding:NSUTF8StringEncoding];
+                if (subString) {
+                    NSRange spaceRange = [subString rangeOfString:@" "];
+                    NSString *module;
+                    NSDictionary *payload = nil;
+                    if (spaceRange.location != NSNotFound) {
+                        module = [subString substringToIndex:spaceRange.location];
+                        NSString *jsonString = [subString substringFromIndex:spaceRange.location + 1];
+                        NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+                        if (jsonData) {
+                            payload = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:nil];
+                        }
+                    } else {
+                        module = subString;
+                    }
+                    if ([delegate respondsToSelector:@selector(telnetLibrary:receivedGMCPModule:data:)]) {
+                        NSDictionary *safePayload = payload ?: @{};
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            [delegate telnetLibrary:lib receivedGMCPModule:module data:safePayload];
+                        });
+                    }
+                }
+            } else {
+                DLog(@"SUB %@", @(ev->sub.telopt));
+            }
 
             break;
 

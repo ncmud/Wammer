@@ -75,4 +75,7 @@
 // We received some MSSP data for the current world
 - (void) mudsocket:(SSMUDSocket *)socket receivedMSSPData:(NSDictionary *)MSSPData;
 
+// We received a GMCP message
+- (void) mudsocket:(SSMUDSocket *)socket receivedGMCPModule:(NSString *)module data:(NSDictionary *)data;
+
 @end

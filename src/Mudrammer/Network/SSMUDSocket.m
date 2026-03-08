@@ -271,6 +271,13 @@
     }
 }
 
+- (void)telnetLibrary:(SPLTelnetLib *)library receivedGMCPModule:(NSString *)module data:(NSDictionary *)data {
+    id del = self.delegate;
+    if ([del respondsToSelector:@selector(mudsocket:receivedGMCPModule:data:)]) {
+        [del mudsocket:self receivedGMCPModule:module data:data];
+    }
+}
+
 - (void)telnetLibrary:(SPLTelnetLib *)library encounteredFatalError:(NSString *)error {
     DLog(@"Fatal telnet error: %@", error);
     // TODO: surface this error to the user
