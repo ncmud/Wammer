@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Add GMCP support to telnet stack (#104)
+- Implement Client.Media.Play/Stop audio playback via GMCP (#107)
 - Store char.vitals, char.status, room.info GMCP data for future UI (#108)
 - Add GMCP delegate methods through networking stack (#106)
 - Register GMCP telopt 201 and parse subnegotiation in SPLTelnetLib (#105)
