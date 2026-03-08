@@ -27,6 +27,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix libtelnet missing HAVE_ZLIB define causing MCCP2 gibberish (#56)
 
 ### Changed
+- Restore historical update notes in updates.txt (#3)
+- Add mudrammer and rammer back to keywords (#2)
+- Update App Store text for MUDWammer rebrand (#1)
 - Update background transition to preserve connection when audio is playing (#120)
 - Add ambient music picker UI (#118)
 - Implement ambient music playback in GMCPMediaManager (#117)

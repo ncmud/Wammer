@@ -1,3 +1,14 @@
+2.0
+
+MUDWammer has entered the game! A new chapter for the classic MUDRammer, rebuilt and modernized under new stewardship.
+
+◆ Updated for modern iOS — your MUDding companion, reforged.
+◆ Multi-window support on iPad and Mac Catalyst. MUD in every window!
+◆ Native sidebar navigation replaces the side panel drawer.
+◆ Ambient music playback with lock screen controls.
+
+MUDWammer stands on the shoulders of MUDRammer, crafted with care by Jonathan Hersh. If you enjoy MUDWammer, please consider leaving a review -- it really helps. Thanks!
+
 1.8.7
 
 + Bluetooth keyboard commands for switching sessions! Control+` (back-tick) will switch to the next World. Control+1,2,3, or 4 will switch to that World.
@@ -26,10 +37,10 @@ New abilities unlocked:
 + Added asterisk (*) to the character bar. Enable it in Settings → Advanced → Character Bar.
 
 Plus:
-+ Restored the missing Copy action when tapping on a row of text. 
++ Restored the missing Copy action when tapping on a row of text.
 + Aliases and Gags on the World editor list are now sorted alphabetically (previously by last modified date).
 + Improved file names for session logs to include the World's hostname and a human-readable date (e.g. "nanvaent.org - 3-15-15, 12:00pm")
-+ Simple Telnet Mode will now also ignore cursor positioning, line clear, and screen clear commands. 
++ Simple Telnet Mode will now also ignore cursor positioning, line clear, and screen clear commands.
 + Increased the delay for World connect commands from 3 to 5 seconds.
 + Switched NE/SE/NW/SW Bluetooth keyboard commands from CONTROL+OPTION+←→↑↓ to CONTROL+COMMAND+←→↑↓ for better compatibility with VoiceOver.
 + Squashed some extra blank lines that appeared when 'Echo Typing' is disabled.
@@ -49,10 +60,10 @@ New abilities unlocked:
 + Added asterisk (*) to the character bar. Enable it in Settings → Advanced → Character Bar.
 
 Plus:
-+ Restored the missing Copy action when tapping on a row of text. 
++ Restored the missing Copy action when tapping on a row of text.
 + Aliases and Gags on the World editor list are now sorted alphabetically (previously by last modified date).
 + Improved file names for session logs to include the World's hostname and a human-readable date (e.g. "nanvaent.org - 3-15-15, 12:00pm")
-+ Simple Telnet Mode will now also ignore cursor positioning, line clear, and screen clear commands. 
++ Simple Telnet Mode will now also ignore cursor positioning, line clear, and screen clear commands.
 + Increased the delay for World connect commands from 3 to 5 seconds.
 + Switched NE/SE/NW/SW Bluetooth keyboard commands from CONTROL+OPTION+←→↑↓ to CONTROL+COMMAND+←→↑↓ for better compatibility with VoiceOver.
 + Squashed some extra blank lines that appeared when 'Echo Typing' is disabled.
@@ -132,7 +143,7 @@ Dear MUDbud, MUDRammer will never interrupt you while you're mudding and is craf
 
 1.7.4
 
-◆ Fixes an issue where VoiceOver would not speak selected text! 
+◆ Fixes an issue where VoiceOver would not speak selected text!
 
 1.7.3
 
@@ -194,7 +205,7 @@ If you're reading these notes, dear MUDbud, perhaps you're the type who would be
 1.6.3 - 12/15/2013
 
 ◆ Pick a sound to play when your Trigger fires!
-◆ Encodings! Specify your string encoding manually in Advanced Settings. First-class support for encodings like Big5 and KOI8. 
+◆ Encodings! Specify your string encoding manually in Advanced Settings. First-class support for encodings like Big5 and KOI8.
 
 1.6.2
 
@@ -274,15 +285,15 @@ If you have multiple devices and iCloud, it would be best to update all at once 
 > cast larloch's minor drain at file-size (MUDRammer is now 20% smaller!)
 
 1.3 - 5/4/13
-◆ Connect up to four simultaneous sessions! 
-◆ Open links in your favorite browser. MUDRammer supports Chrome, Opera Mini, and 1Password. 
-◆ A new Font! 
-◆ Tap the title bar to search 1Password for logins for your current connection. 
+◆ Connect up to four simultaneous sessions!
+◆ Open links in your favorite browser. MUDRammer supports Chrome, Opera Mini, and 1Password.
+◆ A new Font!
+◆ Tap the title bar to search 1Password for logins for your current connection.
 > cast disintegrate at bugs
 
-1.2.1 - 4/19/13 
-★ One-tap access to edit your current World. 
-> use rod of smiting at bugs 
+1.2.1 - 4/19/13
+★ One-tap access to edit your current World.
+> use rod of smiting at bugs
 > cast cantrip of minor improvements
 
 1.2 - 4/10/13
