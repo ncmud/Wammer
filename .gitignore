@@ -33,3 +33,4 @@ Derived/
 *.xcworkspace/
 .mcp.json
 .env
+.chainlink/
