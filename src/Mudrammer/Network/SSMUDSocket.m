@@ -216,7 +216,7 @@
     if (self.isSecure) {
         [sock startTLS:@{
              (SPLSOCKET_BRIDGE_STRING)kCFStreamSSLValidatesCertificateChain : (SPLSOCKET_BRIDGE_NUMBER)kCFBooleanFalse,
-             GCDAsyncSocketSSLProtocolVersionMin : @(kTLSProtocol12),
+             GCDAsyncSocketSSLProtocolVersionMin : @(tls_protocol_version_TLSv12),
         }];
     }
 
