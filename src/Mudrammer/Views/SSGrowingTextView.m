@@ -14,7 +14,9 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
 
 @interface SSGrowingTextView ()
 
-- (void) pressedArrowKey:(UIKeyCommand *)command;
+- (void) notifyDelegateArrowKey:(NSString *)input;
+- (BOOL) cursorIsOnFirstLine;
+- (BOOL) cursorIsOnLastLine;
 
 @end
 
@@ -102,37 +104,86 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
 
 #pragma mark - Key commands
 
-- (void)pressedArrowKey:(UIKeyCommand *)command {
-    id del = self.textDelegate;
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    for (UIPress *press in presses) {
+        UIKey *key = press.key;
+        if (!key) continue;
 
+        // Mask out UIKeyModifierNumericPad — arrow keys always have it set on Catalyst
+        UIKeyModifierFlags mods = key.modifierFlags & ~UIKeyModifierNumericPad;
+
+        // Up/down with no modifiers → history if on first/last line, else normal cursor movement
+        if (mods == 0) {
+            if (key.keyCode == UIKeyboardHIDUsageKeyboardUpArrow && [self cursorIsOnFirstLine]) {
+                [self notifyDelegateArrowKey:UIKeyInputUpArrow];
+                return;
+            } else if (key.keyCode == UIKeyboardHIDUsageKeyboardDownArrow && [self cursorIsOnLastLine]) {
+                [self notifyDelegateArrowKey:UIKeyInputDownArrow];
+                return;
+            }
+        }
+
+        // Cmd+arrow → cardinal direction, Cmd+Ctrl+arrow → diagonal
+        BOOL hasCmd = (mods & UIKeyModifierCommand) != 0;
+        if (hasCmd) {
+            NSString *direction = nil;
+            BOOL hasCmdCtrl = hasCmd && (mods & UIKeyModifierControl) != 0;
+
+            switch (key.keyCode) {
+                case UIKeyboardHIDUsageKeyboardLeftArrow:
+                    direction = hasCmdCtrl ? @"sw" : @"w";
+                    break;
+                case UIKeyboardHIDUsageKeyboardRightArrow:
+                    direction = hasCmdCtrl ? @"ne" : @"e";
+                    break;
+                case UIKeyboardHIDUsageKeyboardUpArrow:
+                    direction = hasCmdCtrl ? @"nw" : @"n";
+                    break;
+                case UIKeyboardHIDUsageKeyboardDownArrow:
+                    direction = hasCmdCtrl ? @"se" : @"s";
+                    break;
+                default:
+                    break;
+            }
+
+            if (direction) {
+                id del = self.textDelegate;
+                if ([del respondsToSelector:@selector(growingTextViewSentDirectionalCommand:)]) {
+                    [del growingTextViewSentDirectionalCommand:direction];
+                }
+                return;
+            }
+        }
+    }
+
+    [super pressesBegan:presses withEvent:event];
+}
+
+- (void)notifyDelegateArrowKey:(NSString *)input {
+    id del = self.textDelegate;
     if ([del respondsToSelector:@selector(growingTextViewPressedKeyCommand:)]) {
-        [del growingTextViewPressedKeyCommand:command.input];
+        [del growingTextViewPressedKeyCommand:input];
     }
 }
 
-- (void)pressedDirectionalCommand:(UIKeyCommand *)command {
-    NSString *direction;
-    BOOL isAltDirection = (command.modifierFlags & UIKeyModifierControl) && (command.modifierFlags & UIKeyModifierCommand);
+- (BOOL)cursorIsOnFirstLine {
+    UITextRange *selection = self.selectedTextRange;
+    if (!selection) return YES;
 
-    if ([command.input isEqualToString:UIKeyInputLeftArrow]) {
-        direction = (isAltDirection ? @"sw" : @"w");
-    } else if ([command.input isEqualToString:UIKeyInputRightArrow]) {
-        direction = (isAltDirection ? @"ne" : @"e");
-    } else if ([command.input isEqualToString:UIKeyInputUpArrow]) {
-        direction = (isAltDirection ? @"nw" : @"n");
-    } else if ([command.input isEqualToString:UIKeyInputDownArrow]) {
-        direction = (isAltDirection ? @"se" : @"s");
-    }
+    CGRect cursorRect = [self caretRectForPosition:selection.start];
+    CGRect firstRect = [self caretRectForPosition:self.beginningOfDocument];
 
-    if ([direction length] == 0) {
-        return;
-    }
+    return CGRectGetMidY(cursorRect) <= CGRectGetMaxY(firstRect);
+}
 
-    id del = self.textDelegate;
+- (BOOL)cursorIsOnLastLine {
+    UITextRange *selection = self.selectedTextRange;
+    if (!selection) return YES;
 
-    if ([del respondsToSelector:@selector(growingTextViewSentDirectionalCommand:)]) {
-        [del growingTextViewSentDirectionalCommand:direction];
-    }
+    CGRect cursorRect = [self caretRectForPosition:selection.start];
+    CGRect lastRect = [self caretRectForPosition:self.endOfDocument];
+
+    return CGRectGetMidY(cursorRect) >= CGRectGetMinY(lastRect);
 }
 
 - (NSArray *)keyCommands {
@@ -141,18 +192,9 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
     dispatch_once(&onceToken, ^{
         NSMutableArray *cmds = [NSMutableArray array];
 
-        // History navigation
-        UIKeyCommand *histUp = [UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
-                                                   modifierFlags:kNilOptions
-                                                          action:@selector(pressedArrowKey:)];
-        histUp.discoverabilityTitle = @"Previous Command";
-        [cmds addObject:histUp];
-
-        UIKeyCommand *histDown = [UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow
-                                                     modifierFlags:kNilOptions
-                                                            action:@selector(pressedArrowKey:)];
-        histDown.discoverabilityTitle = @"Next Command";
-        [cmds addObject:histDown];
+        // Unmodified up/down arrows are handled in pressesBegan:withEvent: instead of
+        // keyCommands, because UITextView's text system intercepts unmodified arrow
+        // keyCommands on Catalyst before the action fires.
 
         // Directional movement (Cmd+arrow = cardinal, Cmd+Ctrl+arrow = diagonal)
         NSArray *arrowInputs = @[UIKeyInputLeftArrow, UIKeyInputRightArrow, UIKeyInputUpArrow, UIKeyInputDownArrow];
@@ -184,6 +226,31 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
     });
 
     return keys;
+}
+
+- (void)pressedDirectionalCommand:(UIKeyCommand *)command {
+    NSString *direction;
+    BOOL isAltDirection = (command.modifierFlags & UIKeyModifierControl) && (command.modifierFlags & UIKeyModifierCommand);
+
+    if ([command.input isEqualToString:UIKeyInputLeftArrow]) {
+        direction = (isAltDirection ? @"sw" : @"w");
+    } else if ([command.input isEqualToString:UIKeyInputRightArrow]) {
+        direction = (isAltDirection ? @"ne" : @"e");
+    } else if ([command.input isEqualToString:UIKeyInputUpArrow]) {
+        direction = (isAltDirection ? @"nw" : @"n");
+    } else if ([command.input isEqualToString:UIKeyInputDownArrow]) {
+        direction = (isAltDirection ? @"se" : @"s");
+    }
+
+    if ([direction length] == 0) {
+        return;
+    }
+
+    id del = self.textDelegate;
+
+    if ([del respondsToSelector:@selector(growingTextViewSentDirectionalCommand:)]) {
+        [del growingTextViewSentDirectionalCommand:direction];
+    }
 }
 
 @end
