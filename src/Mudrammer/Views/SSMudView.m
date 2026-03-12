@@ -88,7 +88,7 @@
         [self.radialControl setEnabled:NO];
         [self addSubview:self.radialControl];
 
-#if TARGET_OS_MACCATALYST
+#if TARGET_OS_MACCATALYST || TARGET_OS_VISION
         self.movementControl.hidden = YES;
         self.radialControl.hidden = YES;
 #endif
@@ -151,7 +151,7 @@
 }
 
 - (void)setKeyboardPanningEnabled:(BOOL)enabled {
-#if TARGET_OS_MACCATALYST
+#if TARGET_OS_MACCATALYST || TARGET_OS_VISION
     return;
 #else
     [self removeKeyboardControl];

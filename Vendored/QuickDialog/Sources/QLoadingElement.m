@@ -24,7 +24,7 @@
 
 - (QLoadingElement *)init {
     self = [super init];
-    self.indicatorStyle = UIActivityIndicatorViewStyleGray;
+    self.indicatorStyle = UIActivityIndicatorViewStyleMedium;
     return self;
 }
 

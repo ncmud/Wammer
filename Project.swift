@@ -34,10 +34,10 @@ let project = Project(
     targets: [
         .target(
             name: "Wammer",
-            destinations: [.iPhone, .iPad, .macCatalyst],
+            destinations: [.iPhone, .iPad, .macCatalyst, .appleVision],
             product: .app,
             bundleId: "org.ncmud.wammer",
-            deploymentTargets: .iOS("26.0"),
+            deploymentTargets: .multiplatform(iOS: "26.0", visionOS: "26.0"),
             infoPlist: .extendingDefault(with: [
                 "LSApplicationCategoryType": .string("public.app-category.games"),
                 "CFBundleDisplayName": .string("MUDWammer"),

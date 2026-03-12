@@ -50,7 +50,8 @@ static const int kCellMinimumLabelWidth = 80;
 
         CGSize valueSize = CGSizeZero;
         if (self.detailTextLabel.text!=nil) {
-            valueSize = [self.detailTextLabel.text sizeWithFont:self.detailTextLabel.font constrainedToSize:sizeWithMargin];
+            CGRect valueBounds = [self.detailTextLabel.text boundingRectWithSize:sizeWithMargin options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: self.detailTextLabel.font} context:nil];
+            valueSize = valueBounds.size;
         }
 
         self.textLabel.frame = CGRectMake(
@@ -74,7 +75,8 @@ static const int kCellMinimumLabelWidth = 80;
         if (!self.detailTextLabel.text) {
             valueSize = CGSizeMake(sizeWithMargin.width - QCellMarginDouble - QCellMargin, sizeWithMargin.height);
         } else if (self.textLabel.text!=nil) {
-            valueSize = [self.textLabel.text sizeWithFont:self.textLabel.font constrainedToSize:sizeWithMargin];
+            CGRect titleBounds = [self.textLabel.text boundingRectWithSize:sizeWithMargin options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: self.textLabel.font} context:nil];
+            valueSize = titleBounds.size;
         }
 
         self.textLabel.frame = CGRectMake(

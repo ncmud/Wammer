@@ -30,7 +30,8 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    self.textLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y, [self.textLabel.text sizeWithFont:self.textLabel.font].width, self.textLabel.frame.size.height);
+    CGSize labelSize = [self.textLabel.text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:0 attributes:@{NSFontAttributeName: self.textLabel.font} context:nil].size;
+    self.textLabel.frame = CGRectMake(self.textLabel.frame.origin.x, self.textLabel.frame.origin.y, labelSize.width, self.textLabel.frame.size.height);
     
     CGFloat width = self.textLabel.frame.origin.x + self.textLabel.frame.size.width;
 

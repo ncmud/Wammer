@@ -52,8 +52,9 @@
         
         [controller displayViewController:mc];
     } else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"No Mail Accounts" message:@"Please set up a Mail account in order to send email." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-        [alert show];
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"No Mail Accounts" message:@"Please set up a Mail account in order to send email." preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        [controller presentViewController:alert animated:YES completion:nil];
     }
 }
 

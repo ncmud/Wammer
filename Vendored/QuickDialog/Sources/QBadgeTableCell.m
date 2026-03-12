@@ -30,7 +30,7 @@
         [self.contentView addSubview:_badgeLabel];
         _badgeLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _badgeLabel.contentMode = UIViewContentModeRedraw;
-        _badgeLabel.contentStretch = CGRectMake(1., 0., 0., 0.);
+        // contentStretch removed (deprecated, unavailable on visionOS)
         self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     return self;
@@ -39,7 +39,7 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     CGRect rect = self.contentView.frame;
-    CGSize badgeTextSize = [_badgeLabel.text sizeWithFont:_badgeLabel.font];
+    CGSize badgeTextSize = [_badgeLabel.text boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:0 attributes:@{NSFontAttributeName: _badgeLabel.font} context:nil].size;
     _badgeLabel.frame = CGRectIntegral(CGRectMake(rect.size.width - badgeTextSize.width - 10, ((rect.size.height - badgeTextSize.height) / 2)+1, badgeTextSize.width, badgeTextSize.height));
     CGRect lblFrame = self.textLabel.frame;
 

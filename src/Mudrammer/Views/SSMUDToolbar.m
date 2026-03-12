@@ -11,7 +11,9 @@
 #import "SSSettingsViewController.h"
 #import "SSAccessoryToolbar.h"
 #import "SSMudHistoryDelegate.h"
+#if !TARGET_OS_VISION
 #import <UIScreen+SSAdditions.h>
+#endif
 @import Masonry;
 
 UIEdgeInsets const kToolbarInsets = (UIEdgeInsets) { 4, 8, 4, 8 };
@@ -128,10 +130,12 @@ UIEdgeInsets const kToolbarInsets = (UIEdgeInsets) { 4, 8, 4, 8 };
                                                      name:NSUserDefaultsDidChangeNotification
                                                    object:nil];
 
+#if !TARGET_OS_VISION
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(refreshTextViewHeight)
                                                      name:UIDeviceOrientationDidChangeNotification
                                                    object:nil];
+#endif
     }
 
     return self;
@@ -352,6 +356,7 @@ UIEdgeInsets const kToolbarInsets = (UIEdgeInsets) { 4, 8, 4, 8 };
 }
 
 - (void)setInputAccessoryBarEnabled:(BOOL)enabled {
+#if !TARGET_OS_VISION
     dispatch_async( dispatch_get_main_queue(), ^{
         BOOL isEnabled = self.textView.inputAccessoryView != nil
                       && CGRectGetHeight(self.textView.inputAccessoryView.frame) > 0;
@@ -371,6 +376,7 @@ UIEdgeInsets const kToolbarInsets = (UIEdgeInsets) { 4, 8, 4, 8 };
             self.textView.inputAccessoryView = toolbar;
         }
     });
+#endif
 }
 
 - (void)userDefaultsDidChange:(NSNotification *)notification {

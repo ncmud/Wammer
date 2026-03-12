@@ -30,10 +30,15 @@ class ClientContainer: UISplitViewController {
     }
 
     private func commonInit() {
+        #if os(visionOS)
+        preferredDisplayMode = .secondaryOnly
+        preferredSplitBehavior = .tile
+        #else
         preferredDisplayMode = .oneBesideSecondary
         preferredSplitBehavior = .overlay
         presentsWithGesture = true
         displayModeButtonVisibility = .automatic
+        #endif
         preferredPrimaryColumnWidth = 220
         minimumPrimaryColumnWidth = 220
         maximumPrimaryColumnWidth = 280
@@ -152,7 +157,12 @@ class ClientContainer: UISplitViewController {
     }
 
     @objc func toggleSidebar() {
-        if displayMode == .oneBesideSecondary || displayMode == .oneOverSecondary {
+        #if os(visionOS)
+        let shouldHide = displayMode == .oneBesideSecondary
+        #else
+        let shouldHide = displayMode == .oneBesideSecondary || displayMode == .oneOverSecondary
+        #endif
+        if shouldHide {
             hide(.primary)
         } else {
             show(.primary)
@@ -171,7 +181,7 @@ class ClientContainer: UISplitViewController {
 
     // MARK: - Mac Catalyst Menu Bar
 
-    #if targetEnvironment(macCatalyst)
+    #if targetEnvironment(macCatalyst) || os(visionOS)
     override func buildMenu(with builder: any UIMenuBuilder) {
         super.buildMenu(with: builder)
 

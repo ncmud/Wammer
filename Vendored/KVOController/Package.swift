@@ -2,7 +2,7 @@
 import PackageDescription
 let package = Package(
     name: "KVOController",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "KVOController", targets: ["KVOController"])],
     targets: [
         .target(

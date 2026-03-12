@@ -30,4 +30,6 @@
 #import "UIApplication+SSAdditions.h"
 #import "NSNumber+SSAdditions.h"
 #import "UIColor+SSAdditions.h"
+#if !TARGET_OS_VISION
 #import "UIScreen+SSAdditions.h"
+#endif

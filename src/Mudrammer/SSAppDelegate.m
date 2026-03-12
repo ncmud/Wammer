@@ -57,7 +57,9 @@
 
     [SSThemes sharedThemer]; // UIAppearance™ Inside®
 
+#if !TARGET_OS_VISION
     application.idleTimerDisabled = YES;
+#endif
 
     // disallow webview cache
     NSURLCache *sharedCache = [[NSURLCache alloc] initWithMemoryCapacity:0 diskCapacity:0 diskPath:nil];

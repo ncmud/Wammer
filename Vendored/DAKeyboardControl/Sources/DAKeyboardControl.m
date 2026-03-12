@@ -7,6 +7,26 @@
 //
 
 #import "DAKeyboardControl.h"
+
+#if TARGET_OS_VISION
+
+// No-op stubs for visionOS (keyboard tracking APIs unavailable)
+@implementation UIView (DAKeyboardControl)
+- (CGFloat)keyboardTriggerOffset { return 0; }
+- (void)setKeyboardTriggerOffset:(CGFloat)offset {}
+- (BOOL)keyboardWillRecede { return NO; }
+- (void)addKeyboardPanningWithActionHandler:(DAKeyboardDidMoveBlock)b {}
+- (void)addKeyboardPanningWithFrameBasedActionHandler:(DAKeyboardDidMoveBlock)a constraintBasedActionHandler:(DAKeyboardDidMoveBlock)b {}
+- (void)addKeyboardNonpanningWithActionHandler:(DAKeyboardDidMoveBlock)b {}
+- (void)addKeyboardNonpanningWithFrameBasedActionHandler:(DAKeyboardDidMoveBlock)a constraintBasedActionHandler:(DAKeyboardDidMoveBlock)b {}
+- (void)removeKeyboardControl {}
+- (CGRect)keyboardFrameInView { return CGRectZero; }
+- (BOOL)isKeyboardOpened { return NO; }
+- (void)hideKeyboard { [self endEditing:YES]; }
+@end
+
+#else // !TARGET_OS_VISION
+
 #import <objc/runtime.h>
 
 
@@ -708,3 +728,5 @@ static char UIViewKeyboardOpened;
 }
 
 @end
+
+#endif // !TARGET_OS_VISION

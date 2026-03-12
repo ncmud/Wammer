@@ -259,21 +259,12 @@ static const CGFloat VTLabelMargin = 20;
     UIFont *font = [UIFont systemFontOfSize:12];
     CGFloat labelHeight;
 
-    if ([labelText respondsToSelector:@selector(boundingRectWithSize:options:attributes:context:)]) {
-        NSStringDrawingOptions options = (NSLineBreakByWordWrapping | NSStringDrawingUsesLineFragmentOrigin);
-        CGRect labelBounds = [labelText boundingRectWithSize:CGSizeMake(labelWidth, CGFLOAT_MAX)
-                                                     options:options
-                                                  attributes:@{NSFontAttributeName: font}
-                                                     context:nil];
-        labelHeight = CGRectGetHeight(labelBounds);
-    }
-    else {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        CGSize size = [labelText sizeWithFont:font constrainedToSize:(CGSize){labelWidth, CGFLOAT_MAX}];
-#pragma GCC diagnostic pop
-        labelHeight = size.height;
-    }
+    NSStringDrawingOptions options = (NSLineBreakByWordWrapping | NSStringDrawingUsesLineFragmentOrigin);
+    CGRect labelBounds = [labelText boundingRectWithSize:CGSizeMake(labelWidth, CGFLOAT_MAX)
+                                                 options:options
+                                              attributes:@{NSFontAttributeName: font}
+                                                 context:nil];
+    labelHeight = CGRectGetHeight(labelBounds);
 
     return ceilf(labelHeight);
 }

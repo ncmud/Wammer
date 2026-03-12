@@ -22,7 +22,7 @@
 }
 
 - (UIImage *)imageByDrawingCircleOfColor {
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(30, 30), NO, [UIScreen mainScreen].scale);
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(30, 30), NO, 0);
 	CGContextRef ctx = UIGraphicsGetCurrentContext();
 
     CGContextSetLineWidth(ctx, 1.5f);

@@ -56,7 +56,7 @@
     MKPinAnnotationView *pin = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:@"reuse"];
     pin.animatesDrop = YES;
     pin.canShowCallout = NO;
-    pin.pinColor = MKPinAnnotationColorGreen;
+    pin.pinTintColor = [UIColor systemGreenColor];
     return pin;
 }
 

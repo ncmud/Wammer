@@ -2,7 +2,7 @@
 import PackageDescription
 let package = Package(
     name: "SPLCore",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "SPLCore", targets: ["SPLCore"])],
     dependencies: [
         .package(name: "libextobjc", path: "../libextobjc"),

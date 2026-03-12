@@ -1102,7 +1102,9 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
         segue = FXFormClassFromString(segue) ?: [segue copy];
     }
     
+#if !TARGET_OS_VISION
     NSAssert(segue != [UIStoryboardPopoverSegue class], @"Unfortunately displaying subcontrollers using UIStoryboardPopoverSegue is not supported, as doing so would require calling private methods. To display using a popover, create a custom UIStoryboard subclass instead.");
+#endif
     
     _segue = segue;
 }
@@ -2377,43 +2379,35 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     self.originalTableContentInset = tableContentInset;
     tableContentInset.bottom = heightOfTableViewThatIsCoveredByKeyboard;
     
-    UIEdgeInsets tableScrollIndicatorInsets = self.tableView.scrollIndicatorInsets;
+    UIEdgeInsets tableScrollIndicatorInsets = self.tableView.verticalScrollIndicatorInsets;
     tableScrollIndicatorInsets.bottom += heightOfTableViewThatIsCoveredByKeyboard;
-    
-    [UIView beginAnimations:nil context:nil];
-    
-    // adjust the tableview insets by however much the keyboard is overlapping the tableview
-    self.tableView.contentInset = tableContentInset;
-    self.tableView.scrollIndicatorInsets = tableScrollIndicatorInsets;
-    
-    UIView *firstResponder = FXFormsFirstResponder(self.tableView);
-    if ([firstResponder isKindOfClass:[UITextView class]]) {
-        UITextView *textView = (UITextView *)firstResponder;
-        
-        // calculate the position of the cursor in the textView
-        NSRange range = textView.selectedRange;
-        UITextPosition *beginning = textView.beginningOfDocument;
-        UITextPosition *start = [textView positionFromPosition:beginning offset:range.location];
-        UITextPosition *end = [textView positionFromPosition:start offset:range.length];
-        CGRect caretFrame = [textView caretRectForPosition:end];
-        
-        // convert the cursor to the same coordinate system as the tableview
-        CGRect caretViewFrame = [textView convertRect:caretFrame toView:self.tableView.superview];
-        
-        // padding makes sure that the cursor isn't sitting just above the keyboard and will adjust to 3 lines of text worth above keyboard
-        CGFloat padding = textView.font.lineHeight * 3;
-        CGFloat keyboardToCursorDifference = (caretViewFrame.origin.y + caretViewFrame.size.height) - heightOfTableViewThatIsNotCoveredByKeyboard + padding;
-        
-        // if there is a difference then we want to adjust the keyboard, otherwise the cursor is fine to stay where it is and the keyboard doesn't need to move
-        if (keyboardToCursorDifference > 0.0f) {
-            // adjust offset by this difference
-            CGPoint contentOffset = self.tableView.contentOffset;
-            contentOffset.y += keyboardToCursorDifference;
-            [self.tableView setContentOffset:contentOffset animated:YES];
+
+    [UIView animateWithDuration:0.25 animations:^{
+        // adjust the tableview insets by however much the keyboard is overlapping the tableview
+        self.tableView.contentInset = tableContentInset;
+        self.tableView.verticalScrollIndicatorInsets = tableScrollIndicatorInsets;
+    } completion:^(BOOL finished) {
+        UIView *firstResponder = FXFormsFirstResponder(self.tableView);
+        if ([firstResponder isKindOfClass:[UITextView class]]) {
+            UITextView *textView = (UITextView *)firstResponder;
+
+            NSRange range = textView.selectedRange;
+            UITextPosition *beginning = textView.beginningOfDocument;
+            UITextPosition *start = [textView positionFromPosition:beginning offset:range.location];
+            UITextPosition *end = [textView positionFromPosition:start offset:range.length];
+            CGRect caretFrame = [textView caretRectForPosition:end];
+            CGRect caretViewFrame = [textView convertRect:caretFrame toView:self.tableView.superview];
+
+            CGFloat padding = textView.font.lineHeight * 3;
+            CGFloat keyboardToCursorDifference = (caretViewFrame.origin.y + caretViewFrame.size.height) - heightOfTableViewThatIsNotCoveredByKeyboard + padding;
+
+            if (keyboardToCursorDifference > 0.0f) {
+                CGPoint contentOffset = self.tableView.contentOffset;
+                contentOffset.y += keyboardToCursorDifference;
+                [self.tableView setContentOffset:contentOffset animated:YES];
+            }
         }
-    }
-    
-    [UIView commitAnimations];
+    }];
 }
 
 - (void)keyboardWillHide:(NSNotification *)note
@@ -2422,17 +2416,15 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     if (cell && ![self.delegate isKindOfClass:[UITableViewController class]])
     {
         NSDictionary *keyboardInfo = [note userInfo];
-        UIEdgeInsets tableScrollIndicatorInsets = self.tableView.scrollIndicatorInsets;
-        tableScrollIndicatorInsets.bottom = 0;
-        
-        //restore insets
-        [UIView beginAnimations:nil context:nil];
-        [UIView setAnimationCurve:(UIViewAnimationCurve)keyboardInfo[UIKeyboardAnimationCurveUserInfoKey]];
-        [UIView setAnimationDuration:[keyboardInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue]];
-        self.tableView.contentInset = self.originalTableContentInset;
-        self.tableView.scrollIndicatorInsets = tableScrollIndicatorInsets;
-        self.originalTableContentInset = UIEdgeInsetsZero;
-        [UIView commitAnimations];
+        NSTimeInterval duration = [keyboardInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+
+        [UIView animateWithDuration:duration animations:^{
+            self.tableView.contentInset = self.originalTableContentInset;
+            UIEdgeInsets indicatorInsets = self.tableView.verticalScrollIndicatorInsets;
+            indicatorInsets.bottom = 0;
+            self.tableView.verticalScrollIndicatorInsets = indicatorInsets;
+            self.originalTableContentInset = UIEdgeInsetsZero;
+        }];
     }
 }
 
@@ -2502,7 +2494,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     
     if (!self.tableView)
     {
-        self.tableView = [[UITableView alloc] initWithFrame:[UIScreen mainScreen].applicationFrame
+        self.tableView = [[UITableView alloc] initWithFrame:self.view.bounds
                                                       style:UITableViewStyleGrouped];
     }
     if (!self.tableView.superview)
@@ -3401,7 +3393,7 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 @end
 
 
-@interface FXFormImagePickerCell () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate>
+@interface FXFormImagePickerCell () <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
 @property (nonatomic, strong) UIImagePickerController *imagePickerController;
 @property (nonatomic, weak) UIViewController *controller;
@@ -3484,33 +3476,33 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     [FXFormsFirstResponder(tableView) resignFirstResponder];
     [tableView deselectRowAtIndexPath:tableView.indexPathForSelectedRow animated:YES];
     
-    if (!TARGET_IPHONE_SIMULATOR && ![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+    BOOL hasCamera = NO;
+#if !TARGET_OS_VISION
+    hasCamera = !TARGET_IPHONE_SIMULATOR && [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera];
+#endif
+
+    if (!hasCamera)
     {
         self.imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
         [controller presentViewController:self.imagePickerController animated:YES completion:nil];
     }
-    else if ([UIAlertController class])
-    {
-        UIAlertControllerStyle style = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)? UIAlertControllerStyleAlert: UIAlertControllerStyleActionSheet;
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:style];
-        
-        [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Take Photo", nil) style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
-            [self actionSheet:nil didDismissWithButtonIndex:0];
-        }]];
-        
-        [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Photo Library", nil) style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
-            [self actionSheet:nil didDismissWithButtonIndex:1];
-        }]];
-        
-        [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:NULL]];
-        
-        self.controller = controller;
-        [controller presentViewController:alert animated:YES completion:NULL];
-    }
     else
     {
+        UIAlertControllerStyle style = ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)? UIAlertControllerStyleAlert: UIAlertControllerStyleActionSheet;
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:style];
+
+        [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Take Photo", nil) style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
+            [self showPickerWithSourceType:0];
+        }]];
+
+        [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Photo Library", nil) style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
+            [self showPickerWithSourceType:1];
+        }]];
+
+        [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:NULL]];
+
         self.controller = controller;
-        [[[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil otherButtonTitles:NSLocalizedString(@"Take Photo", nil), NSLocalizedString(@"Photo Library", nil), nil] showInView:controller.view];
+        [controller presentViewController:alert animated:YES completion:NULL];
     }
 }
 
@@ -3527,23 +3519,15 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     [self update];
 }
 
-- (void)actionSheet:(__unused UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
+- (void)showPickerWithSourceType:(NSInteger)buttonIndex
 {
     UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    switch (buttonIndex)
-    {
-        case 0:
-        {
-            sourceType = UIImagePickerControllerSourceTypeCamera;
-            break;
-        }
-        case 1:
-        {
-            sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-            break;
-        }
+#if !TARGET_OS_VISION
+    if (buttonIndex == 0) {
+        sourceType = UIImagePickerControllerSourceTypeCamera;
     }
-    
+#endif
+
     if ([UIImagePickerController isSourceTypeAvailable:sourceType])
     {
         self.imagePickerController.sourceType = sourceType;

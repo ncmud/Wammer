@@ -163,9 +163,11 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 
 }
 
+#if !TARGET_OS_VISION
 - (BOOL)prefersStatusBarHidden {
     return NO;
 }
+#endif
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-implementations"

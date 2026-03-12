@@ -71,11 +71,13 @@
     _autoCompleteField.returnKeyType = _autoEntryElement.returnKeyType;
     _autoCompleteField.enablesReturnKeyAutomatically = _autoEntryElement.enablesReturnKeyAutomatically;
     
+#if !TARGET_OS_VISION
     if (_autoEntryElement.hiddenToolbar){
         _autoCompleteField.inputAccessoryView = nil;
     } else {
         _autoCompleteField.inputAccessoryView = [self createActionBar];
     }
+#endif
 
     _autoCompleteField.userInteractionEnabled = element.enabled;
 

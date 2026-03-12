@@ -2,7 +2,7 @@
 import PackageDescription
 let package = Package(
     name: "SAMRateLimit",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "SAMRateLimit", targets: ["SAMRateLimit"])],
     targets: [
         .target(
