@@ -3,12 +3,13 @@
 [![Build](https://github.com/ncmud/Wammer/actions/workflows/ci.yml/badge.svg)](https://github.com/ncmud/Wammer/actions/workflows/ci.yml)
 [![Swift](https://img.shields.io/badge/Swift-6.2-orange)](https://swift.org)
 [![Platform](https://img.shields.io/badge/platform-iOS%2026-blue)](https://developer.apple.com/ios/)
+[![Platform](https://img.shields.io/badge/platform-visionOS%2026-blue)](https://developer.apple.com/visionos/)
 ![It's dangerous!](https://img.shields.io/badge/You_are_likely_to_be_eaten_by_a-grue-red.svg)
 [![Take this.](https://img.shields.io/badge/get-lamp-yellow.svg)](http://getlamp.com)
 
 This is a fork of [MUDRammer](https://github.com/splinesoft/MUDRammer), a MUD client for iPhone and iPad originally created by [Jonathan Hersh](https://github.com/jhersh). MUDRammer was a fantastic piece of work — a polished, accessible, and thoughtfully designed MUD client that served the community well from its first App Store release in February 2013 through its removal in March 2025.
 
-This fork aims to re-release the app under new branding with proper attribution to Jonathan and the original MUDRammer project. The codebase has been modernized to build with current tools and target iOS 26.
+This fork aims to re-release the app under new branding with proper attribution to Jonathan and the original MUDRammer project. The codebase has been modernized to build with current tools and targets iOS 26, Mac Catalyst, and visionOS 26.
 
 ## Getting Started
 
