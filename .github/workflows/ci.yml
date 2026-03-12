@@ -40,6 +40,29 @@ jobs:
             -skipPackagePluginValidation \
             | xcbeautify
 
+  build-visionos:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26.3
+        run: sudo xcode-select -s /Applications/Xcode_26.3.0.app/Contents/Developer
+
+      - name: Install tools
+        run: brew install tuist xcbeautify
+
+      - name: Generate project
+        run: tuist generate --no-open
+
+      - name: Build (visionOS)
+        run: |
+          xcodebuild build \
+            -workspace Wammer.xcworkspace \
+            -scheme Wammer \
+            -destination 'platform=visionOS Simulator,name=Apple Vision Pro' \
+            -skipPackagePluginValidation \
+            | xcbeautify
+
   test:
     runs-on: macos-26
     needs: build
