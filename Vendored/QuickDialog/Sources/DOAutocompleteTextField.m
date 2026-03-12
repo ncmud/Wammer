@@ -107,14 +107,16 @@
     CGRect textRect = [self textRectForBounds:self.bounds];
     //    NSLog(@"textRect: %@", NSStringFromCGRect(textRect));
     
-    CGSize prefixTextSize = [self.text sizeWithFont:self.font
-                                  constrainedToSize:textRect.size
-                                      lineBreakMode:NSLineBreakByCharWrapping];
+    CGSize prefixTextSize = [self.text boundingRectWithSize:textRect.size
+                                                    options:NSStringDrawingUsesLineFragmentOrigin
+                                                 attributes:@{NSFontAttributeName: self.font}
+                                                    context:nil].size;
     //    NSLog(@"prefixTextSize: %@",  NSStringFromCGSize(prefixTextSize));
     
-    CGSize autocompleteTextSize = [_autoCompleteString sizeWithFont:self.font 
-                                                  constrainedToSize:CGSizeMake(textRect.size.width-prefixTextSize.width, textRect.size.height)
-                                                      lineBreakMode:NSLineBreakByCharWrapping];
+    CGSize autocompleteTextSize = [_autoCompleteString boundingRectWithSize:CGSizeMake(textRect.size.width-prefixTextSize.width, textRect.size.height)
+                                                                     options:NSStringDrawingUsesLineFragmentOrigin
+                                                                  attributes:@{NSFontAttributeName: self.font}
+                                                                     context:nil].size;
     
     //    NSLog(@"autocompleteTextSize: %@",  NSStringFromCGSize(autocompleteTextSize)); 
     

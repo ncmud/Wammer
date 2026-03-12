@@ -14,7 +14,9 @@
 - (void)presentError:(NSError *)error {
     [self.root bindToObject:[NSDictionary dictionary]];
     [self.quickDialogTableView reloadData];
-    [[[UIAlertView alloc] initWithTitle:@"Error" message:error.localizedDescription delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Error" message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
     [self loading:NO];
 }
 

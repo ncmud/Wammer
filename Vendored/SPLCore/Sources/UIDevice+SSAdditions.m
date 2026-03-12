@@ -13,7 +13,11 @@
 @implementation UIDevice (SSAdditions)
 
 - (BOOL) isIPad {
+#if TARGET_OS_VISION
+    return YES;
+#else
     return [self userInterfaceIdiom] == UIUserInterfaceIdiomPad;
+#endif
 }
 
 + (BOOL)isLandscape {
@@ -42,10 +46,12 @@
 }
 
 + (void)vibrateWithBeepFallback:(BOOL)beep {
+#if !TARGET_OS_VISION
     if( beep )
         AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
     else
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+#endif
 }
 
 @end

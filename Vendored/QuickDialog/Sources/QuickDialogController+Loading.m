@@ -24,7 +24,7 @@
     loading.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.4];
     loading.autoresizingMask = UIViewAutoresizingFlexibleWidth  | UIViewAutoresizingFlexibleHeight;
     loading.tag = 1123002;
-    UIActivityIndicatorView *activity = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    UIActivityIndicatorView *activity = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
     [activity startAnimating];
     [activity sizeToFit];
     activity.center = CGPointMake(loading.center.x, loading.frame.size.height/3);
@@ -39,7 +39,7 @@
 
 
 - (void)loading:(BOOL)visible {
-    [UIApplication sharedApplication].networkActivityIndicatorVisible = visible;
+    // networkActivityIndicatorVisible removed (deprecated, unavailable on visionOS) = visible;
     UIView *loadingView = [self.quickDialogTableView viewWithTag:1123002];
     if (loadingView==nil){
         loadingView = [self createLoadingView];
@@ -60,7 +60,7 @@
                      completion: ^(BOOL  finished) {
                          if (!visible) {
                               loadingView.hidden = YES;
-                              [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+                              // networkActivityIndicatorVisible removed (deprecated, unavailable on visionOS) = NO;
                          }
                      }];
 }

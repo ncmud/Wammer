@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
     name: "VTAcknowledgementsViewController",
     defaultLocalization: "en",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "VTAcknowledgementsViewController", targets: ["VTAcknowledgementsViewController"])],
     targets: [
         .target(

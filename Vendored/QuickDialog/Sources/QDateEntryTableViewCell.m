@@ -139,7 +139,9 @@
 	_textField.text = value;
     _textField.placeholder = dateElement.placeholder;
 
+#if !TARGET_OS_VISION
     _textField.inputAccessoryView.hidden = dateElement.hiddenToolbar;
+#endif
 
     self.centeredLabel.textColor = dateElement.appearance.entryTextColorEnabled;
 }

@@ -49,11 +49,13 @@
                                                              alpha:0.5f];
                               }];
 
+#if !TARGET_OS_VISION
         // Scroll after rotation
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(deviceOrientationDidChange)
                                                      name:UIDeviceOrientationDidChangeNotification
                                                    object:nil];
+#endif
     }
 
     return self;

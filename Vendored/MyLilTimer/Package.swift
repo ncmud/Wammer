@@ -2,7 +2,7 @@
 import PackageDescription
 let package = Package(
     name: "MyLilTimer",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "MyLilTimer", targets: ["MyLilTimer"])],
     targets: [
         .target(

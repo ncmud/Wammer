@@ -189,9 +189,9 @@ NSDictionary *QRootBuilderStringToTypeConversionDict;
                                     nil], @"keyboardAppearance",
 
                     [[NSDictionary alloc] initWithObjectsAndKeys:
-                                    [NSNumber numberWithInt:UIActivityIndicatorViewStyleGray], @"Gray",
-                                    [NSNumber numberWithInt:UIActivityIndicatorViewStyleWhite], @"White",
-                                    [NSNumber numberWithInt:UIActivityIndicatorViewStyleWhiteLarge], @"WhiteLarge",
+                                    [NSNumber numberWithInt:UIActivityIndicatorViewStyleMedium], @"Gray",
+                                    [NSNumber numberWithInt:UIActivityIndicatorViewStyleMedium], @"White",
+                                    [NSNumber numberWithInt:UIActivityIndicatorViewStyleLarge], @"WhiteLarge",
                                     nil], @"indicatorViewStyle",
 
                     [[NSDictionary alloc] initWithObjectsAndKeys:
@@ -229,7 +229,9 @@ NSDictionary *QRootBuilderStringToTypeConversionDict;
 
                     [[NSDictionary alloc] initWithObjectsAndKeys:
                                                             [NSNumber numberWithInt:UIImagePickerControllerSourceTypePhotoLibrary], @"photoLibrary",
+#if !TARGET_OS_VISION
                                                             [NSNumber numberWithInt:UIImagePickerControllerSourceTypeCamera], @"camera",
+#endif
                                                             [NSNumber numberWithInt:UIImagePickerControllerSourceTypeSavedPhotosAlbum], @"savedPhotosAlbum",
                                     nil], @"source",
 

@@ -8,16 +8,19 @@
 
 #import "SPLHandoffWebViewController.h"
 
+#if !TARGET_OS_VISION
 @interface SPLHandoffWebViewController () <SFSafariViewControllerDelegate>
-
 @end
+#endif
 
 @implementation SPLHandoffWebViewController
 
 - (instancetype)initWithURL:(NSURL *)url {
     self = [super initWithURL:url];
     if (self) {
+#if !TARGET_OS_VISION
         self.delegate = self;
+#endif
         self.webActivity = [SPLWebActivity activityWithURL:url];
     }
     return self;
@@ -32,6 +35,7 @@
     }
 }
 
+#if !TARGET_OS_VISION
 #pragma mark - SFSafariViewControllerDelegate
 
 - (void)safariViewController:(SFSafariViewController *)controller didCompleteInitialNavigation:(BOOL)didLoadSuccessfully {
@@ -41,5 +45,6 @@
 - (void)safariViewControllerDidFinish:(SFSafariViewController *)controller {
     [self dismissViewControllerAnimated:YES completion:nil];
 }
+#endif
 
 @end

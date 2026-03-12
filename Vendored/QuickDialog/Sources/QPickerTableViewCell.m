@@ -67,7 +67,6 @@ NSString * const QPickerTableViewCellIdentifier = @"QPickerTableViewCell";
     [self prepareForElement:element inTableView:tableView];
     
     _pickerView = [[UIPickerView alloc] init];
-    _pickerView.showsSelectionIndicator = YES;
     _pickerView.dataSource = self;
     _pickerView.delegate = self;
     

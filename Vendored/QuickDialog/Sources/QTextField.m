@@ -25,7 +25,11 @@
     if (_prefix || _suffix) {
         NSString *textWithSuffix = [NSString stringWithFormat:@"%@%@%@", _prefix ? _prefix : @"", self.text, _suffix ? _suffix : @""];
         CGContextSetFillColorWithColor(UIGraphicsGetCurrentContext(), self.textColor.CGColor);
-        [textWithSuffix drawInRect:rect withFont:self.font lineBreakMode:NSLineBreakByTruncatingTail alignment:self.textAlignment];
+        NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+        style.lineBreakMode = NSLineBreakByTruncatingTail;
+        style.alignment = self.textAlignment;
+        NSDictionary *attrs = @{NSFontAttributeName: self.font, NSForegroundColorAttributeName: self.textColor, NSParagraphStyleAttributeName: style};
+        [textWithSuffix drawInRect:rect withAttributes:attrs];
     } else {
         [super drawTextInRect:rect];
     }

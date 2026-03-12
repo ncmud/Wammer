@@ -57,7 +57,6 @@
     [control addTarget:self action:@selector(handleSegmentedControlValueChanged:) forControlEvents:UIControlEventValueChanged];
     control.frame = cell.contentView.bounds;
     control.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    control.segmentedControlStyle = UISegmentedControlStyleBar;
     control.selectedSegmentIndex = _selected;
     control.tag = 4321;
     

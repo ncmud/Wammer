@@ -2,7 +2,7 @@
 import PackageDescription
 let package = Package(
     name: "SSDataSources",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "SSDataSources", targets: ["SSDataSources"])],
     targets: [
         .target(

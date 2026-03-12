@@ -4,7 +4,9 @@ import UserNotifications
 @objc(WammerSceneDelegate)
 class WammerSceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
+    #if !os(visionOS)
     private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+    #endif
 
     func scene(
         _ scene: UIScene,
@@ -17,6 +19,11 @@ class WammerSceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.rootViewController = ClientContainer()
         window.makeKeyAndVisible()
         self.window = window
+
+        #if os(visionOS)
+        let prefs = UIWindowScene.GeometryPreferences.Vision(size: CGSize(width: 1280, height: 960))
+        windowScene.requestGeometryUpdate(prefs)
+        #endif
 
         for urlContext in connectionOptions.urlContexts {
             handleURL(urlContext.url)
@@ -35,20 +42,26 @@ class WammerSceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
+        #if !os(visionOS)
         backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
             self?.endBackgroundTask()
         }
+        #endif
     }
 
     func sceneWillEnterForeground(_ scene: UIScene) {
+        #if !os(visionOS)
         endBackgroundTask()
+        #endif
     }
 
+    #if !os(visionOS)
     private func endBackgroundTask() {
         guard backgroundTaskID != .invalid else { return }
         UIApplication.shared.endBackgroundTask(backgroundTaskID)
         backgroundTaskID = .invalid
     }
+    #endif
 
     private func handleURL(_ url: URL) {
         guard url.scheme == "telnet", let host = url.host?.lowercased() else { return }

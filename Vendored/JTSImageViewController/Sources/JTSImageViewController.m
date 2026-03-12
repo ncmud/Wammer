@@ -8,9 +8,19 @@
 
 #import "JTSImageViewController.h"
 
+#import <TargetConditionals.h>
+
 #import "JTSSimpleImageDownloader.h"
 #import "UIImage+JTSImageEffects.h"
 #import "UIApplication+JTSImageViewController.h"
+
+static inline UIInterfaceOrientation JTS_CurrentInterfaceOrientation(void) {
+#if TARGET_OS_VISION
+    return UIInterfaceOrientationPortrait;
+#else
+    return JTS_CurrentInterfaceOrientation();
+#endif
+}
 
 ///--------------------------------------------------------------------------------------------------------------------
 /// Definitions
@@ -126,7 +136,9 @@ typedef struct {
     
     self = [super initWithNibName:nil bundle:nil];
     if (self) {
+#if !TARGET_OS_VISION
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
+#endif
         _imageInfo = imageInfo;
         _currentSnapshotRotationTransform = CGAffineTransformIdentity;
         _mode = mode;
@@ -143,8 +155,13 @@ typedef struct {
     
     self.transition = transition;
     
+#if TARGET_OS_VISION
+    _startingInfo.statusBarHiddenPriorToPresentation = NO;
+    _startingInfo.statusBarStylePriorToPresentation = UIStatusBarStyleDefault;
+#else
     _startingInfo.statusBarHiddenPriorToPresentation = [UIApplication sharedApplication].statusBarHidden;
     _startingInfo.statusBarStylePriorToPresentation = [UIApplication sharedApplication].statusBarStyle;
+#endif
     
     if (self.mode == JTSImageViewControllerMode_Image) {
         if (transition == JTSImageViewControllerTransition_FromOffscreen) {
@@ -194,7 +211,9 @@ typedef struct {
 #pragma mark - NSObject
 
 - (void)dealloc {
+#if !TARGET_OS_VISION
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
+#endif
     [_imageDownloadDataTask cancel];
     [self cancelProgressTimer];
 }
@@ -221,7 +240,7 @@ typedef struct {
     NSUInteger mask;
     
     if (self.flags.viewHasAppeared == NO) {
-        switch ([UIApplication sharedApplication].statusBarOrientation) {
+        switch (JTS_CurrentInterfaceOrientation()) {
             case UIInterfaceOrientationLandscapeLeft:
                 mask = UIInterfaceOrientationMaskLandscapeLeft;
                 break;
@@ -251,18 +270,20 @@ typedef struct {
     return (_flags.isAnimatingAPresentationOrDismissal == NO);
 }
 
+#if !TARGET_OS_VISION
 - (BOOL)prefersStatusBarHidden {
-    
+
     if (_flags.isPresented || _flags.isTransitioningFromInitialModalToInteractiveState) {
         return YES;
     }
-    
+
     return _startingInfo.statusBarHiddenPriorToPresentation;
 }
 
 - (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
     return UIStatusBarAnimationFade;
 }
+#endif
 
 - (UIModalTransitionStyle)modalTransitionStyle {
     return UIModalTransitionStyleCrossDissolve;
@@ -288,8 +309,8 @@ typedef struct {
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (self.lastUsedOrientation != [UIApplication sharedApplication].statusBarOrientation) {
-        self.lastUsedOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    if (self.lastUsedOrientation != JTS_CurrentInterfaceOrientation()) {
+        self.lastUsedOrientation = JTS_CurrentInterfaceOrientation();
         _flags.rotationTransformIsDirty = YES;
         [self updateLayoutsForCurrentOrientation];
     }
@@ -327,7 +348,7 @@ typedef struct {
         [strongSelf updateDimmingViewForCurrentZoomScale:NO];
     } completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
         typeof(self) strongSelf = weakSelf;
-        strongSelf.lastUsedOrientation = [UIApplication sharedApplication].statusBarOrientation;
+        strongSelf.lastUsedOrientation = JTS_CurrentInterfaceOrientation();
         JTSImageViewControllerFlags flags = strongSelf.flags;
         flags.isRotating = NO;
         strongSelf.flags = flags;
@@ -335,8 +356,9 @@ typedef struct {
 }
 #endif
 
+#if !TARGET_OS_VISION
 - (void)deviceOrientationDidChange:(NSNotification *)notification {
-    
+
     NSString *systemVersion = [UIDevice currentDevice].systemVersion;
     if (systemVersion.floatValue < 8.0) {
         // Early Return
@@ -344,10 +366,10 @@ typedef struct {
     }
     /*
      viewWillTransitionToSize:withTransitionCoordinator: is not called when rotating from
-     one landscape orientation to the other (or from one portrait orientation to another). 
-     This makes it difficult to preserve the desired behavior of JTSImageViewController. 
-     We want the background snapshot to maintain the illusion that it never rotates. The 
-     only other way to ensure that the background snapshot stays in the correct orientation 
+     one landscape orientation to the other (or from one portrait orientation to another).
+     This makes it difficult to preserve the desired behavior of JTSImageViewController.
+     We want the background snapshot to maintain the illusion that it never rotates. The
+     only other way to ensure that the background snapshot stays in the correct orientation
      is to listen for this notification and respond when we've detected a landscape-to-landscape rotation.
     */
     UIDeviceOrientation deviceOrientation = [UIDevice currentDevice].orientation;
@@ -374,6 +396,7 @@ typedef struct {
         }
     }
 }
+#endif
 
 #pragma mark - Setup
 
@@ -469,7 +492,7 @@ typedef struct {
     self.progressView.center = CGPointMake(64.0f, 64.0f);
     self.progressView.alpha = 0;
     [self.progressContainer addSubview:self.progressView];
-    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
     self.spinner.center = CGPointMake(64.0f, 64.0f);
     [self.spinner startAnimating];
     [self.progressContainer addSubview:self.spinner];
@@ -575,9 +598,9 @@ typedef struct {
     
     [self.view insertSubview:self.snapshotView atIndex:0];
     
-    _startingInfo.startingInterfaceOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    _startingInfo.startingInterfaceOrientation = JTS_CurrentInterfaceOrientation();
     
-    self.lastUsedOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    self.lastUsedOrientation = JTS_CurrentInterfaceOrientation();
     CGRect referenceFrameInWindow = [self.imageInfo.referenceView convertRect:self.imageInfo.referenceRect toView:nil];
     
     _startingInfo.startingReferenceFrameForThumbnailInPresentingViewControllersOriginalOrientation = [self.view convertRect:referenceFrameInWindow fromView:nil];
@@ -592,7 +615,7 @@ typedef struct {
     
     [viewController presentViewController:self animated:NO completion:^{
         
-        if ([UIApplication sharedApplication].statusBarOrientation != _startingInfo.startingInterfaceOrientation) {
+        if (JTS_CurrentInterfaceOrientation() != _startingInfo.startingInterfaceOrientation) {
             _startingInfo.presentingViewControllerPresentedFromItsUnsupportedOrientation = YES;
         }
         
@@ -602,7 +625,7 @@ typedef struct {
         self.imageView.layer.cornerRadius = self.imageInfo.referenceCornerRadius;
         [self updateScrollViewAndImageViewForCurrentMetrics];
         
-        BOOL mustRotateDuringTransition = ([UIApplication sharedApplication].statusBarOrientation != _startingInfo.startingInterfaceOrientation);
+        BOOL mustRotateDuringTransition = (JTS_CurrentInterfaceOrientation() != _startingInfo.startingInterfaceOrientation);
         if (mustRotateDuringTransition) {
             CGRect newStartingRect = [self.snapshotView convertRect:_startingInfo.startingReferenceFrameForThumbnail toView:self.view];
             self.imageView.frame = newStartingRect;
@@ -672,9 +695,9 @@ typedef struct {
                      _flags.isTransitioningFromInitialModalToInteractiveState = YES;
                      
                      if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
-                         [weakSelf setNeedsStatusBarAppearanceUpdate];
+                         // status bar update removed (unavailable on visionOS)
                      } else {
-                         [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+                         // setStatusBarHidden removed (unavailable on visionOS)
                      }
                      
                      CGFloat scaling;
@@ -751,8 +774,8 @@ typedef struct {
     }
     
     [self.view insertSubview:self.snapshotView atIndex:0];
-    _startingInfo.startingInterfaceOrientation = [UIApplication sharedApplication].statusBarOrientation;
-    self.lastUsedOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    _startingInfo.startingInterfaceOrientation = JTS_CurrentInterfaceOrientation();
+    self.lastUsedOrientation = JTS_CurrentInterfaceOrientation();
     CGRect referenceFrameInWindow = [self.imageInfo.referenceView convertRect:self.imageInfo.referenceRect toView:nil];
     _startingInfo.startingReferenceFrameForThumbnailInPresentingViewControllersOriginalOrientation = [self.view convertRect:referenceFrameInWindow fromView:nil];
     
@@ -760,7 +783,7 @@ typedef struct {
     
     [viewController presentViewController:self animated:NO completion:^{
         
-        if ([UIApplication sharedApplication].statusBarOrientation != _startingInfo.startingInterfaceOrientation) {
+        if (JTS_CurrentInterfaceOrientation() != _startingInfo.startingInterfaceOrientation) {
             _startingInfo.presentingViewControllerPresentedFromItsUnsupportedOrientation = YES;
         }
         
@@ -799,9 +822,9 @@ typedef struct {
                  _flags.isTransitioningFromInitialModalToInteractiveState = YES;
                  
                  if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
-                     [weakSelf setNeedsStatusBarAppearanceUpdate];
+                     // status bar update removed (unavailable on visionOS)
                  } else {
-                     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+                     // setStatusBarHidden removed (unavailable on visionOS)
                  }
                  
                  CGFloat targetScaling;
@@ -855,8 +878,8 @@ typedef struct {
     }
     
     [self.view insertSubview:self.snapshotView atIndex:0];
-    _startingInfo.startingInterfaceOrientation = [UIApplication sharedApplication].statusBarOrientation;
-    self.lastUsedOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    _startingInfo.startingInterfaceOrientation = JTS_CurrentInterfaceOrientation();
+    self.lastUsedOrientation = JTS_CurrentInterfaceOrientation();
     CGRect referenceFrameInWindow = [self.imageInfo.referenceView convertRect:self.imageInfo.referenceRect toView:nil];
     _startingInfo.startingReferenceFrameForThumbnailInPresentingViewControllersOriginalOrientation = [self.view convertRect:referenceFrameInWindow fromView:nil];
     
@@ -864,7 +887,7 @@ typedef struct {
     
     [viewController presentViewController:weakSelf animated:NO completion:^{
         
-        if ([UIApplication sharedApplication].statusBarOrientation != _startingInfo.startingInterfaceOrientation) {
+        if (JTS_CurrentInterfaceOrientation() != _startingInfo.startingInterfaceOrientation) {
             _startingInfo.presentingViewControllerPresentedFromItsUnsupportedOrientation = YES;
         }
         
@@ -907,9 +930,9 @@ typedef struct {
                  _flags.isTransitioningFromInitialModalToInteractiveState = YES;
                  
                  if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
-                     [weakSelf setNeedsStatusBarAppearanceUpdate];
+                     // status bar update removed (unavailable on visionOS)
                  } else {
-                     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+                     // setStatusBarHidden removed (unavailable on visionOS)
                  }
                  
                  CGFloat targetScaling;
@@ -1053,7 +1076,7 @@ typedef struct {
                     weakSelf.blurredSnapshotView.alpha = 0;
                 }
                 
-                BOOL mustRotateDuringTransition = ([UIApplication sharedApplication].statusBarOrientation != _startingInfo.startingInterfaceOrientation);
+                BOOL mustRotateDuringTransition = (JTS_CurrentInterfaceOrientation() != _startingInfo.startingInterfaceOrientation);
                 if (mustRotateDuringTransition) {
                     CGRect newEndingRect;
                     CGPoint centerInRect;
@@ -1081,18 +1104,16 @@ typedef struct {
                     
                     // Rotation not needed, so fade the status bar back in. Looks nicer.
                     if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
-                        [weakSelf setNeedsStatusBarAppearanceUpdate];
+                        // status bar update removed (unavailable on visionOS)
                     } else {
-                        [[UIApplication sharedApplication] setStatusBarHidden:_startingInfo.statusBarHiddenPriorToPresentation
-                                                                withAnimation:UIStatusBarAnimationFade];
+                        // setStatusBarHidden restore removed (unavailable on visionOS)
                     }
                 }
             } completion:^(BOOL finished) {
                 
                 // Needed if dismissing from a different orientation then the one we started with
                 if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance == NO) {
-                    [[UIApplication sharedApplication] setStatusBarHidden:_startingInfo.statusBarHiddenPriorToPresentation
-                                                            withAnimation:UIStatusBarAnimationNone];
+                    // setStatusBarHidden restore removed (unavailable on visionOS)
                 }
                 
                 [weakSelf.presentingViewController dismissViewControllerAnimated:NO completion:^{
@@ -1134,10 +1155,9 @@ typedef struct {
         }
         weakSelf.scrollView.alpha = 0;
         if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
-            [weakSelf setNeedsStatusBarAppearanceUpdate];
+            // status bar update removed (unavailable on visionOS)
         } else {
-            [[UIApplication sharedApplication] setStatusBarHidden:_startingInfo.statusBarHiddenPriorToPresentation
-                                                    withAnimation:UIStatusBarAnimationFade];
+            // setStatusBarHidden restore removed (unavailable on visionOS)
         }
     } completion:^(BOOL finished) {
         [weakSelf.presentingViewController dismissViewControllerAnimated:NO completion:^{
@@ -1179,10 +1199,9 @@ typedef struct {
         CGFloat scaling = JTSImageViewController_MaxScalingForExpandingOffscreenStyleTransition;
         weakSelf.scrollView.transform = CGAffineTransformMakeScale(scaling, scaling);
         if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
-            [weakSelf setNeedsStatusBarAppearanceUpdate];
+            // status bar update removed (unavailable on visionOS)
         } else {
-            [[UIApplication sharedApplication] setStatusBarHidden:_startingInfo.statusBarHiddenPriorToPresentation
-                                                    withAnimation:UIStatusBarAnimationFade];
+            // setStatusBarHidden restore removed (unavailable on visionOS)
         }
     } completion:^(BOOL finished) {
         [weakSelf.presentingViewController dismissViewControllerAnimated:NO completion:^{
@@ -1233,10 +1252,9 @@ typedef struct {
         CGFloat targetScale = JTSImageViewController_MaxScalingForExpandingOffscreenStyleTransition;
         textViewSnapshot.transform = CGAffineTransformMakeScale(targetScale, targetScale);
         if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
-            [weakSelf setNeedsStatusBarAppearanceUpdate];
+            // status bar update removed (unavailable on visionOS)
         } else {
-            [[UIApplication sharedApplication] setStatusBarHidden:_startingInfo.statusBarHiddenPriorToPresentation
-                                                    withAnimation:UIStatusBarAnimationFade];
+            // setStatusBarHidden restore removed (unavailable on visionOS)
         }
     } completion:^(BOOL finished) {
         [weakSelf.presentingViewController dismissViewControllerAnimated:NO completion:^{
@@ -1351,7 +1369,7 @@ typedef struct {
     CGAffineTransform transform = CGAffineTransformIdentity;
     
     if (_startingInfo.startingInterfaceOrientation == UIInterfaceOrientationPortrait) {
-        switch ([UIApplication sharedApplication].statusBarOrientation) {
+        switch (JTS_CurrentInterfaceOrientation()) {
             case UIInterfaceOrientationLandscapeLeft:
                 transform = CGAffineTransformMakeRotation(M_PI/2.0f);
                 break;
@@ -1369,7 +1387,7 @@ typedef struct {
         }
     }
     else if (_startingInfo.startingInterfaceOrientation == UIInterfaceOrientationPortraitUpsideDown) {
-        switch ([UIApplication sharedApplication].statusBarOrientation) {
+        switch (JTS_CurrentInterfaceOrientation()) {
             case UIInterfaceOrientationLandscapeLeft:
                 transform = CGAffineTransformMakeRotation(-M_PI/2.0f);
                 break;
@@ -1387,7 +1405,7 @@ typedef struct {
         }
     }
     else if (_startingInfo.startingInterfaceOrientation == UIInterfaceOrientationLandscapeLeft) {
-        switch ([UIApplication sharedApplication].statusBarOrientation) {
+        switch (JTS_CurrentInterfaceOrientation()) {
             case UIInterfaceOrientationLandscapeLeft:
                 transform = CGAffineTransformIdentity;
                 break;
@@ -1405,7 +1423,7 @@ typedef struct {
         }
     }
     else if (_startingInfo.startingInterfaceOrientation == UIInterfaceOrientationLandscapeRight) {
-        switch ([UIApplication sharedApplication].statusBarOrientation) {
+        switch (JTS_CurrentInterfaceOrientation()) {
             case UIInterfaceOrientationLandscapeLeft:
                 transform = CGAffineTransformMakeRotation(M_PI);
                 break;
@@ -1678,10 +1696,11 @@ typedef struct {
         
         if (allowCopy) {
             CGPoint location = [sender locationInView:self.imageView];
+#if !TARGET_OS_VISION
             UIMenuController *menuController = [UIMenuController sharedMenuController];
-            
             [menuController setTargetRect:CGRectMake(location.x, location.y, 0.0f, 0.0f) inView:self.imageView];
             [menuController setMenuVisible:YES animated:YES];
+#endif
         }
     }
 }
@@ -1804,8 +1823,8 @@ typedef struct {
     CGFloat referenceArea = self.view.bounds.size.width * self.view.bounds.size.height;
     CGFloat factor = referenceArea / actualArea;
     CGFloat defaultResistance = 4.0f; // Feels good with a 1x1 on 3.5 inch displays. We'll adjust this to match the current display.
-    CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
-    CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
+    CGFloat screenWidth = self.view.bounds.size.width;
+    CGFloat screenHeight = self.view.bounds.size.height;
     CGFloat resistance = defaultResistance * ((320.0 * 480.0) / (screenWidth * screenHeight));
     return resistance * factor;
 }
@@ -1817,8 +1836,8 @@ typedef struct {
     CGFloat referenceArea = self.view.bounds.size.width * self.view.bounds.size.height;
     CGFloat factor = referenceArea / actualArea;
     CGFloat defaultDensity = 0.5f; // Feels good on 3.5 inch displays. We'll adjust this to match the current display.
-    CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
-    CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
+    CGFloat screenWidth = self.view.bounds.size.width;
+    CGFloat screenHeight = self.view.bounds.size.height;
     CGFloat appropriateDensity = defaultDensity * ((320.0 * 480.0) / (screenWidth * screenHeight));
     return appropriateDensity * factor;
 }

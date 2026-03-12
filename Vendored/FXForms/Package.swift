@@ -2,7 +2,7 @@
 import PackageDescription
 let package = Package(
     name: "FXForms",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "FXForms", targets: ["FXForms"])],
     targets: [
         .target(

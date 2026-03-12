@@ -2,7 +2,7 @@
 import PackageDescription
 let package = Package(
     name: "DAKeyboardControl",
-    platforms: [.iOS(.v26)],
+    platforms: [.iOS(.v26), .visionOS(.v26)],
     products: [.library(name: "DAKeyboardControl", targets: ["DAKeyboardControl"])],
     targets: [
         .target(

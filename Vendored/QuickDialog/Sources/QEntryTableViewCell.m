@@ -35,7 +35,7 @@
 
     _prevNext = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:NSLocalizedString(@"Previous", @""), NSLocalizedString(@"Next", @""), nil]];
     _prevNext.momentary = YES;
-    _prevNext.segmentedControlStyle = UISegmentedControlStyleBar;
+    // segmentedControlStyle removed (deprecated)
     _prevNext.tintColor = actionBar.tintColor;
     [_prevNext addTarget:self action:@selector(handleActionBarPreviousNext:) forControlEvents:UIControlEventValueChanged];
     UIBarButtonItem *prevNextWrapper = [[UIBarButtonItem alloc] initWithCustomView:_prevNext];
@@ -97,7 +97,7 @@
                 QEntryElement *q = (QEntryElement*)el; 
                 CGFloat imageWidth = q.image == NULL ? 0 : self.imageView.frame.size.width;
                 CGFloat fontSize = self.textLabel.font.pointSize == 0? 17 : self.textLabel.font.pointSize;
-                CGSize size = [((QEntryElement *)el).title sizeWithFont:[self.textLabel.font fontWithSize:fontSize] forWidth:CGFLOAT_MAX lineBreakMode:NSLineBreakByWordWrapping] ;
+                CGSize size = [((QEntryElement *)el).title boundingRectWithSize:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: [self.textLabel.font fontWithSize:fontSize]} context:nil].size;
                 CGFloat width = size.width + imageWidth + 20;
                 if (width>titleWidth)
                     titleWidth = width;
@@ -148,6 +148,7 @@
 
     self.accessoryType = _entryElement.accessoryType;
 
+#if !TARGET_OS_VISION
     if (_entryElement.hiddenToolbar){
         _textField.inputAccessoryView = nil;
     } else if (_textField!=nil){
@@ -156,6 +157,7 @@
         toolbar.translucent = element.appearance.toolbarTranslucent;
         _textField.inputAccessoryView = toolbar;
     }
+#endif
     
 
     [self updatePrevNextStatus];
@@ -294,7 +296,7 @@
     [self endEditing:YES];
     [self endEditing:NO];
     [_textField resignFirstResponder];
-    [[[UIApplication sharedApplication] keyWindow] endEditing:YES];
+    [self.window endEditing:YES];
 
     if(_entryElement && _entryElement.delegate && [_entryElement.delegate respondsToSelector:@selector(QEntryMustReturnForElement:andCell:)]){
         [_entryElement.delegate QEntryMustReturnForElement:_entryElement andCell:self];

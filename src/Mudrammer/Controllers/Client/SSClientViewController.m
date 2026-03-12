@@ -161,7 +161,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                 keyPath:observed
                                 options:NSKeyValueObservingOptionNew
                                   block:^(SSClientViewController *client, id object, NSDictionary *change) {
+#if !TARGET_OS_VISION
                                       [client setNeedsStatusBarAppearanceUpdate];
+#endif
                                       [client sendNAWS];
                                   }];
         }
@@ -361,9 +363,11 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 #pragma clang diagnostic pop
 
+#if !TARGET_OS_VISION
 - (BOOL)prefersStatusBarHidden {
     return _shouldHideStatusBar;
 }
+#endif
 
 - (void)setNavVisible:(BOOL)visible {
     if (![[self.navigationController visibleViewController] isEqual:self]) {
@@ -391,7 +395,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     if( !self.presentedViewController ) {
         _shouldHideStatusBar = !visible;
+#if !TARGET_OS_VISION
         [self setNeedsStatusBarAppearanceUpdate];
+#endif
     }
 
     if( [self.navigationController isNavigationBarHidden] == visible )
@@ -610,7 +616,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     if( self.SSPopoverController.presentingViewController != nil )
         [self.SSPopoverController dismissViewControllerAnimated:NO completion:nil];
 
-    [[self clientContainer] showSidebarAnimated:YES];
+    [[self clientContainer] toggleSidebar];
 }
 
 #pragma mark - current world
@@ -677,7 +683,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 - (void) closeSettingsWithCompletion:(SPLSettingsCloseBlock)completion {
     void (^actualCompletion)(void) = ^{
+#if !TARGET_OS_VISION
         [self setNeedsStatusBarAppearanceUpdate];
+#endif
 
         if ([self isConnected]) {
             [self.mudView setKeyboardPanningEnabled:YES];
