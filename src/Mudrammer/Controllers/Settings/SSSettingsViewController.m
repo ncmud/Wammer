@@ -76,10 +76,6 @@
     return self;
 }
 
-- (CGSize)preferredContentSize {
-    return [self.tableView sizeThatFits:CGSizeMake(320, CGFLOAT_MAX)];
-}
-
 - (void)dealloc {
     _delegate = nil;
 

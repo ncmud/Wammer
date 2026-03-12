@@ -69,10 +69,6 @@
     self.navigationItem.rightBarButtonItem = self.saveButton;
 }
 
-- (CGSize)preferredContentSize {
-    return [self.tableView sizeThatFits:CGSizeMake(320.0f, CGFLOAT_MAX)];
-}
-
 #pragma mark - Actions
 
 - (void)showSoundPicker {

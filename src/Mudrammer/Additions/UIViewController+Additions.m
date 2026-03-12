@@ -17,7 +17,25 @@
 #pragma mark -
 
 - (UINavigationController *) wrappedNavigationController {
-    return [[UINavigationController alloc] initWithRootViewController:self];
+    return [[SSDismissableNavigationController alloc] initWithRootViewController:self];
+}
+
+@end
+
+@implementation SSDismissableNavigationController
+
+- (NSArray<UIKeyCommand *> *)keyCommands {
+    return @[
+        [UIKeyCommand keyCommandWithInput:UIKeyInputEscape
+                            modifierFlags:0
+                                   action:@selector(dismissWithEscape:)]
+    ];
+}
+
+- (void)dismissWithEscape:(UIKeyCommand *)command {
+    if (self.presentingViewController) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }
 }
 
 @end

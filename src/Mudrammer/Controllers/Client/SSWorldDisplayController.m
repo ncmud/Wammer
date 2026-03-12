@@ -16,7 +16,6 @@
 #import "SPLCheckMarkView.h"
 
 CGFloat const kWorldHeaderHeight = 20.0f;
-CGFloat const kWorldDisplayWidth = 220;
 static NSUInteger const kAddWorldRowId = 1337;
 
 // Client statuses.
@@ -144,7 +143,8 @@ typedef NS_ENUM(NSUInteger, SPLClientStatus) {
     self.tableView.scrollEnabled = NO;
     self.tableView.delegate = self;
 
-    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kWorldDisplayWidth, 20.f)];
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.tableView.bounds), 20.f)];
+    headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     headerView.backgroundColor = [UIColor clearColor];
     self.tableView.tableHeaderView = headerView;
 

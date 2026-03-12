@@ -15,7 +15,7 @@
 }
 
 - (void)configureCell {
-    self.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
+    self.accessoryType = UITableViewCellAccessoryDetailButton;
 
     [SSThemes configureCell:self];
 }

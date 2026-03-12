@@ -85,6 +85,10 @@ The app uses the UIScene lifecycle for multi-window support on iPad and Mac Cata
 5. `SSAttributedLineGroup` batches attributed strings for display
 6. `SSMudView` / `SSTextTableView` renders the output
 
+## Code Style
+
+- Do not add file header comments (the `// Filename.m // ProjectName //` block) to new files.
+
 ## Design Guidelines
 
 - **Avoid singletons.** They cause problems with multi-window and multi-connection architecture. Per-connection state should be owned by `SSClientViewController`. Always consider ownership and lifecycle before reaching for a singleton — they're rarely the right choice.

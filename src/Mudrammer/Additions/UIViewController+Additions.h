@@ -13,7 +13,10 @@
 
 - (BOOL) isViewVisible;
 
-// Wraps with a UINavigationController
+// Wraps with a SSDismissableNavigationController
 - (UINavigationController *) wrappedNavigationController;
 
+@end
+
+@interface SSDismissableNavigationController : UINavigationController
 @end

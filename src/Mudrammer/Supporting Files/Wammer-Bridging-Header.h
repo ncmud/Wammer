@@ -7,6 +7,7 @@
 
 #import "SSMRConstants.h"
 #import "SPLNotificationManager.h"
+#import "SSThemes.h"
 
 #import "SSWorldDisplayController.h"
 #import "SPLHandoffWebViewController.h"

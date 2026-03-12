@@ -254,10 +254,4 @@ typedef NS_ENUM(NSUInteger, SSTGARecordType) {
     [self SPLDismiss];
 }
 
-#pragma mark - lifecycle
-
-- (CGSize)preferredContentSize {
-    return [self.quickDialogTableView sizeThatFits:CGSizeMake(320.f, CGFLOAT_MAX)];
-}
-
 @end

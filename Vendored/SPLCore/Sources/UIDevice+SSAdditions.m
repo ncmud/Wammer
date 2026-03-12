@@ -24,6 +24,23 @@
     return NO;
 }
 
++ (CGFloat)preferredPopoverWidth {
+#if TARGET_OS_MACCATALYST
+    return 420.0f;
+#else
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if ([scene isKindOfClass:[UIWindowScene class]]) {
+            UIWindowScene *ws = (UIWindowScene *)scene;
+            for (UIWindow *w in ws.windows) {
+                if (w.isKeyWindow && w.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular)
+                    return 420.0f;
+            }
+        }
+    }
+    return 320.0f;
+#endif
+}
+
 + (void)vibrateWithBeepFallback:(BOOL)beep {
     if( beep )
         AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);

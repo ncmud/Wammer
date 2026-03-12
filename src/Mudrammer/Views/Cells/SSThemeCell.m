@@ -69,7 +69,8 @@
               action:@selector(fontSizeChanged:)
     forControlEvents:UIControlEventValueChanged];
 
-    [sizer setFrame:CGRectMake(0, 0, 120, 60)];
+    CGFloat sizerWidth = [UIDevice currentDevice].isIPad ? 150 : 120;
+    [sizer setFrame:CGRectMake(0, 0, sizerWidth, 60)];
 
     self.accessoryView = sizer;
 

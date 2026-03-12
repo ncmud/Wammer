@@ -48,15 +48,14 @@
 
 - (void)applySwitchTheme {
     UIColor *fontColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor];
-    [self.boolSwitch setOnTintColor:fontColor];
+    BOOL isDark = [[SSThemes sharedThemer] isUsingDarkTheme];
 
-    if ([[SSThemes sharedThemer] isUsingDarkTheme]) {
-        self.boolSwitch.layer.cornerRadius = 16;
-        self.boolSwitch.layer.borderWidth = 1;
-        self.boolSwitch.layer.borderColor = [[UIColor whiteColor] colorWithAlphaComponent:0.3].CGColor;
+    if (isDark) {
+        self.boolSwitch.onTintColor = [UIColor systemOrangeColor];
     } else {
-        self.boolSwitch.layer.borderWidth = 0;
+        self.boolSwitch.onTintColor = fontColor;
     }
+
 }
 
 - (void)dealloc {

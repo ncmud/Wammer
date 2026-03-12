@@ -12,8 +12,6 @@
 
 @class SSClientContainer;
 
-extern CGFloat const kWorldDisplayWidth;
-
 @interface SSWorldDisplayController : UITableViewController <SSClientDelegate>
 
 /**

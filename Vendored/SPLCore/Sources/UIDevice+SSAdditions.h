@@ -14,6 +14,9 @@
 
 + (BOOL) isLandscape;
 
+// Returns 420pt on Mac Catalyst and iPad (regular horizontal size class), 320pt on iPhone.
++ (CGFloat)preferredPopoverWidth;
+
 // Vibrate the device.
 // If the device cannot vibrate, YES will play a beep.
 // NO will not beep.

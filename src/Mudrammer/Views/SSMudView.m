@@ -251,11 +251,6 @@
     CGFloat sideOffset = SPLFloat_floor(controlSize / 1.6f);
     CGFloat bottomOffset = MIN(sideOffset, SPLFloat_floor((CGRectGetHeight(self.tableView.frame) - controlSize) / 2.0f));
 
-    if ([[UIDevice currentDevice] isIPad]) {
-        bottomOffset *= 2;
-        sideOffset *= 2;
-    }
-
     [self.movementControl mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.height.and.width.equalTo(@(controlSize));
         make.bottom.lessThanOrEqualTo(self.inputToolbar.mas_top).offset(-bottomOffset);
