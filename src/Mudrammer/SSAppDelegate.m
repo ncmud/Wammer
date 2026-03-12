@@ -30,6 +30,7 @@
         kPrefTopBarAlwaysVisible   : @NO,
         kPrefAutocapitalization    : @NO,
         kPrefBTKeyboard            : @NO,
+        kPrefInputKeepsCommands    : @YES,
         kPrefSemicolonCommands     : @YES,
         kPrefSemicolonCommandDelimiter : kPrefSemicolonDefaultDelimiter,
     };
