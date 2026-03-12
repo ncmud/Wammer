@@ -22,9 +22,7 @@
     if ((self = [super initWithFrame:frame])) {
 
         _titleLabel = [UILabel new];
-        self.titleLabel.font = [UIFont boldSystemFontOfSize:([[UIDevice currentDevice] isIPad]
-                                                             ? 18.0f
-                                                             : 16.0f)];
+        self.titleLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
         self.titleLabel.shadowColor = [UIColor blackColor];
         self.titleLabel.shadowOffset = CGSizeMake(0, 1);
         self.titleLabel.textColor = [UIColor whiteColor];

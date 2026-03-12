@@ -58,16 +58,6 @@
     return [[SSWorldEditViewController alloc] initWithWorldIdentifier:worldIdentifier];
 }
 
-- (CGSize)preferredContentSize {
-#if TARGET_OS_MACCATALYST
-    // QuickDialog's sizeThatFits returns a tiny size on Catalyst because the table
-    // hasn't laid out yet. Use a fixed size for the form sheet presentation.
-    return CGSizeMake(540.0f, 680.0f);
-#else
-    return [self.quickDialogTableView sizeThatFits:CGSizeMake(320.0f, CGFLOAT_MAX)];
-#endif
-}
-
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
 

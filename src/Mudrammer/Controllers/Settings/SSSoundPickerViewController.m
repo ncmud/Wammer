@@ -29,10 +29,6 @@
     return self;
 }
 
-- (CGSize)preferredContentSize {
-    return [self.tableView sizeThatFits:CGSizeMake(320.0f, CGFLOAT_MAX)];
-}
-
 - (void)dealloc {
     _selectedBlock = nil;
 }

@@ -108,7 +108,8 @@
                   layout:(UICollectionViewLayout *)collectionViewLayout
   sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    return CGSizeMake([[UIDevice currentDevice] isIPad] ? 44 : 32, 44);
+    BOOL isWide = self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular;
+    return CGSizeMake(isWide ? 44 : 32, 44);
 }
 
 @end

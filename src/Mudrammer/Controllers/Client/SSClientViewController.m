@@ -117,7 +117,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         _readParsingQueue = [NSOperationQueue ss_serialOperationQueueNamed:@"Read Queue"];
         _writeQueue = [NSOperationQueue ss_serialOperationQueueNamed:@"Write Queue"];
 
-        _titleView = [[SPLMUDTitleView alloc] initWithFrame:CGRectMake(0, 0, ([[UIDevice currentDevice] isIPad] ? 280 : 160), 44)];
+        _titleView = [[SPLMUDTitleView alloc] initWithFrame:CGRectMake(0, 0, ([[UIDevice currentDevice] isIPad] ? 320 : 200), 44)];
         [self updateTitle:NSLocalizedString(@"DISCONNECTED", @"Disconnected")];
 
         @weakify(self);
@@ -267,8 +267,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
         UIImage *musicImage = [UIImage systemImageNamed:@"music.note"];
         _musicButton = [[UIBarButtonItem alloc] initWithImage:musicImage
                                                         style:UIBarButtonItemStylePlain
-                                                       target:nil
-                                                       action:nil];
+                                                       target:self
+                                                       action:@selector(tappedMusic:)];
         self.musicButton.accessibilityLabel = NSLocalizedString(@"BACKGROUND_MUSIC", nil);
         self.musicButton.accessibilityHint = @"Controls background music.";
     }
@@ -280,7 +280,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                                             action:@selector(tappedPlayPause:)];
         self.playPauseButton.accessibilityLabel = NSLocalizedString(@"PAUSE_MUSIC", nil);
     }
-    [self updateMusicMenu];
+    [self updateMusicButtons];
 
     if (!self.worldSelectButton) {
         // DRAWS ON MAIN THREAD
@@ -455,14 +455,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
             [self.mudView setKeyboardPanningEnabled:YES];
         }
     }
-
-    if (self.SSPopoverController.presentingViewController != nil && [navigationController isEqual:self.SSPopoverController]) {
-        CGSize s = [viewController preferredContentSize];
-
-        if (!CGSizeEqualToSize(s, CGSizeZero)) {
-            self.SSPopoverController.preferredContentSize = CGSizeMake(320.0f, s.height);
-        }
-    }
 }
 
 #pragma mark - button actions
@@ -489,6 +481,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     if ([[UIDevice currentDevice] isIPad]) {
         settingsNav.modalPresentationStyle = UIModalPresentationPopover;
+        settingsNav.preferredContentSize = CGSizeMake([UIDevice preferredPopoverWidth], 600);
         UIPopoverPresentationController *popover = settingsNav.popoverPresentationController;
         popover.barButtonItem = self.settingsButton;
         popover.permittedArrowDirections = UIPopoverArrowDirectionUp;
@@ -554,10 +547,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 #endif
 }
 
-- (void)updateMusicMenu {
-    __weak typeof(self) weakSelf = self;
-
-    // Update the play/pause button visibility and icon.
+- (void)updateMusicButtons {
     BOOL playing = self.gmcpHandler.isMusicPlaying;
     BOOL paused = self.gmcpHandler.isMusicPaused;
     BOOL showPlayPause = playing || paused;
@@ -568,56 +558,38 @@ typedef void (^SPLSettingsCloseBlock) (void);
     }
     self.playPauseButton.enabled = showPlayPause;
     self.playPauseButton.tintColor = showPlayPause ? [UIColor whiteColor] : [UIColor clearColor];
+}
 
-    // Build the pull-down menu for the music note button.
-    UIDeferredMenuElement *deferred = [UIDeferredMenuElement elementWithUncachedProvider:^(void (^completion)(NSArray<UIMenuElement *> *)) {
-        __strong typeof(weakSelf) self = weakSelf;
-        if (!self) { completion(@[]); return; }
-
-        NSMutableArray<UIMenuElement *> *items = [NSMutableArray array];
-
-        // Track list
-        NSArray<NSDictionary<NSString *, NSString *> *> *musicTracks = [MusicLibrary shared].musicTrackDictionaries;
-        if ([musicTracks count] > 0) {
-            for (NSDictionary<NSString *, NSString *> *trackInfo in musicTracks) {
-                NSString *title = [NSString stringWithFormat:@"%@ — %@", trackInfo[@"hostname"], trackInfo[@"filename"]];
-                NSString *path = trackInfo[@"relativePath"];
-                [items addObject:[UIAction actionWithTitle:title
-                                                     image:[UIImage systemImageNamed:@"music.note"]
-                                                identifier:nil
-                                                   handler:^(UIAction *a) {
-                    [weakSelf.gmcpHandler startAmbientWithRelativePath:path];
-                    __strong typeof(weakSelf) strongSelf = weakSelf;
-                    MUDWorld *world = strongSelf ? [WorldStoreBridge mudWorldForIdentifier:strongSelf->currentWorldIdentifier] : nil;
-                    if (world) {
-                        world.ambientMusicPath = path;
-                        [WorldStoreBridge updateMUDWorld:world];
-                    }
-                }]];
+- (void)tappedMusic:(id)sender {
+    if (self.SSPopoverController.presentingViewController != nil) {
+        if ([[self.SSPopoverController class] isSubclassOfClass:[UINavigationController class]]) {
+            UINavigationController *nav = (UINavigationController *)self.SSPopoverController;
+            if ([[nav visibleViewController] isKindOfClass:[SSMusicPickerViewController class]]) {
+                [self.SSPopoverController dismissViewControllerAnimated:YES completion:nil];
+                return;
             }
-        } else {
-            UIAction *empty = [UIAction actionWithTitle:NSLocalizedString(@"NO_MUSIC_TRACKS", nil)
-                                                  image:nil identifier:nil handler:^(UIAction *a) {}];
-            empty.attributes = UIMenuElementAttributesDisabled;
-            [items addObject:empty];
         }
+        [self.SSPopoverController dismissViewControllerAnimated:NO completion:nil];
+    }
 
-        // Stop
-        if (self.gmcpHandler.isMusicPlaying || self.gmcpHandler.isMusicPaused) {
-            UIAction *stop = [UIAction actionWithTitle:NSLocalizedString(@"STOP_MUSIC", nil)
-                                                 image:[UIImage systemImageNamed:@"stop.fill"]
-                                            identifier:nil
-                                               handler:^(UIAction *a) {
-                [weakSelf.gmcpHandler stopMusic];
-            }];
-            stop.attributes = UIMenuElementAttributesDestructive;
-            [items addObject:stop];
-        }
+    [self.mudView endEditing:YES];
 
-        completion(items);
-    }];
+    SSMusicPickerViewController *picker = [[SSMusicPickerViewController alloc] init];
+    picker.gmcpHandler = self.gmcpHandler;
+    picker.currentWorldIdentifier = currentWorldIdentifier;
+    UINavigationController *nav = [picker wrappedNavigationController];
 
-    self.musicButton.menu = [UIMenu menuWithChildren:@[deferred]];
+    if ([[UIDevice currentDevice] isIPad]) {
+        nav.modalPresentationStyle = UIModalPresentationPopover;
+        nav.preferredContentSize = CGSizeMake([UIDevice preferredPopoverWidth], 400);
+        UIPopoverPresentationController *popover = nav.popoverPresentationController;
+        popover.barButtonItem = self.musicButton;
+        popover.permittedArrowDirections = UIPopoverArrowDirectionUp;
+        popover.delegate = self;
+        _SSPopoverController = nav;
+    }
+
+    [self presentViewController:nav animated:YES completion:nil];
 }
 
 - (void)tappedPlayPause:(id)sender {
@@ -629,7 +601,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (void)musicStateDidChange:(NSNotification *)note {
-    [self updateMusicMenu];
+    [self updateMusicButtons];
 }
 
 - (void)tappedWorldSelect:(id)sender {

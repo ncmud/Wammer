@@ -276,7 +276,8 @@
     // Status bar style is now handled per-view-controller via preferredStatusBarStyle
 
     // UISwitch - reapplied upon each theme change
-    [[UISwitch appearance] setOnTintColor:[self valueForThemeKey:kThemeFontColor]];
+    [[UISwitch appearance] setOnTintColor:
+        [self isUsingDarkTheme] ? [UIColor systemOrangeColor] : [self valueForThemeKey:kThemeFontColor]];
 
     // History control
     [[SSMudHistoryControl appearance] setBackgroundImage:[SPLImagesCatalog transparentImage]
@@ -386,7 +387,8 @@
                  forKey:kPrefCurrentFontName];
 
     // Re-theme switches
-    [[UISwitch appearance] setOnTintColor:[self valueForThemeKey:kThemeFontColor]];
+    [[UISwitch appearance] setOnTintColor:
+        [self isUsingDarkTheme] ? [UIColor systemOrangeColor] : [self valueForThemeKey:kThemeFontColor]];
 }
 
 - (UIFont *)currentFont {

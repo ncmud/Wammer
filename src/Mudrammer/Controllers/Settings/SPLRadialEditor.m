@@ -170,10 +170,6 @@ static NSUInteger const kMaxRadialCommands = 8;
     return self;
 }
 
-- (CGSize)preferredContentSize {
-    return CGSizeMake(320, 500);
-}
-
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }

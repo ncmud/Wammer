@@ -95,10 +95,6 @@
     return [[SSThemePickerController alloc] init];
 }
 
-- (CGSize)preferredContentSize {
-    return [self.tableView sizeThatFits:CGSizeMake(320, CGFLOAT_MAX)];
-}
-
 #pragma mark - UITableViewDelegate
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {

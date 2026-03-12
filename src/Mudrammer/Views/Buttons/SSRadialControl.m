@@ -10,11 +10,25 @@
 @import Masonry;
 @import TTTAttributedLabel;
 
-CGFloat const kControlRadius = 60.0f;
-CGSize const kControlSize = (CGSize) { 80, 80 };
+static CGSize SSRadialControlSize(void) {
+#if TARGET_OS_MACCATALYST
+    return (CGSize){ 120, 120 };
+#else
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if ([scene isKindOfClass:[UIWindowScene class]]) {
+            UIWindowScene *ws = (UIWindowScene *)scene;
+            for (UIWindow *w in ws.windows) {
+                if (w.isKeyWindow && w.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular)
+                    return (CGSize){ 120, 120 };
+            }
+        }
+    }
+    return (CGSize){ 80, 80 };
+#endif
+}
 
 // Minimum drag distance to trigger an update
-#define kMinRadius       SPLFloat_floor( kControlRadius / 2.0f )
+#define kMinRadius       SPLFloat_floor( SSRadialControlSize().width * 0.75f / 2.0f )
 
 CGFloat const kAlphaActive = 1.0f;
 CGFloat const kAlphaInactive = 0.2f;
@@ -77,7 +91,7 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c );
         _directionLabel.verticalAlignment = TTTAttributedLabelVerticalAlignmentCenter;
         [self insertSubview:_directionLabel aboveSubview:background];
         [_directionLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.width.equalTo(@(kControlSize.width - 28));
+            make.width.equalTo(@(SSRadialControlSize().width - 28));
             make.height.equalTo(@34);
             make.centerX.equalTo(self);
             make.centerY.equalTo(self).offset(-1);
@@ -117,7 +131,7 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c );
 }
 
 + (instancetype)radialControl {
-    return [[self alloc] initWithFrame:CGRectMake(0, 0, kControlSize.width, kControlSize.height)];
+    return [[self alloc] initWithFrame:CGRectMake(0, 0, SSRadialControlSize().width, SSRadialControlSize().height)];
 }
 
 - (void)dealloc {
@@ -214,7 +228,7 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c )
         return 0;
     }
 
-    NSInteger deg = PointsToDegree((CGPoint){ 0, kControlRadius }, background.center, grabber.center);
+    NSInteger deg = PointsToDegree((CGPoint){ 0, (SSRadialControlSize().width * 0.75f) }, background.center, grabber.center);
 
     // -180 to 180, 0 at W
 
@@ -325,12 +339,12 @@ NSInteger PointsToDegree( CGPoint a, CGPoint b, CGPoint c )
 
             // snap to nearest point on circle.
             // who cares how it works? it's trig.
-            if( dist > kControlRadius ) {
+            if( dist > (SSRadialControlSize().width * 0.75f) ) {
                 CGFloat vX = target.x - background.center.x;
                 CGFloat vY = target.y - background.center.y;
                 CGFloat magV = (CGFloat)sqrt(vX*vX + vY*vY);
-                target.x = background.center.x + vX / magV * kControlRadius;
-                target.y = background.center.y + vY / magV * kControlRadius;
+                target.x = background.center.x + vX / magV * (SSRadialControlSize().width * 0.75f);
+                target.y = background.center.y + vY / magV * (SSRadialControlSize().width * 0.75f);
             }
 
             grabber.center = target;

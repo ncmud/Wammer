@@ -256,10 +256,6 @@
     self.dataSource.tableView = self.tableView;
 }
 
-- (CGSize)preferredContentSize {
-    return [self.tableView sizeThatFits:CGSizeMake(320, CGFLOAT_MAX)];
-}
-
 - (void)userDefaultsChanged {
     [self.tableView performSelectorOnMainThread:@selector(reloadData)
                                      withObject:nil

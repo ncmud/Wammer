@@ -68,10 +68,6 @@
     [SSThemes configureTable:self.tableView];
 }
 
-- (CGSize)preferredContentSize {
-    return [self.tableView sizeThatFits:CGSizeMake(320.0f, CGFLOAT_MAX)];
-}
-
 #pragma mark -
 #pragma mark Table view data source
 
