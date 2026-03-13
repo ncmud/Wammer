@@ -256,9 +256,7 @@
     navAppearance.backgroundColor = [self valueForThemeKey:kThemeBackgroundColor];
     navAppearance.titleTextAttributes = @{
         NSForegroundColorAttributeName : [self valueForThemeKey:kThemeFontColor],
-        NSFontAttributeName : [UIFont boldSystemFontOfSize:([[UIDevice currentDevice] isIPad]
-                                                            ? 18.0f
-                                                            : 16.0f)]
+        NSFontAttributeName : [UIFont boldSystemFontOfSize:17.0f]
     };
     [[UINavigationBar appearance] setStandardAppearance:navAppearance];
     [[UINavigationBar appearance] setCompactAppearance:navAppearance];
@@ -497,7 +495,7 @@
     if (tableView.style == UITableViewStylePlain) {
         tableView.backgroundColor = bgColor;
 
-        if (![[UIDevice currentDevice] isIPad]) {
+        if (tableView.traitCollection.horizontalSizeClass != UIUserInterfaceSizeClassRegular) {
             [tableView addCenteredFooterWithImage:([[self sharedThemer] isUsingDarkTheme]
                                                    ? [SPLImagesCatalog tildeWhiteImage]
                                                    : [SPLImagesCatalog tildeDarkImage])

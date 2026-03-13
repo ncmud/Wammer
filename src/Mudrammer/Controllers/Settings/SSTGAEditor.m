@@ -119,7 +119,7 @@ typedef NS_ENUM(NSUInteger, SSTGARecordType) {
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    if(![[UIDevice currentDevice] isIPad] || self.navigationController.SPLNavigationIsAtRoot) {
+    if(self.traitCollection.horizontalSizeClass != UIUserInterfaceSizeClassRegular || self.navigationController.SPLNavigationIsAtRoot) {
         self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
                                                                                               target:self
                                                                                               action:@selector(cancelEditing:)];

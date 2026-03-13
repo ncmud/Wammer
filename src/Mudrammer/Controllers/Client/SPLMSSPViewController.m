@@ -36,7 +36,7 @@
     [self.contentView addSubview:self.label];
     [self.label mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.and.right.and.bottom.equalTo(self.contentView);
-        make.left.equalTo(self.contentView).offset([[UIDevice currentDevice] isIPad] ? 20 : 16);
+        make.left.equalTo(self.contentView).offset(16);
     }];
 }
 

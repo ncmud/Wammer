@@ -42,12 +42,6 @@
                                                                    target:self
                                                                    action:@selector(saveWorld:)];
 
-        if( ![[UIDevice currentDevice] isIPad] ) {
-            self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
-                                                                                                  target:self
-                                                                                                  action:@selector(cancelEditing:)];
-        }
-
         self.navigationItem.rightBarButtonItem = saveButton;
     }
 
@@ -56,6 +50,16 @@
 
 + (instancetype)editorForWorldIdentifier:(NSString *)worldIdentifier {
     return [[SSWorldEditViewController alloc] initWithWorldIdentifier:worldIdentifier];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    if (self.traitCollection.horizontalSizeClass != UIUserInterfaceSizeClassRegular) {
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
+                                                                                              target:self
+                                                                                              action:@selector(cancelEditing:)];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {

@@ -56,7 +56,7 @@
 
     [SSThemes configureTable:self.tableView];
 
-    if (![[UIDevice currentDevice] isIPad]) {
+    if (self.traitCollection.horizontalSizeClass != UIUserInterfaceSizeClassRegular) {
         self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
                                                                                               target:self
                                                                                               action:@selector(cancelEditing:)];

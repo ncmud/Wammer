@@ -69,7 +69,7 @@
               action:@selector(fontSizeChanged:)
     forControlEvents:UIControlEventValueChanged];
 
-    CGFloat sizerWidth = [UIDevice currentDevice].isIPad ? 150 : 120;
+    CGFloat sizerWidth = self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular ? 150 : 120;
     [sizer setFrame:CGRectMake(0, 0, sizerWidth, 60)];
 
     self.accessoryView = sizer;
