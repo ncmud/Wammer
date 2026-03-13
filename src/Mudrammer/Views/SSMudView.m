@@ -568,7 +568,7 @@
 #pragma mark - UIScrollViewDelegate
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    if (![[UIDevice currentDevice] isIPad]) {
+    if (self.traitCollection.horizontalSizeClass != UIUserInterfaceSizeClassRegular) {
         [self endEditing:YES];
     }
 

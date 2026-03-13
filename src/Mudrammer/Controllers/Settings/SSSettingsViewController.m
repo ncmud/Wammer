@@ -49,12 +49,6 @@
 
         [SSThemes configureTable:self.tableView];
 
-        if( ![[UIDevice currentDevice] isIPad] ) {
-            self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-                                                                                                  target:self
-                                                                                                  action:@selector(closeSettings:)];
-        }
-
         _kvoController = [FBKVOController controllerWithObserver:self];
 
         for( NSString *key in OBS ) {
@@ -84,6 +78,12 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    if (self.traitCollection.horizontalSizeClass != UIUserInterfaceSizeClassRegular) {
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                                                                              target:self
+                                                                                              action:@selector(closeSettings:)];
+    }
 
     @weakify(self);
 

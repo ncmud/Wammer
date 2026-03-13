@@ -117,7 +117,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         _readParsingQueue = [NSOperationQueue ss_serialOperationQueueNamed:@"Read Queue"];
         _writeQueue = [NSOperationQueue ss_serialOperationQueueNamed:@"Write Queue"];
 
-        _titleView = [[SPLMUDTitleView alloc] initWithFrame:CGRectMake(0, 0, ([[UIDevice currentDevice] isIPad] ? 320 : 200), 44)];
+        _titleView = [[SPLMUDTitleView alloc] initWithFrame:CGRectMake(0, 0, (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular ? 320 : 200), 44)];
         [self updateTitle:NSLocalizedString(@"DISCONNECTED", @"Disconnected")];
 
         @weakify(self);
@@ -485,7 +485,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     UINavigationController *settingsNav = [settings wrappedNavigationController];
     settingsNav.delegate = self;
 
-    if ([[UIDevice currentDevice] isIPad]) {
+    if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular) {
         settingsNav.modalPresentationStyle = UIModalPresentationPopover;
         settingsNav.preferredContentSize = CGSizeMake([UIDevice preferredPopoverWidth], 600);
         UIPopoverPresentationController *popover = settingsNav.popoverPresentationController;
@@ -533,7 +533,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     nav.modalPresentationStyle = UIModalPresentationFormSheet;
     [self presentViewController:nav animated:YES completion:nil];
 #else
-    if( [[UIDevice currentDevice] isIPad] ) {
+    if( self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular ) {
         nav.modalPresentationStyle = UIModalPresentationPopover;
         UIPopoverPresentationController *popover = nav.popoverPresentationController;
         popover.barButtonItem = self.editWorldButton;
@@ -585,7 +585,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
     picker.currentWorldIdentifier = currentWorldIdentifier;
     UINavigationController *nav = [picker wrappedNavigationController];
 
-    if ([[UIDevice currentDevice] isIPad]) {
+    if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular) {
         nav.modalPresentationStyle = UIModalPresentationPopover;
         nav.preferredContentSize = CGSizeMake([UIDevice preferredPopoverWidth], 400);
         UIPopoverPresentationController *popover = nav.popoverPresentationController;

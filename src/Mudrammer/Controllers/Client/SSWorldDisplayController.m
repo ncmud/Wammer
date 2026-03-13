@@ -260,7 +260,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 
         WorldPickerSelectionBlock pickblock = ^(NSString *pickedWorldIdentifier) {
             @strongify(self);
-            if ([[UIDevice currentDevice] isIPad]) {
+            if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular) {
                 [self.popoverPresenter dismissViewControllerAnimated:YES completion:nil];
                 [self addClientWithWorld:pickedWorldIdentifier];
             } else {
@@ -275,7 +275,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
         UINavigationController *nav = [picker wrappedNavigationController];
         //nav.delegate = self;
 
-        if( [[UIDevice currentDevice] isIPad] ) {
+        if( self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular ) {
             nav.modalPresentationStyle = UIModalPresentationPopover;
             nav.preferredContentSize = [picker preferredContentSize];
             UIPopoverPresentationController *popover = nav.popoverPresentationController;
