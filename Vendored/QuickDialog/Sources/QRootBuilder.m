@@ -195,7 +195,7 @@ NSDictionary *QRootBuilderStringToTypeConversionDict;
                                     nil], @"indicatorViewStyle",
 
                     [[NSDictionary alloc] initWithObjectsAndKeys:
-                                                        [NSNumber numberWithInt:UITableViewCellAccessoryDetailDisclosureButton], @"DetailDisclosureButton",
+                                                        [NSNumber numberWithInt:UITableViewCellAccessoryDetailButton], @"DetailDisclosureButton",
                                                         [NSNumber numberWithInt:UITableViewCellAccessoryCheckmark], @"Checkmark",
                                                         [NSNumber numberWithInt:UITableViewCellAccessoryDisclosureIndicator], @"DisclosureIndicator",
                                                         [NSNumber numberWithInt:UITableViewCellAccessoryNone], @"None",
