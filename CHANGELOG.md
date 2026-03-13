@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Replace isIPad device checks with size classes and trait collections (#24)
+- Replace deprecated UITableViewCellAccessoryDetailDisclosureButton in SSWorldCell (#19)
+- Replace hardcoded 320pt popover widths with adaptive sizing (#18)
+- UI modernization for iPad and Mac Catalyst (#17)
+- Scale SSRadialControl size adaptively for iPad and Mac (#21)
 - Keep sent command in input field with select-all for easy resend (#28)
 - Add GMCP support to telnet stack (#104)
 - Implement Client.Media.Play/Stop audio playback via GMCP (#107)
@@ -28,6 +33,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix libtelnet missing HAVE_ZLIB define causing MCCP2 gibberish (#56)
 
 ### Changed
+- Audit UISwitch tint color across all themes (#26)
+- Verify swiftlint passes (#27)
+- Add visionOS app icon to asset catalog for App Store submission (#29)
 - Restore historical update notes in updates.txt (#3)
 - Add mudrammer and rammer back to keywords (#2)
 - Update App Store text for MUDWammer rebrand (#1)
