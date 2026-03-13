@@ -118,7 +118,7 @@
 	fontNameLabel.font = [UIFont fontWithName:fontFamilyName size:18.0];
 
 	if ([[UIFont fontNamesForFamilyName:fontFamilyName] count] > 1) {
-		cell.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
+		cell.accessoryType = UITableViewCellAccessoryDetailButton;
 	}
 	else {
 		cell.accessoryType = UITableViewCellAccessoryNone;
