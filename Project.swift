@@ -80,6 +80,9 @@ let project = Project(
                     .string("UIInterfaceOrientationLandscapeLeft"),
                     .string("UIInterfaceOrientationLandscapeRight"),
                 ]),
+                "CFBundleIcons": .dictionary([
+                    "CFBundlePrimaryIcon": .string("AppIcon"),
+                ]),
                 "UILaunchStoryboardName": .string("LaunchScreen"),
                 "UIBackgroundModes": .array([
                     .string("audio"),
