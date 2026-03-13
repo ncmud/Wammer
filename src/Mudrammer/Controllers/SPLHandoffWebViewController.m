@@ -7,6 +7,7 @@
 //
 
 #import "SPLHandoffWebViewController.h"
+@import SPLUserActivity;
 
 #if !TARGET_OS_VISION
 @interface SPLHandoffWebViewController () <SFSafariViewControllerDelegate>

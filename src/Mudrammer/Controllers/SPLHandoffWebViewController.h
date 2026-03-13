@@ -7,7 +7,8 @@
 //
 
 @import SafariServices;
-@import SPLUserActivity;
+
+@class SPLWebActivity;
 
 @interface SPLHandoffWebViewController : SFSafariViewController
 
