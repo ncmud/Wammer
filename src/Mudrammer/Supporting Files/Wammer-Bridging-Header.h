@@ -4,10 +4,17 @@
 //
 
 @import UIKit;
+@import SSOperations;
 
 #import "SSMRConstants.h"
 #import "SPLNotificationManager.h"
 #import "SSThemes.h"
+#import "SSMUDSocket.h"
+#import "SSANSIEngine.h"
+#import "SSAttributedLineGroup.h"
+#import "SSStringCoder.h"
+#import "NSCharacterSet+SPLAdditions.h"
+#import "NSAttributedString+SPLAdditions.h"
 
 #import "SSWorldDisplayController.h"
 #import "SPLHandoffWebViewController.h"

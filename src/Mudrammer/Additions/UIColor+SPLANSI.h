@@ -40,6 +40,7 @@ typedef NS_ENUM(NSInteger, SPLSGRCode) {
     SPLSGRCodeUnderlineSingle =    4,
 
     SPLSGRCodeXTermMarker2 =       5,  // xterm-256
+    SPLSGRCodeXTermMarker2TrueColor = 2,  // truecolor (24-bit)
 
     SPLSGRCodeReverse =            7,
     SPLSGRCodeHidden =             8,
