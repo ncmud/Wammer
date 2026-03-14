@@ -1,9 +1,13 @@
 import ProjectDescription
 import Foundation
 
-let mthPackage: ProjectDescription.Package = FileManager.default.fileExists(atPath: "../mth/Package.swift")
-    ? .local(path: "../mth")
-    : .remote(url: "https://github.com/ncmud/mth.git", requirement: .exact("2.1.0"))
+let mthPackage: ProjectDescription.Package = {
+    let useLocal = ProcessInfo.processInfo.environment["TUIST_USE_LOCAL_MTH"] != nil
+        && FileManager.default.fileExists(atPath: "../mth/Package.swift")
+    return useLocal
+        ? .local(path: "../mth")
+        : .remote(url: "https://github.com/ncmud/mth.git", requirement: .exact("2.1.0"))
+}()
 
 let project = Project(
     name: "Wammer",

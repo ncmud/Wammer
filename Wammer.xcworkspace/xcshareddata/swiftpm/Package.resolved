@@ -1,0 +1,15 @@
+{
+  "originHash" : "2317d320f06074255048cdc379d22b008bd258e05c21138c12824f0f76199363",
+  "pins" : [
+    {
+      "identity" : "mth",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ncmud/mth.git",
+      "state" : {
+        "revision" : "a4d5294af3b0c717f52ae1ecb5d315b360c4a1db",
+        "version" : "2.1.0"
+      }
+    }
+  ],
+  "version" : 3
+}
