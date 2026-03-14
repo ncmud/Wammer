@@ -23,7 +23,6 @@ let project = Project(
         .local(path: "Vendored/JSQSystemSoundPlayer"),
         .local(path: "Vendored/DAKeyboardControl"),
         .local(path: "Vendored/JTSImageViewController"),
-        .local(path: "Vendored/VTAcknowledgementsViewController"),
         .local(path: "Vendored/QuickDialog"),
         .local(path: "Vendored/FXForms"),
         .local(path: "Vendored/SPLCore"),
@@ -119,7 +118,6 @@ let project = Project(
                 "src/Mudrammer/Supporting Files/it.lproj/**",
                 "src/Mudrammer/Images.xcassets",
                 "src/Mudrammer/Supporting Files/LaunchScreen.storyboard",
-                "src/Mudrammer/Supporting Files/Pods-acknowledgements.plist",
             ],
             entitlements: "src/Mudrammer/Supporting Files/MUDRammer.entitlements",
             dependencies: [
@@ -134,7 +132,6 @@ let project = Project(
                 .package(product: "JSQSystemSoundPlayer"),
                 .package(product: "DAKeyboardControl"),
                 .package(product: "JTSImageViewController"),
-                .package(product: "VTAcknowledgementsViewController"),
                 .package(product: "QuickDialog"),
                 .package(product: "FXForms"),
                 .package(product: "SPLCore"),

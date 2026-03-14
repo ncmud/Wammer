@@ -5,6 +5,7 @@
 "AUDIO" = "Audio";
 "AUDIO_SECTION_FOOTER" = "Set background music to play while connected to this world.";
 
+"ACKNOWLEDGEMENTS" = "Acknowledgements";
 "ACK_HEADER" = "Wammer is grateful for the following libraries and projects:";
 
 /* Separate multiple actions with a semicolon (;). */
