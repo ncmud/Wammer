@@ -12,7 +12,7 @@
 #import "SSStringCoder.h"
 #import "SSValueCell.h"
 #import "SSStringEncodingPicker.h"
-@import VTAcknowledgementsViewController;
+#import "Wammer-Swift.h"
 #import "SSTextEntryCell.h"
 @import Masonry;
 
@@ -103,7 +103,7 @@
                                            NSIndexPath *indexPath) {
         @strongify(self);
         if (indexPath.section == SSAdvancedSectionAcknowledgements) {
-            cell.textLabel.text = [VTAcknowledgementsViewController localizedTitle];
+            cell.textLabel.text = NSLocalizedString(@"ACKNOWLEDGEMENTS", nil);
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
             cell.selectionStyle = UITableViewCellSelectionStyleGray;
             [SSThemes configureCell:cell];
@@ -319,13 +319,7 @@
 
     if (indexPath.section == (NSInteger)[self.dataSource indexOfSectionWithIdentifier:@(SSAdvancedSectionAcknowledgements)]) {
 
-        VTAcknowledgementsViewController *ack = [[VTAcknowledgementsViewController alloc] initWithAcknowledgementsPlistPath:
-                                                 [[NSBundle mainBundle] pathForResource:@"Pods-acknowledgements"
-                                                                                 ofType:@"plist"]];
-
-        ack.headerText = NSLocalizedString(@"ACK_HEADER", nil);
-
-        ack.navigationItem.leftBarButtonItem = nil;
+        AcknowledgementsViewController *ack = [[AcknowledgementsViewController alloc] init];
 
         [self.navigationController pushViewController:ack
                                              animated:YES];

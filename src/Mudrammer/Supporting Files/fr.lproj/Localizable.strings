@@ -3,6 +3,7 @@
 "ADD_CONNECTION" = "Ajouter une connection";
 "ADVANCED" = "Avancé";
 
+"ACKNOWLEDGEMENTS" = "Remerciements";
 "ACK_HEADER" = "Wammer is grateful for the following libraries and projects:";
 
 /* Separate multiple actions with a semicolon (;). */
