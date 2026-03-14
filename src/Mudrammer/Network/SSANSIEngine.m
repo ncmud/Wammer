@@ -21,6 +21,10 @@ CG_INLINE BOOL SPLCodesAreXTermSequence(NSInteger code1, NSInteger code2) {
     return (code2 == SPLSGRCodeXTermMarker2 && (code1 == SPLSGRCodeXTermForeground || code1 == SPLSGRCodeXTermBackground));
 }
 
+CG_INLINE BOOL SPLCodesAreTrueColorSequence(NSInteger code1, NSInteger code2) {
+    return (code2 == SPLSGRCodeXTermMarker2TrueColor && (code1 == SPLSGRCodeXTermForeground || code1 == SPLSGRCodeXTermBackground));
+}
+
 CG_INLINE SPLSGRCode SPLIntenseColorForColor(SPLSGRCode color) {
     switch (color) {
         case SPLSGRCodeFgBlack:
@@ -230,20 +234,44 @@ CG_INLINE SPLSGRCode SPLIntenseColorForColor(SPLSGRCode color) {
     BOOL didColor = NO;
 
     if ([codes count] > 2) {
-        for (NSUInteger index = 0; index < [codes count]; index += 3) {
-            if (index + 2 >= [codes count]) {
-                break;
-            }
-
+        NSUInteger index = 0;
+        while (index + 2 < [codes count]) {
             NSInteger code1 = [codes[index] integerValue];
             NSInteger code2 = [codes[index + 1] integerValue];
             NSInteger code3 = [codes[index + 2] integerValue];
 
-            if (SPLCodesAreXTermSequence(code1, code2)) {
+            if (SPLCodesAreTrueColorSequence(code1, code2)) {
+                // 38;2;R;G;B or 48;2;R;G;B
+                if (index + 4 < [codes count]) {
+                    NSInteger r = code3;
+                    NSInteger g = [codes[index + 3] integerValue];
+                    NSInteger b = [codes[index + 4] integerValue];
+                    UIColor *trueColor = [UIColor colorWithRed:r / 255.0
+                                                        green:g / 255.0
+                                                         blue:b / 255.0
+                                                        alpha:1.0];
+                    BOOL isForeground = (code1 == SPLSGRCodeXTermForeground);
+                    if (options.isReverse) {
+                        isForeground = !isForeground;
+                    }
+                    if (isForeground) {
+                        self.lastColor = trueColor;
+                    } else {
+                        self.lastBGColor = trueColor;
+                    }
+                    didColor = YES;
+                    index += 5;
+                } else {
+                    break;
+                }
+            } else if (SPLCodesAreXTermSequence(code1, code2)) {
                 [self parseXtermColorForColor:code3
                                  isForeground:(code1 == SPLSGRCodeXTermForeground)
                                       options:options];
                 didColor = YES;
+                index += 3;
+            } else {
+                index++;
             }
         }
     }

@@ -1,10 +1,15 @@
 import ProjectDescription
+import Foundation
+
+let mthPackage: ProjectDescription.Package = FileManager.default.fileExists(atPath: "../mth/Package.swift")
+    ? .local(path: "../mth")
+    : .remote(url: "https://github.com/ncmud/mth.git", requirement: .exact("2.1.0"))
 
 let project = Project(
     name: "Wammer",
     packages: [
         .local(path: "Vendored/CocoaAsyncSocket"),
-        .local(path: "Vendored/libtelnet"),
+        mthPackage,
         .local(path: "Vendored/SAMRateLimit"),
         .local(path: "Vendored/KVOController"),
         .local(path: "Vendored/OSCache"),
@@ -110,11 +115,12 @@ let project = Project(
                 "src/Mudrammer/Supporting Files/it.lproj/**",
                 "src/Mudrammer/Images.xcassets",
                 "src/Mudrammer/Supporting Files/LaunchScreen.storyboard",
+                "src/Mudrammer/Supporting Files/Pods-acknowledgements.plist",
             ],
             entitlements: "src/Mudrammer/Supporting Files/MUDRammer.entitlements",
             dependencies: [
                 .package(product: "CocoaAsyncSocket"),
-                .package(product: "libtelnet"),
+                .package(product: "MTHClient"),
                 .package(product: "SAMRateLimit"),
                 .package(product: "KVOController"),
                 .package(product: "OSCache"),
