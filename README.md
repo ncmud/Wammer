@@ -4,6 +4,7 @@
 [![Swift](https://img.shields.io/badge/Swift-6.2-orange)](https://swift.org)
 [![Platform](https://img.shields.io/badge/platform-iOS%2026-blue)](https://developer.apple.com/ios/)
 [![Platform](https://img.shields.io/badge/platform-visionOS%2026-blue)](https://developer.apple.com/visionos/)
+[![TestFlight](https://img.shields.io/badge/TestFlight-Join%20Beta-blue?logo=apple)](https://testflight.apple.com/join/Tj85E2kU)
 ![It's dangerous!](https://img.shields.io/badge/You_are_likely_to_be_eaten_by_a-grue-red.svg)
 [![Take this.](https://img.shields.io/badge/get-lamp-yellow.svg)](http://getlamp.com)
 
