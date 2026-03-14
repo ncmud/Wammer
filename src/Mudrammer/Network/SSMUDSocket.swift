@@ -213,7 +213,7 @@ extension SSMUDSocket: TelnetClientDelegate {
     func onGMCPNegotiated() {
         telnetSession?.sendGMCP(
             module: "Core.Hello",
-            json: "{\"client\":\"Wammer\",\"version\":\"1.0.1\"}"
+            json: #"{"client":"Wammer","version":"\#(Bundle.main.appVersion)"}"#
         )
     }
 
