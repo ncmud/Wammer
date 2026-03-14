@@ -7,7 +7,7 @@
 //
 
 #import "UIApplication+Additions.h"
-#import <UIApplication+SSAdditions.h>
+#import "Wammer-Swift.h"
 
 @implementation UIApplication (Additions)
 
@@ -32,8 +32,8 @@
         ];
     });
 
-    return [NSString stringWithFormat:@"%@\n\n%@",
-            [UIApplication applicationNameVersionBuild],
+    return [NSString stringWithFormat:@"Wammer %@\n\n%@",
+            [NSBundle mainBundle].appVersion,
             extras[arc4random_uniform((uint32_t)[extras count])]];
 }
 
