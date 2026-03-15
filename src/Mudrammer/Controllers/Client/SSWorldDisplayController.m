@@ -331,7 +331,6 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
     newClient.delegate = self;
     UINavigationController *nav = [newClient wrappedNavigationController];
     nav.delegate = newClient;
-    nav.navigationBar.translucent = NO;
 
     BOOL isFirstWorld = [self numberOfClients] == 0;
 

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Clean up nav bar: move music to settings, conditional play/pause (#34)
 - Replace isIPad device checks with size classes and trait collections (#24)
 - Replace deprecated UITableViewCellAccessoryDetailDisclosureButton in SSWorldCell (#19)
 - Replace hardcoded 320pt popover widths with adaptive sizing (#18)
@@ -29,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add Swift model classes for World, Alias, Trigger, Gag, Ticker (#76)
 
 ### Fixed
+- Fix MSSP Server Status button not receiving taps in title view (#35)
+- Fix world select button on iPhone (toggleSidebar collapsed) (#33)
 - Fix crash in itemWithAttributedString: on empty string (#57)
 - Fix libtelnet missing HAVE_ZLIB define causing MCCP2 gibberish (#56)
 

@@ -157,6 +157,10 @@ class ClientContainer: UISplitViewController {
     }
 
     @objc func toggleSidebar() {
+        if isCollapsed {
+            show(.primary)
+            return
+        }
         #if os(visionOS)
         let shouldHide = displayMode == .oneBesideSecondary
         #else

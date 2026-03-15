@@ -254,6 +254,12 @@
                         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 
                         break;
+                    case SettingsRowMusic:
+
+                        cell.textLabel.text = NSLocalizedString(@"BACKGROUND_MUSIC", @"Background Music");
+                        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+
+                        break;
                     default:
                         break;
                 }
@@ -451,6 +457,12 @@
                 case SettingsRowThemes:
                     nextVC = [SSThemePickerController themePickerController];
 
+                    break;
+                case SettingsRowMusic:
+                    if ([del respondsToSelector:@selector(settingsViewShouldOpenMusicPicker:navigationController:)]) {
+                        [del settingsViewShouldOpenMusicPicker:self
+                                         navigationController:self.navigationController];
+                    }
                     break;
                 default:
                     break;

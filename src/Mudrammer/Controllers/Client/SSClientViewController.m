@@ -77,6 +77,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 @property (nonatomic, strong) UIBarButtonItem *editWorldButton;
 @property (nonatomic, strong) UIBarButtonItem *musicButton;
 @property (nonatomic, strong) UIBarButtonItem *playPauseButton;
+@property (nonatomic, strong) UIBarButtonItem *serverStatusButton;
 
 @property (nonatomic, strong) UIViewController *SSPopoverController;
 
@@ -167,6 +168,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                       [client sendNAWS];
                                   }];
         }
+
     }
 
     return self;
@@ -189,13 +191,14 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (UIRectEdge)edgesForExtendedLayout {
-    return UIRectEdgeBottom;
+    return UIRectEdgeAll;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
 
     [self setNavVisible:YES];
+    [self updateWorldToolbar];
 
     // Hacks around initial welcome on iPhone
     if ([self isConnected]) {
@@ -210,6 +213,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
         [[SPLNotificationManager shared] registerForLocalNotifications];
     }
 }
+
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
@@ -307,14 +311,26 @@ typedef void (^SPLSettingsCloseBlock) (void);
         self.connectButton.connectDelegate = self;
     }
 
+    BOOL isRegularWidth = self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular;
+
+    // On regular width, MSSP is shown as a bar button instead of a title subtitle
+    self.titleView.hidesMSSPSubtitle = isRegularWidth;
+    [self.titleView setMSSPData:self.titleView.MSSPData];
+
     NSMutableArray *leftItems = [NSMutableArray array];
 
     [leftItems addObject:self.settingsButton];
 
     if (currentWorldIdentifier) {
         [leftItems addObject:self.editWorldButton];
-        [leftItems addObject:self.musicButton];
-        [leftItems addObject:self.playPauseButton];
+
+        if (isRegularWidth) {
+            [leftItems addObject:self.musicButton];
+        }
+
+        if (self.gmcpHandler.isMusicPlaying || self.gmcpHandler.isMusicPaused) {
+            [leftItems addObject:self.playPauseButton];
+        }
     }
 
     self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
@@ -329,6 +345,16 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [rightItems addObject:connectBarButton];
 
     [rightItems addObject:[self.worldSelectButton wrappedBarButtonItem]];
+
+    if (isRegularWidth && self.titleView.MSSPData.count > 0) {
+        if (!self.serverStatusButton) {
+            _serverStatusButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"SERVER_STATUS", nil)
+                                                                   style:UIBarButtonItemStylePlain
+                                                                  target:self
+                                                                  action:@selector(tappedServerStatus:)];
+        }
+        [rightItems addObject:self.serverStatusButton];
+    }
 
     [self.navigationItem setRightBarButtonItems:rightItems
                                        animated:NO];
@@ -352,6 +378,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     // setup navbar
     [self updateWorldToolbar];
+
+    // rebuild toolbar when horizontal size class changes (e.g. rotation, multitasking)
+    [self registerForTraitChanges:@[UITraitHorizontalSizeClass.class]
+                      withAction:@selector(updateWorldToolbar)];
 }
 
 #pragma clang diagnostic push
@@ -608,6 +638,20 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 - (void)musicStateDidChange:(NSNotification *)note {
     [self updateMusicButtons];
+    [self updateWorldToolbar];
+}
+
+- (void)tappedServerStatus:(id)sender {
+    NSDictionary *data = self.titleView.MSSPData;
+    if (!data || data.count == 0) return;
+
+    SPLMSSPViewController *MSSPVC = [[SPLMSSPViewController alloc] initWithMSSPData:data];
+    MSSPVC.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                                                                                           target:self
+                                                                                           action:@selector(dismissMSSPViewController:)];
+    UINavigationController *nav = [MSSPVC wrappedNavigationController];
+    nav.modalPresentationStyle = UIModalPresentationFormSheet;
+    [self presentViewController:nav animated:YES completion:nil];
 }
 
 - (void)tappedWorldSelect:(id)sender {
@@ -720,6 +764,24 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 - (void)settingsViewShouldOpenContact:(SSSettingsViewController *)settingsViewController {
     [self closeSettingsWithCompletion:nil];
+}
+
+- (void)settingsViewShouldOpenMusicPicker:(SSSettingsViewController *)settingsViewController
+                     navigationController:(UINavigationController *)navigationController {
+    SSMusicPickerViewController *picker = [[SSMusicPickerViewController alloc] init];
+    picker.gmcpHandler = self.gmcpHandler;
+    picker.currentWorldIdentifier = currentWorldIdentifier;
+
+    if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassCompact) {
+        // On compact width, push onto the settings nav stack
+        picker.navigationItem.leftBarButtonItem = nil;
+        [navigationController pushViewController:picker animated:YES];
+    } else {
+        // On regular width (popover), dismiss settings then present music picker
+        [self closeSettingsWithCompletion:^{
+            [self tappedMusic:nil];
+        }];
+    }
 }
 
 - (void)settingsViewShouldSendSessionLog:(SSSettingsViewController *)settingsViewController {
@@ -1262,6 +1324,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
 - (void)mudsocket:(SSMUDSocket *)socket receivedMSSPData:(NSDictionary *)MSSPData {
     [self.titleView setMSSPData:MSSPData];
+    [self updateWorldToolbar];
 }
 
 - (void)mudsocket:(SSMUDSocket *)socket receivedGMCPModule:(NSString *)module data:(NSDictionary *)data {

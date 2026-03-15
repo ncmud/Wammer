@@ -23,6 +23,7 @@ typedef NS_ENUM( NSUInteger, SettingsSection ) {
 typedef NS_ENUM( NSUInteger, SettingsTopSectionRow ) {
     SettingsRowWorlds = 0,
     SettingsRowThemes,
+    SettingsRowMusic,
     SettingsTopNumRows
 };
 
@@ -62,5 +63,8 @@ typedef NS_ENUM( NSUInteger, SettingsAboutHelpRow ) {
 - (void) settingsViewShouldOpenAboutURL:(SSSettingsViewController *)settingsViewController;
 
 - (void) settingsViewShouldOpenContact:(SSSettingsViewController *)settingsViewController;
+
+- (void) settingsViewShouldOpenMusicPicker:(SSSettingsViewController *)settingsViewController
+                      navigationController:(UINavigationController *)navigationController;
 
 @end
