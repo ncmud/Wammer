@@ -22,15 +22,22 @@ class SSMusicPickerViewController: UITableViewController {
         SSThemes.configureTable(tableView)
         tracks = MusicLibrary.shared.musicTrackDictionaries
 
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .close,
-            target: self,
-            action: #selector(dismissPicker)
-        )
+        // Only show close button when presented modally (not pushed onto a nav stack)
+        if navigationController?.viewControllers.first === self || navigationController == nil {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(
+                barButtonSystemItem: .close,
+                target: self,
+                action: #selector(dismissPicker)
+            )
+        }
     }
 
     @objc private func dismissPicker() {
-        dismiss(animated: true)
+        if navigationController?.viewControllers.first !== self {
+            navigationController?.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
     }
 
     // MARK: - UITableViewDataSource
@@ -77,6 +84,6 @@ class SSMusicPickerViewController: UITableViewController {
             world.ambientMusicPath = path
             WorldStoreBridge.updateMUDWorld(world)
         }
-        dismiss(animated: true)
+        dismissPicker()
     }
 }

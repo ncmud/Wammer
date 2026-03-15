@@ -196,10 +196,11 @@ final class MusicLibrary: NSObject {
     // MARK: - Path Building
 
     /// Build the relative path within GMCPMedia/ for a track.
-    /// Mirrors the logic in GMCPMediaManager.cachePath(baseURL:name:).
+    /// Must mirror GMCPMediaManager.cachePath(baseURL:name:) exactly.
     static func buildRelativePath(hostname: String, name: String, baseURL: URL) -> String {
         var components: [String] = []
-        components.append(hostname)
+        // Use baseURL.host (not the hostname parameter) to match cachePath behavior.
+        if let host = baseURL.host { components.append(host) }
         let basePath = baseURL.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         if !basePath.isEmpty { components.append(basePath) }
         components.append(name)

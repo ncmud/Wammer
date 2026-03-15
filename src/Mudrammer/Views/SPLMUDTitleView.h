@@ -33,6 +33,12 @@
 - (void) setTitle:(NSString *)title;
 
 /**
+ *  When YES, hides the MSSP subtitle button even if MSSPData is set.
+ *  Use when MSSP is accessible via a separate bar button item.
+ */
+@property (nonatomic, assign) BOOL hidesMSSPSubtitle;
+
+/**
  *  Block called when there is MSSP data available and the button has been tapped.
  */
 @property (nonatomic, copy) void (^MSSPButtonBlock) (void);

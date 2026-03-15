@@ -20,6 +20,7 @@
 
 - (instancetype)initWithFrame:(CGRect)frame {
     if ((self = [super initWithFrame:frame])) {
+        self.clipsToBounds = NO;
 
         _titleLabel = [UILabel new];
         self.titleLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
@@ -41,6 +42,8 @@
                          forState:UIControlStateNormal];
         [self.MSSPButton.titleLabel setFont:[UIFont systemFontOfSize:13.f]];
 
+        self.MSSPButton.tintColor = [UIColor whiteColor];
+        [self.MSSPButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [self.MSSPButton addTarget:self
                            action:@selector(MSSPButtonTapped:)
                  forControlEvents:UIControlEventTouchUpInside];
@@ -55,6 +58,25 @@
     }
 }
 
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    // The MSSP button may render outside our bounds (nav bar can shrink the title view).
+    // Extend hit testing to include it.
+    if (self.MSSPButton.superview == self) {
+        CGPoint buttonPoint = [self convertPoint:point toView:self.MSSPButton];
+        if ([self.MSSPButton pointInside:buttonPoint withEvent:event]) {
+            return self.MSSPButton;
+        }
+    }
+    return [super hitTest:point withEvent:event];
+}
+
+- (CGSize)intrinsicContentSize {
+    if (self.MSSPData && self.MSSPData.count > 0) {
+        return CGSizeMake(UIViewNoIntrinsicMetric, 36);
+    }
+    return CGSizeMake(UIViewNoIntrinsicMetric, 22);
+}
+
 - (void)setTitle:(NSString *)title {
     self.titleLabel.text = title;
     [self setNeedsDisplay];
@@ -63,7 +85,7 @@
 - (void)setMSSPData:(NSDictionary *)MSSPData {
     _MSSPData = MSSPData;
 
-    if (MSSPData && [MSSPData count] > 0) {
+    if (MSSPData && [MSSPData count] > 0 && !self.hidesMSSPSubtitle) {
         [self.titleLabel mas_remakeConstraints:^(MASConstraintMaker *make) {
             make.left.and.right.and.top.equalTo(self);
             make.height.equalTo(@18);
@@ -83,6 +105,7 @@
         [self.MSSPButton removeFromSuperview];
     }
 
+    [self invalidateIntrinsicContentSize];
     [self setNeedsLayout];
 
     [UIView animateWithDuration:0.3f
