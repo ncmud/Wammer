@@ -22,7 +22,7 @@
 /**
  *  Multiconn world status button. Updated by SSWorldDisplayController.
  */
-@property (nonatomic, strong) UIButton *worldSelectButton;
+@property (nonatomic, strong) UIBarButtonItem *worldSelectButton;
 
 /**
  *  The mudview managed by this view controller.

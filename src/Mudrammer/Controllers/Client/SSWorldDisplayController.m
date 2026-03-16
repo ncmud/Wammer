@@ -558,12 +558,12 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
 
 - (UIImage *)worldSelectButtonImage {
 
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(36, 36), NO, 0.0);
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(24, 24), NO, 0.0);
 
-    [self drawStatusCircleForWorldAtIndex:0 inRect:CGRectMake(2, 2, 13, 13)];
-    [self drawStatusCircleForWorldAtIndex:1 inRect:CGRectMake(18, 2, 13, 13)];
-    [self drawStatusCircleForWorldAtIndex:2 inRect:CGRectMake(2, 18, 13, 13)];
-    [self drawStatusCircleForWorldAtIndex:3 inRect:CGRectMake(18, 18, 13, 13)];
+    [self drawStatusCircleForWorldAtIndex:0 inRect:CGRectMake(1, 1, 9, 9)];
+    [self drawStatusCircleForWorldAtIndex:1 inRect:CGRectMake(13, 1, 9, 9)];
+    [self drawStatusCircleForWorldAtIndex:2 inRect:CGRectMake(1, 13, 9, 9)];
+    [self drawStatusCircleForWorldAtIndex:3 inRect:CGRectMake(13, 13, 9, 9)];
 
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
 
@@ -583,8 +583,7 @@ forHeaderFooterViewReuseIdentifier:[SSBaseHeaderFooterView identifier]];
                 continue;
             }
 
-            [client.worldSelectButton setImage:newImage
-                                      forState:UIControlStateNormal];
+            client.worldSelectButton.image = [newImage imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         }
     }
 }

@@ -14,7 +14,7 @@
 #import "SSWorldEditViewController.h"
 #import "SPLNotificationManager.h"
 #import "SSMUDSocket.h"
-#import "SSConnectButton.h"
+#import "SPLAlerts.h"
 #import "SSSessionLogger.h"
 @import TTTAttributedLabel;
 #import "SSWorldListViewController.h"
@@ -50,6 +50,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (void) editCurrentWorld:(id)sender;
 - (void) tappedSettings:(id)sender;
 - (void) tappedWorldSelect:(id)sender;
+- (void) tappedConnect:(id)sender;
 
 // send text
 - (void) sendText:(NSString *)text appendToHistory:(BOOL)appendToHistory;
@@ -67,7 +68,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 @property (nonatomic, strong) SPLWorldTickerManager *tickerManager;
 @property (nonatomic, strong) SSSessionLogger *logger;
 
-@property (nonatomic, strong) SSConnectButton *connectButton;
+@property (nonatomic, strong) UIBarButtonItem *connectBarButton;
 @property (nonatomic, strong) SPLMUDTitleView *titleView;
 
 @property (nonatomic, strong) GMCPHandler *gmcpHandler;
@@ -231,7 +232,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self.socket disconnect];
     _socket = nil;
 
-    self.connectButton.connectDelegate = nil;
     _SSPopoverController = nil;
 
     _delegate = nil;
@@ -289,26 +289,23 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self updateMusicButtons];
 
     if (!self.worldSelectButton) {
-        // DRAWS ON MAIN THREAD
-        UIImage *worldSelectImage = [[self worldDisplay] worldSelectButtonImage];
-
-        _worldSelectButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self.worldSelectButton addTarget:self
-                                   action:@selector(tappedWorldSelect:)
-                         forControlEvents:UIControlEventTouchUpInside];
-
-        [self.worldSelectButton setImage:worldSelectImage
-                                forState:UIControlStateNormal];
-
-        [self.worldSelectButton setFrame:CGRectMake(0, 0, 40, 40)];
-
+        UIImage *worldSelectImage = [[[self worldDisplay] worldSelectButtonImage] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        _worldSelectButton = [[UIBarButtonItem alloc] initWithImage:worldSelectImage
+                                                              style:UIBarButtonItemStylePlain
+                                                             target:self
+                                                             action:@selector(tappedWorldSelect:)];
         self.worldSelectButton.accessibilityLabel = NSLocalizedString(@"SESSION_SELECT", nil);
         self.worldSelectButton.accessibilityHint = @"Shows the currently connected Worlds.";
     }
 
-    if (!self.connectButton) {
-        _connectButton = [SSConnectButton new];
-        self.connectButton.connectDelegate = self;
+    if (!self.connectBarButton) {
+        UIImage *connectImage = [[SPLImagesCatalog connectRedImage] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        _connectBarButton = [[UIBarButtonItem alloc] initWithImage:connectImage
+                                                             style:UIBarButtonItemStylePlain
+                                                            target:self
+                                                            action:@selector(tappedConnect:)];
+        self.connectBarButton.accessibilityLabel = NSLocalizedString(@"CONNECT", nil);
+        self.connectBarButton.accessibilityHint = @"Connects to this World.";
     }
 
     BOOL isRegularWidth = self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular;
@@ -340,11 +337,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     NSMutableArray *rightItems = [NSMutableArray array];
 
-    UIBarButtonItem *connectBarButton = [self.connectButton wrappedBarButtonItem];
-    self.connectButton.targetBarButton = connectBarButton;
-    [rightItems addObject:connectBarButton];
-
-    [rightItems addObject:[self.worldSelectButton wrappedBarButtonItem]];
+    [rightItems addObject:self.connectBarButton];
+    [rightItems addObject:self.worldSelectButton];
 
     if (isRegularWidth && self.titleView.MSSPData.count > 0) {
         if (!self.serverStatusButton) {
@@ -375,6 +369,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                                         ? [SPLImagesCatalog tildeWhiteImage]
                                                         : [SPLImagesCatalog tildeDarkImage])
                                                  alpha:0.5f];
+
+#if TARGET_OS_MACCATALYST
+    self.navigationController.navigationBar.preferredBehavioralStyle = UIBehavioralStylePad;
+#endif
 
     // setup navbar
     [self updateWorldToolbar];
@@ -853,7 +851,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
              isUserInput:NO];
     }
 
-    [self.connectButton setConnected:[self isConnected]];
+    [self setConnectedState:[self isConnected]];
 }
 
 - (BOOL)isConnected {
@@ -868,6 +866,38 @@ typedef void (^SPLSettingsCloseBlock) (void);
     self.socket.delegate = nil;
     [self.socket disconnect];
     _socket = nil;
+}
+
+- (void)setConnectedState:(BOOL)connected {
+    UIImage *image;
+    if (connected) {
+        image = [SPLImagesCatalog connectGreenImage];
+        self.connectBarButton.accessibilityLabel = NSLocalizedString(@"DISCONNECT", nil);
+        self.connectBarButton.accessibilityHint = @"Disconnects from this World.";
+    } else {
+        image = [SPLImagesCatalog connectRedImage];
+        self.connectBarButton.accessibilityLabel = NSLocalizedString(@"CONNECT", nil);
+        self.connectBarButton.accessibilityHint = @"Connects to this World.";
+    }
+    self.connectBarButton.image = [image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+}
+
+- (void)tappedConnect:(id)sender {
+    if ([self isConnected]) {
+        [SPLAlerts SPLShowActionViewWithTitle:nil
+                                 cancelTitle:NSLocalizedString(@"CANCEL", @"Cancel")
+                                 cancelBlock:nil
+                            destructiveTitle:NSLocalizedString(@"DISCONNECT", @"Disconnect")
+                            destructiveBlock:^{
+                                [self.socket disconnect];
+                            }
+                               barButtonItem:self.connectBarButton
+                                  sourceView:nil
+                                  sourceRect:CGRectZero
+                       presentingController:self];
+    } else {
+        [self connect];
+    }
 }
 
 - (void)clearText {
@@ -1088,7 +1118,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             [self.titleView setMSSPData:nil];
 
-            [self.connectButton setConnected:YES];
+            [self setConnectedState:YES];
 
             [self.mudView.tableView scrollToBottom];
 
@@ -1186,7 +1216,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             [self setNavVisible:YES];
 
-            [self.connectButton setConnected:NO];
+            [self setConnectedState:NO];
             [self.mudView setEditable:NO];
 
             [self.mudView appendTTS:[NSString stringWithFormat:@"Disconnected from %@", self.hostname]];

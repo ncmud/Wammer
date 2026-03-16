@@ -10,12 +10,9 @@
 @import JTSImageViewController;
 @import TTTAttributedLabel;
 
-#import "SSConnectButton.h"
-
 @interface SSClientViewController (Interactions) <
 JTSImageViewControllerInteractionsDelegate,
 JTSImageViewControllerOptionsDelegate,
-SSConnectButtonDelegate,
 TTTAttributedLabelDelegate
 >
 

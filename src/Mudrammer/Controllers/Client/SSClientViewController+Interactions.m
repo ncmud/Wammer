@@ -65,16 +65,6 @@
     return 5.f;
 }
 
-#pragma mark - SSConnectButtonDelegate
-
-- (void)connectButton:(SSConnectButton *)button didChangeState:(BOOL)connected {
-    if ([self isConnected]) {
-        [self.socket disconnect];
-    } else {
-        [self connect];
-    }
-}
-
 #pragma mark - UIKeyCommand
 
 - (void)keyCommandCycleActiveConnections:(UIKeyCommand *)sender {
