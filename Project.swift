@@ -6,7 +6,7 @@ let mthPackage: ProjectDescription.Package = {
         && FileManager.default.fileExists(atPath: "../mth/Package.swift")
     return useLocal
         ? .local(path: "../mth")
-        : .remote(url: "https://github.com/ncmud/mth.git", requirement: .exact("2.1.0"))
+        : .remote(url: "https://github.com/ncmud/mth.git", requirement: .exact("2.1.1"))
 }()
 
 let project = Project(
