@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fix libtelnet missing HAVE_ZLIB define causing MCCP2 gibberish (#56)
 
 ### Changed
+- Apply PR #15 review feedback: wait patterns, locale pinning, openSettings helper (#69)
 - performAccessibilityAudit smoke tests per major screen with allow-list (#49)
 - Add WammerUITests Tuist target with empty smoke test (#48)
 - Audit UISwitch tint color across all themes (#26)
