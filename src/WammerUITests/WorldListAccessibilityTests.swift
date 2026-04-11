@@ -16,29 +16,30 @@ final class WorldListAccessibilityTests: XCTestCase {
     }
 
     func testWorldListPassesAccessibilityAudit() throws {
-        let app = XCUIApplication()
-        app.launchArguments += ["-InitialSetupComplete", "YES"]
+        let app = XCUIApplication.configuredForAudit(skipWelcomeModal: true)
         app.launch()
         XCTAssertEqual(app.state, .runningForeground)
 
-        // Settings is modal and wraps its content in a nav controller.
-        let settingsButton = app.buttons["Settings"].firstMatch
+        // Open settings. `openSettings` also waits for the "Worlds" drill-down
+        // row to appear — which is exactly the row we're about to tap, so the
+        // wait does double duty here.
         XCTAssertTrue(
-            settingsButton.waitForExistence(timeout: 5),
-            "Settings bar button should be present on the client view"
+            app.openSettings(),
+            "Settings should open successfully"
         )
-        settingsButton.tap()
-        Thread.sleep(forTimeInterval: 0.75)
 
         // Drill into the Worlds row. Label is NSLocalizedString(@"WORLDS", …)
-        // which resolves to "Worlds" in en.lproj.
-        let worldsCell = app.cells.staticTexts["Worlds"].firstMatch
+        // which resolves to "Worlds" in en.lproj (locale pinned above).
+        app.cells.staticTexts["Worlds"].firstMatch.tap()
+
+        // Wait for the world list to settle, detected by the "New World" add
+        // bar button (rightBarButtonItem on SSWorldListViewController) becoming
+        // existent. This button is unique to the world list — unlike "Worlds"
+        // itself, which is reused for the settings drill-down row.
         XCTAssertTrue(
-            worldsCell.waitForExistence(timeout: 3),
-            "Worlds row should be present in the settings list"
+            app.buttons["New World"].firstMatch.waitForExistence(timeout: 3),
+            "World list should settle after tapping Worlds"
         )
-        worldsCell.tap()
-        Thread.sleep(forTimeInterval: 0.75)
 
         try AccessibilityAudit.run(
             on: app,

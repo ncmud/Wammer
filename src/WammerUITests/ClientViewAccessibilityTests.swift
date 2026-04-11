@@ -14,8 +14,7 @@ final class ClientViewAccessibilityTests: XCTestCase {
     }
 
     func testDisconnectedClientViewPassesAccessibilityAudit() throws {
-        let app = XCUIApplication()
-        app.launchArguments += ["-InitialSetupComplete", "YES"]
+        let app = XCUIApplication.configuredForAudit(skipWelcomeModal: true)
         app.launch()
         XCTAssertEqual(app.state, .runningForeground)
 

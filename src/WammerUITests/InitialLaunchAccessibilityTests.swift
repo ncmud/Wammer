@@ -13,7 +13,7 @@ final class InitialLaunchAccessibilityTests: XCTestCase {
     }
 
     func testInitialScreenPassesAccessibilityAudit() throws {
-        let app = XCUIApplication()
+        let app = XCUIApplication.configuredForAudit(skipWelcomeModal: false)
         app.launch()
         XCTAssertEqual(app.state, .runningForeground)
 

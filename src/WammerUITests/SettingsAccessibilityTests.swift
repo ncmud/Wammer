@@ -15,25 +15,17 @@ final class SettingsAccessibilityTests: XCTestCase {
     }
 
     func testSettingsRootPassesAccessibilityAudit() throws {
-        let app = XCUIApplication()
-        app.launchArguments += ["-InitialSetupComplete", "YES"]
+        let app = XCUIApplication.configuredForAudit(skipWelcomeModal: true)
         app.launch()
         XCTAssertEqual(app.state, .runningForeground)
 
-        // Tap the Settings bar button to open SSSettingsViewController modally.
-        // The button's accessibilityLabel is NSLocalizedString(@"SETTINGS", nil)
-        // which resolves to "Settings" in en.lproj.
-        let settingsButton = app.buttons["Settings"].firstMatch
+        // Tap the Settings bar button and wait for the settings root to settle.
+        // `openSettings` uses the "Worlds" drill-down row as its post-tap
+        // existence signal, replacing the previous fixed 0.75 s sleep.
         XCTAssertTrue(
-            settingsButton.waitForExistence(timeout: 5),
-            "Settings bar button should be present on the client view"
+            app.openSettings(),
+            "Settings should open successfully"
         )
-        settingsButton.tap()
-
-        // Give the modal presentation animation time to complete.
-        // Settings is pushed inside a UINavigationController wrapper, so the
-        // visible hierarchy changes from the client view to the settings list.
-        Thread.sleep(forTimeInterval: 0.75)
 
         try AccessibilityAudit.run(
             on: app,

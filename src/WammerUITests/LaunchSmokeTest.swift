@@ -12,7 +12,7 @@ final class LaunchSmokeTest: XCTestCase {
     }
 
     func testAppLaunchesToForeground() {
-        let app = XCUIApplication()
+        let app = XCUIApplication.configuredForAudit(skipWelcomeModal: false)
         app.launch()
         XCTAssertEqual(app.state, .runningForeground, "App should reach the foreground after launch")
     }
