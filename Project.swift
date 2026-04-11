@@ -196,5 +196,18 @@ let project = Project(
                 ]
             )
         ),
+        .target(
+            name: "WammerUITests",
+            destinations: .iOS,
+            product: .uiTests,
+            bundleId: "org.ncmud.wammer.uitests",
+            infoPlist: "src/WammerUITests/Info.plist",
+            sources: [
+                "src/WammerUITests/**",
+            ],
+            dependencies: [
+                .target(name: "Wammer"),
+            ]
+        ),
     ]
 )
