@@ -16,6 +16,8 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
 
     @objc var isSecure = false
 
+    @objc var initialCharSize: CGSize = CGSize(width: 80, height: 24)
+
     @objc var shouldEchoText: Bool {
         guard let session = telnetSession else { return true }
         return !session.serverEcho
@@ -88,11 +90,14 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
     }
 
     func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
+        let initialWidth = max(1, Int(initialCharSize.width))
+        let initialHeight = max(1, Int(initialCharSize.height))
+
         telnetSession = TelnetClientSession(
             delegate: self,
             terminalType: "Wammer",
-            windowWidth: 80,
-            windowHeight: 24,
+            windowWidth: initialWidth,
+            windowHeight: initialHeight,
             mttsFlags: 271
         )
 

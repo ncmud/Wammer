@@ -43,7 +43,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (SSClientViewController *) init;
 
 // socket
-- (void) sendNAWS;
+- (void) sendNAWSIfChanged;
 
 // user actions
 - (void) voiceOverStatusDidChange:(NSNotification *)note;
@@ -101,6 +101,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     // status bar visibility
     BOOL _shouldHideStatusBar;
+
+    // last NAWS subnegotiation sent to server (0 means none yet)
+    NSUInteger _lastSentNAWSCols;
+    NSUInteger _lastSentNAWSRows;
 }
 
 #pragma mark - init
@@ -166,7 +170,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 #if !TARGET_OS_VISION
                                       [client setNeedsStatusBarAppearanceUpdate];
 #endif
-                                      [client sendNAWS];
+                                      [client sendNAWSIfChanged];
                                   }];
         }
 
@@ -382,14 +386,21 @@ typedef void (^SPLSettingsCloseBlock) (void);
                       withAction:@selector(updateWorldToolbar)];
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
-- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
-    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
 
-    [self sendNAWS];
+    [self sendNAWSIfChanged];
 }
-#pragma clang diagnostic pop
+
+- (void)viewWillTransitionToSize:(CGSize)size
+       withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+    [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+
+    [coordinator animateAlongsideTransition:nil
+                                 completion:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
+        [self sendNAWSIfChanged];
+    }];
+}
 
 #if !TARGET_OS_VISION
 - (BOOL)prefersStatusBarHidden {
@@ -842,6 +853,18 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     self.socket.isSecure = self.isSecure;
 
+    // Reset NAWS dedup state so a fresh session always re-sends the
+    // initial size (-disconnect nils the delegate, so the disconnect
+    // callback that would otherwise reset these never fires).
+    _lastSentNAWSCols = 0;
+    _lastSentNAWSRows = 0;
+
+    CGSize charSize = [self.mudView.tableView charSize];
+    if (isfinite(charSize.width) && isfinite(charSize.height)
+        && charSize.width >= 1 && charSize.height >= 1) {
+        self.socket.initialCharSize = charSize;
+    }
+
     BOOL connected = [self.socket connectToHostname:self.hostname
                                              onPort:[self.port unsignedIntegerValue]
                                               error:&err];
@@ -1074,10 +1097,28 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self.writeQueue ss_addBlockOperationWithBlock:writeBlock];
 }
 
-- (void)sendNAWS {
-    if ([self isConnected]) {
-        [self.socket sendNAWSWithSize:[self.mudView.tableView charSize]];
+- (void)sendNAWSIfChanged {
+    if (![self isConnected]) {
+        return;
     }
+
+    CGSize size = [self.mudView.tableView charSize];
+    if (!isfinite(size.width) || !isfinite(size.height)
+        || size.width < 1 || size.height < 1) {
+        return;
+    }
+
+    NSUInteger cols = (NSUInteger)size.width;
+    NSUInteger rows = (NSUInteger)size.height;
+
+    if (cols == _lastSentNAWSCols && rows == _lastSentNAWSRows) {
+        return;
+    }
+
+    _lastSentNAWSCols = cols;
+    _lastSentNAWSRows = rows;
+
+    [self.socket sendNAWSWithSize:CGSizeMake((CGFloat)cols, (CGFloat)rows)];
 }
 
 #pragma mark - socket delegate
@@ -1207,6 +1248,9 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             if( [operation isCancelled] )
                 return;
+
+            self->_lastSentNAWSCols = 0;
+            self->_lastSentNAWSRows = 0;
 
             [self appendText:str isUserInput:NO];
 
