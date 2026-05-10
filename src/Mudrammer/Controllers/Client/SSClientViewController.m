@@ -1089,6 +1089,8 @@ typedef void (^SPLSettingsCloseBlock) (void);
 }
 
 - (CGSize)mudsocketCurrentCharSize:(SSMUDSocket *)socket {
+    // Resolve layout so charSize is accurate before telnet negotiation begins.
+    [self.view layoutIfNeeded];
     return [self.mudView.tableView charSize];
 }
 

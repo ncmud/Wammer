@@ -50,6 +50,15 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
            pulled.width.isFinite, pulled.height.isFinite,
            pulled.width >= 1, pulled.height >= 1 {
             pendingInitialCharSize = pulled
+            #if DEBUG
+            NSLog("NAWS: pulled initial char size from delegate: %dx%d",
+                  Int(pulled.width), Int(pulled.height))
+            #endif
+        } else {
+            #if DEBUG
+            NSLog("NAWS: delegate returned no usable char size; falling back to %dx%d",
+                  Int(pendingInitialCharSize.width), Int(pendingInitialCharSize.height))
+            #endif
         }
 
         resetDedup()
@@ -88,7 +97,12 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
 
     @objc(sendNAWSWithSize:) func sendNAWS(with size: CGSize) {
         guard size.width.isFinite, size.height.isFinite,
-              size.width >= 1, size.height >= 1 else { return }
+              size.width >= 1, size.height >= 1 else {
+            #if DEBUG
+            NSLog("NAWS: rejected request with invalid size %@", NSCoder.string(for: size))
+            #endif
+            return
+        }
         let cols = Int(size.width)
         let rows = Int(size.height)
 
@@ -97,8 +111,18 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
             defer { dedupLock.unlock() }
             return dedup.shouldSend(cols: cols, rows: rows)
         }()
-        guard shouldSend else { return }
+        guard shouldSend else {
+            #if DEBUG
+            NSLog("NAWS: dedup suppressed %dx%d (matches last sent)", cols, rows)
+            #endif
+            return
+        }
 
+        #if DEBUG
+        let connected = telnetSession != nil
+        NSLog("NAWS: sending %dx%d (telnetSession=%@)",
+              cols, rows, connected ? "active" : "nil")
+        #endif
         telnetSession?.sendWindowSize(width: cols, height: rows)
     }
 
@@ -141,6 +165,11 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
         // Seed the dedup so a redundant sendNAWS from the first viewDidLayoutSubviews
         // (which often matches the size we just baked into the session) is suppressed.
         seedDedup(cols: initialWidth, rows: initialHeight)
+
+        #if DEBUG
+        NSLog("NAWS: connected to %@:%d, initial telnet window baked to %dx%d (dedup seeded)",
+              host, port, initialWidth, initialHeight)
+        #endif
 
         ansiEngine.defaultTextColor = SSThemes.sharedThemer().value(forThemeKey: kThemeFontColor) as? UIColor
         dataCache = ""
