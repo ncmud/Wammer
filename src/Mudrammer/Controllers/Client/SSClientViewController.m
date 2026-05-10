@@ -43,7 +43,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (SSClientViewController *) init;
 
 // socket
-- (void) sendNAWSIfChanged;
+- (void) sendNAWS;
 
 // user actions
 - (void) voiceOverStatusDidChange:(NSNotification *)note;
@@ -101,10 +101,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     // status bar visibility
     BOOL _shouldHideStatusBar;
-
-    // last NAWS subnegotiation sent to server (0 means none yet)
-    NSUInteger _lastSentNAWSCols;
-    NSUInteger _lastSentNAWSRows;
 }
 
 #pragma mark - init
@@ -170,7 +166,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 #if !TARGET_OS_VISION
                                       [client setNeedsStatusBarAppearanceUpdate];
 #endif
-                                      [client sendNAWSIfChanged];
+                                      [client sendNAWS];
                                   }];
         }
 
@@ -389,7 +385,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
 
-    [self sendNAWSIfChanged];
+    [self sendNAWS];
 }
 
 - (void)viewWillTransitionToSize:(CGSize)size
@@ -398,7 +394,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     [coordinator animateAlongsideTransition:nil
                                  completion:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
-        [self sendNAWSIfChanged];
+        [self sendNAWS];
     }];
 }
 
@@ -853,18 +849,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     self.socket.isSecure = self.isSecure;
 
-    // Reset NAWS dedup state so a fresh session always re-sends the
-    // initial size (-disconnect nils the delegate, so the disconnect
-    // callback that would otherwise reset these never fires).
-    _lastSentNAWSCols = 0;
-    _lastSentNAWSRows = 0;
-
-    CGSize charSize = [self.mudView.tableView charSize];
-    if (isfinite(charSize.width) && isfinite(charSize.height)
-        && charSize.width >= 1 && charSize.height >= 1) {
-        self.socket.initialCharSize = charSize;
-    }
-
     BOOL connected = [self.socket connectToHostname:self.hostname
                                              onPort:[self.port unsignedIntegerValue]
                                               error:&err];
@@ -1097,28 +1081,15 @@ typedef void (^SPLSettingsCloseBlock) (void);
     [self.writeQueue ss_addBlockOperationWithBlock:writeBlock];
 }
 
-- (void)sendNAWSIfChanged {
+- (void)sendNAWS {
     if (![self isConnected]) {
         return;
     }
+    [self.socket sendNAWSWithSize:[self.mudView.tableView charSize]];
+}
 
-    CGSize size = [self.mudView.tableView charSize];
-    if (!isfinite(size.width) || !isfinite(size.height)
-        || size.width < 1 || size.height < 1) {
-        return;
-    }
-
-    NSUInteger cols = (NSUInteger)size.width;
-    NSUInteger rows = (NSUInteger)size.height;
-
-    if (cols == _lastSentNAWSCols && rows == _lastSentNAWSRows) {
-        return;
-    }
-
-    _lastSentNAWSCols = cols;
-    _lastSentNAWSRows = rows;
-
-    [self.socket sendNAWSWithSize:CGSizeMake((CGFloat)cols, (CGFloat)rows)];
+- (CGSize)mudsocketCurrentCharSize:(SSMUDSocket *)socket {
+    return [self.mudView.tableView charSize];
 }
 
 #pragma mark - socket delegate
@@ -1248,9 +1219,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
             if( [operation isCancelled] )
                 return;
-
-            self->_lastSentNAWSCols = 0;
-            self->_lastSentNAWSRows = 0;
 
             [self appendText:str isUserInput:NO];
 
