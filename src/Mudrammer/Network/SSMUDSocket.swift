@@ -16,7 +16,9 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
 
     @objc var isSecure = false
 
-    @objc var initialCharSize: CGSize = CGSize(width: 80, height: 24)
+    private var dedup = NAWSDeduplicator()
+    private let dedupLock = NSLock()
+    private var pendingInitialCharSize = CGSize(width: 80, height: 24)
 
     @objc var shouldEchoText: Bool {
         guard let session = telnetSession else { return true }
@@ -41,6 +43,17 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
     // MARK: - Connection Lifecycle
 
     @objc func connect(toHostname hostname: String, onPort port: UInt, error: NSErrorPointer) -> Bool {
+        // Pull the current cell-grid from the delegate (on the caller's thread,
+        // expected to be main) so the initial NAWS subnegotiation reflects the
+        // real terminal size and not an 80x24 placeholder.
+        if let pulled = delegate?.mudsocketCurrentCharSize?(self),
+           pulled.width.isFinite, pulled.height.isFinite,
+           pulled.width >= 1, pulled.height >= 1 {
+            pendingInitialCharSize = pulled
+        }
+
+        resetDedup()
+
         do {
             try socket.connect(toHost: hostname, onPort: UInt16(port), withTimeout: 30)
             return true
@@ -74,7 +87,31 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
     }
 
     @objc(sendNAWSWithSize:) func sendNAWS(with size: CGSize) {
-        telnetSession?.sendWindowSize(width: Int(size.width), height: Int(size.height))
+        guard size.width.isFinite, size.height.isFinite,
+              size.width >= 1, size.height >= 1 else { return }
+        let cols = Int(size.width)
+        let rows = Int(size.height)
+
+        let shouldSend: Bool = {
+            dedupLock.lock()
+            defer { dedupLock.unlock() }
+            return dedup.shouldSend(cols: cols, rows: rows)
+        }()
+        guard shouldSend else { return }
+
+        telnetSession?.sendWindowSize(width: cols, height: rows)
+    }
+
+    private func resetDedup() {
+        dedupLock.lock()
+        dedup.reset()
+        dedupLock.unlock()
+    }
+
+    private func seedDedup(cols: Int, rows: Int) {
+        dedupLock.lock()
+        _ = dedup.shouldSend(cols: cols, rows: rows)
+        dedupLock.unlock()
     }
 
     // MARK: - GCDAsyncSocketDelegate
@@ -90,8 +127,8 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
     }
 
     func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
-        let initialWidth = max(1, Int(initialCharSize.width))
-        let initialHeight = max(1, Int(initialCharSize.height))
+        let initialWidth = max(1, Int(pendingInitialCharSize.width))
+        let initialHeight = max(1, Int(pendingInitialCharSize.height))
 
         telnetSession = TelnetClientSession(
             delegate: self,
@@ -100,6 +137,10 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
             windowHeight: initialHeight,
             mttsFlags: 271
         )
+
+        // Seed the dedup so a redundant sendNAWS from the first viewDidLayoutSubviews
+        // (which often matches the size we just baked into the session) is suppressed.
+        seedDedup(cols: initialWidth, rows: initialHeight)
 
         ansiEngine.defaultTextColor = SSThemes.sharedThemer().value(forThemeKey: kThemeFontColor) as? UIColor
         dataCache = ""
@@ -125,6 +166,7 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
         parsingQueue.ss_addBlockOperation { [weak self] _ in
             guard let self else { return }
             self.telnetSession = nil
+            self.resetDedup()
             let del = self.delegate
             if del?.responds(to: #selector(SSMUDSocketDelegate.mudsocket(_:didDisconnectWithError:))) == true {
                 DispatchQueue.global(qos: .default).async {
