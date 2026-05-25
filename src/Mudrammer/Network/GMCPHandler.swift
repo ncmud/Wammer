@@ -5,6 +5,7 @@ import Foundation
 final class GMCPHandler: NSObject {
     let characterState = GMCPCharacterState()
     let roomState = GMCPRoomState()
+    let chatCapture = GMCPChatCapture()
     private let mediaManager = GMCPMediaManager()
 
     /// Set the MUD server hostname so downloaded media can be attributed to the correct server.
@@ -57,6 +58,8 @@ final class GMCPHandler: NSObject {
             mediaManager.play(data: data)
         case "client.media.stop":
             mediaManager.stop(data: data)
+        case "comm.channel.text", "comm.channel":
+            chatCapture.ingest(module: module, data: data)
         default:
             NSLog("GMCP unhandled module: %@", module)
         }

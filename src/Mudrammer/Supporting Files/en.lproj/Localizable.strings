@@ -35,6 +35,10 @@
 "CHARACTER_BAR" = "Character Bar";
 "CHARACTER_BAR_HELP" = "Fast access to special keys while typing.";
 
+"CHAT_LOG" = "Chat Log";
+"CHAT_LOG_TITLE" = "Chat";
+"CHAT_LOG_CLEAR" = "Clear";
+
 "COMMANDS" = "Command(s)";
 
 "COMMAND_STASH" = "Typing stash";
