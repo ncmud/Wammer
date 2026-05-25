@@ -23,15 +23,18 @@ final class ChatViewController: UIViewController {
     }
 
     /// Present the chat log as a sheet (medium/large detents) wrapped in a navigation controller.
+    /// visionOS uses its own modal presentation style and does not support `UISheetPresentationController` detents.
     @objc static func presentSheet(from presenter: UIViewController, chatCapture: GMCPChatCapture) {
         let vc = ChatViewController(chatCapture: chatCapture)
         let nav = UINavigationController(rootViewController: vc)
         nav.modalPresentationStyle = .pageSheet
+        #if !os(visionOS)
         if let sheet = nav.sheetPresentationController {
             sheet.detents = [.medium(), .large()]
             sheet.prefersGrabberVisible = true
             sheet.selectedDetentIdentifier = .medium
         }
+        #endif
         presenter.present(nav, animated: true)
     }
 
