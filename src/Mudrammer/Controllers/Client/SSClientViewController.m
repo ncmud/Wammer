@@ -347,10 +347,6 @@ typedef void (^SPLSettingsCloseBlock) (void);
         if (self.gmcpHandler.isMusicPlaying || self.gmcpHandler.isMusicPaused) {
             [leftItems addObject:self.playPauseButton];
         }
-
-        if (self.gmcpHandler.chatCapture.hasReceivedChat) {
-            [leftItems addObject:self.chatButton];
-        }
     }
 
     self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
@@ -362,6 +358,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
     [rightItems addObject:self.connectBarButton];
     [rightItems addObject:self.worldSelectButton];
+
+    if (currentWorldIdentifier && self.gmcpHandler.chatCapture.hasReceivedChat) {
+        [rightItems addObject:self.chatButton];
+    }
 
     if (isRegularWidth && self.titleView.MSSPData.count > 0) {
         if (!self.serverStatusButton) {
