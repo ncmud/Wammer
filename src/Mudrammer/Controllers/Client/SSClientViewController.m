@@ -79,6 +79,7 @@ typedef void (^SPLSettingsCloseBlock) (void);
 @property (nonatomic, strong) UIBarButtonItem *musicButton;
 @property (nonatomic, strong) UIBarButtonItem *playPauseButton;
 @property (nonatomic, strong) UIBarButtonItem *serverStatusButton;
+@property (nonatomic, strong) UIBarButtonItem *chatButton;
 
 @property (nonatomic, strong) UIViewController *SSPopoverController;
 
@@ -155,6 +156,12 @@ typedef void (^SPLSettingsCloseBlock) (void);
                                                  selector:@selector(musicStateDidChange:)
                                                      name:@"GMCPMusicStateChanged"
                                                    object:nil];
+
+        // First GMCP chat capture: surface the Chat button.
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(chatCaptureDidCapture:)
+                                                     name:@"GMCPChatCaptureDidCaptureChat"
+                                                   object:self.gmcpHandler.chatCapture];
 
 
         // font changes cause NAWS
@@ -308,6 +315,18 @@ typedef void (^SPLSettingsCloseBlock) (void);
         self.connectBarButton.accessibilityHint = @"Connects to this World.";
     }
 
+    // Chat capture button. Created lazily and shown only once the server has emitted at
+    // least one Comm.Channel.* GMCP packet on this session.
+    if (!self.chatButton) {
+        UIImage *chatImage = [UIImage systemImageNamed:@"bubble.left.and.bubble.right"];
+        _chatButton = [[UIBarButtonItem alloc] initWithImage:chatImage
+                                                       style:UIBarButtonItemStylePlain
+                                                      target:self
+                                                      action:@selector(tappedChat:)];
+        self.chatButton.accessibilityLabel = NSLocalizedString(@"CHAT_LOG", nil);
+        self.chatButton.accessibilityHint = @"Shows captured chat lines for this session.";
+    }
+
     BOOL isRegularWidth = self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular;
 
     // On regular width, MSSP is shown as a bar button instead of a title subtitle
@@ -327,6 +346,10 @@ typedef void (^SPLSettingsCloseBlock) (void);
 
         if (self.gmcpHandler.isMusicPlaying || self.gmcpHandler.isMusicPaused) {
             [leftItems addObject:self.playPauseButton];
+        }
+
+        if (self.gmcpHandler.chatCapture.hasReceivedChat) {
+            [leftItems addObject:self.chatButton];
         }
     }
 
@@ -644,6 +667,17 @@ typedef void (^SPLSettingsCloseBlock) (void);
 - (void)musicStateDidChange:(NSNotification *)note {
     [self updateMusicButtons];
     [self updateWorldToolbar];
+}
+
+- (void)chatCaptureDidCapture:(NSNotification *)note {
+    // We only need to refresh the toolbar on the first capture; subsequent captures
+    // arrive with the button already in place. Keying off hasReceivedChat in
+    // updateWorldToolbar makes it cheap to call unconditionally.
+    [self updateWorldToolbar];
+}
+
+- (void)tappedChat:(id)sender {
+    [ChatViewController presentSheetFrom:self chatCapture:self.gmcpHandler.chatCapture];
 }
 
 - (void)tappedServerStatus:(id)sender {

@@ -13,6 +13,9 @@
 #import "SSANSIEngine.h"
 #import "SSAttributedLineGroup.h"
 #import "SSStringCoder.h"
+#import "SSTextTableView.h"
+#import "SPLTerminalDataSource.h"
+#import "SSTextViewCell.h"
 #import "NSCharacterSet+SPLAdditions.h"
 #import "NSAttributedString+SPLAdditions.h"
 
