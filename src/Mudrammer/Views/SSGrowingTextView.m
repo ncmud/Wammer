@@ -8,6 +8,8 @@
 
 #import "SSGrowingTextView.h"
 #import "SSClientViewController+Interactions.h"
+#import "SSThemes.h"
+#import <FBKVOController.h>
 
 UIEdgeInsets const kContentInset = (UIEdgeInsets) { 0, 0, 0, 0 };
 UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
@@ -17,6 +19,8 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
 - (void) notifyDelegateArrowKey:(NSString *)input;
 - (BOOL) cursorIsOnFirstLine;
 - (BOOL) cursorIsOnLastLine;
+
+@property (nonatomic, strong) FBKVOController *kvoController;
 
 @end
 
@@ -34,7 +38,8 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
 
         self.textContainer.lineFragmentPadding = 0;
 
-        self.textColor = [UIColor darkGrayColor];
+        UIColor *fontColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor];
+        self.textColor = fontColor ?: [UIColor darkGrayColor];
         self.font = [UIFont systemFontOfSize:14.0f];
 
         self.returnKeyType = UIReturnKeySend;
@@ -43,6 +48,15 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
         self.layer.borderWidth = 1.f;
         self.layer.borderColor = [UIColor lightGrayColor].CGColor;
         self.layer.cornerRadius = 5.f;
+
+        _kvoController = [FBKVOController controllerWithObserver:self];
+        [self.kvoController observe:[SSThemes sharedThemer].currentTheme
+                            keyPath:kThemeFontColor
+                            options:NSKeyValueObservingOptionNew
+                              block:^(SSGrowingTextView *textView, id object, NSDictionary *change) {
+                                  UIColor *newColor = change[NSKeyValueChangeNewKey];
+                                  textView.textColor = newColor ?: [UIColor darkGrayColor];
+                              }];
     }
 
     return self;
