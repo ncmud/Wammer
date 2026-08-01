@@ -38,8 +38,18 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
 
         self.textContainer.lineFragmentPadding = 0;
 
-        UIColor *fontColor = [[SSThemes sharedThemer] valueForThemeKey:kThemeFontColor];
+        // The text and background colors must come from the same theme pair, or
+        // typed text can vanish (a white theme font on the default white field).
+        // Pin the trait too: on iOS 26 a dark keyboardAppearance can leak a dark
+        // trait into the text view's color resolution.
+        self.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+
+        SSThemes *themer = [SSThemes sharedThemer];
+        UIColor *fontColor = [themer valueForThemeKey:kThemeFontColor];
+        UIColor *themeBackgroundColor = [themer valueForThemeKey:kThemeBackgroundColor];
         self.textColor = fontColor ?: [UIColor darkGrayColor];
+        self.backgroundColor = themeBackgroundColor ?: [UIColor whiteColor];
+        self.tintColor = self.textColor;
         self.font = [UIFont systemFontOfSize:14.0f];
 
         self.returnKeyType = UIReturnKeySend;
@@ -56,6 +66,14 @@ UIEdgeInsets const kTextContainerInset = (UIEdgeInsets) { 4, 4, 2, 4 };
                               block:^(SSGrowingTextView *textView, id object, NSDictionary *change) {
                                   UIColor *newColor = change[NSKeyValueChangeNewKey];
                                   textView.textColor = newColor ?: [UIColor darkGrayColor];
+                                  textView.tintColor = textView.textColor;
+                              }];
+        [self.kvoController observe:[SSThemes sharedThemer].currentTheme
+                            keyPath:kThemeBackgroundColor
+                            options:NSKeyValueObservingOptionNew
+                              block:^(SSGrowingTextView *textView, id object, NSDictionary *change) {
+                                  UIColor *newColor = change[NSKeyValueChangeNewKey];
+                                  textView.backgroundColor = newColor ?: [UIColor whiteColor];
                               }];
     }
 
