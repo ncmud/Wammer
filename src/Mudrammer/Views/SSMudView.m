@@ -10,7 +10,6 @@
 #import "SSRadialControl.h"
 #import "SSSettingsViewController.h"
 #import "Wammer-Swift.h"
-@import SSAccessibility;
 @import Masonry;
 @import DAKeyboardControl;
 @import TTTAttributedLabel;
@@ -34,7 +33,7 @@
 
 @property (nonatomic, strong) FBKVOController *kvoController;
 
-@property (nonatomic, strong) SSSpeechSynthesizer *synthesizer;
+@property (nonatomic, strong) MUDSpeechQueue *synthesizer;
 
 // Scrolling for navbar
 @property (nonatomic, assign) BOOL shouldHideTopNav;
@@ -93,9 +92,11 @@
         self.radialControl.hidden = YES;
 #endif
 
-        // Speech toolbar
-        _synthesizer = [SSSpeechSynthesizer new];
-        self.synthesizer.timeoutDelay = 16.0f;
+        // Speech queue — forwards incoming MUD lines to VoiceOver via
+        // UIAccessibilityAnnouncer at .low priority. The 16 s timeout that
+        // lived on SSSpeechSynthesizer now lives on UIAccessibilityAnnouncer
+        // (its default) — no tuning needed at the call site.
+        _synthesizer = [MUDSpeechQueue new];
 
         // user defaults, for movement control switching
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -450,10 +451,6 @@
 
 - (void)stopSpeaking {
     [self.synthesizer stopSpeaking];
-}
-
-- (void)continueSpeaking {
-    [self.synthesizer continueSpeaking];
 }
 
 - (void)appendTTS:(NSString *)text {

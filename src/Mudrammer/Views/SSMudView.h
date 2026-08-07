@@ -37,7 +37,6 @@
 // speech control
 - (void) appendTTS:(NSString *)text;
 - (void) stopSpeaking;
-- (void) continueSpeaking;
 
 @end
 
