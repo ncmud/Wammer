@@ -8,6 +8,7 @@
 
 #import "MRTestHelpers.h"
 #import "SSStringCoder.h"
+#import "SSMRConstants.h"
 
 @interface MREncodingTests : XCTestCase
 
@@ -19,10 +20,13 @@
     SSStringEncoding *utf8Coding;
     NSString *testStr;
     NSData *testData;
+    id savedEncodingPreference;
 }
 
 - (void)setUp {
     [super setUp];
+    savedEncodingPreference = [[NSUserDefaults standardUserDefaults] objectForKey:kPrefStringEncoding];
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:kPrefStringEncoding];
     sut = [SSStringCoder new];
     utf8Coding = [SSStringCoder defaultStringEncoding];
     testStr = @"Hello World";
@@ -30,6 +34,7 @@
 }
 
 - (void)tearDown {
+    [[NSUserDefaults standardUserDefaults] setObject:savedEncodingPreference forKey:kPrefStringEncoding];
     [super tearDown];
     sut = nil;
 }
@@ -43,8 +48,16 @@
     expect(sut.currentStringEncoding).to.equal(utf8Coding);
 }
 
-- (void)testRetiredASCIIPreferenceResolvesToUTF8 {
-    expect([SSStringCoder encodingFromLocalizedEncodingName:@"ASCII"]).to.equal(utf8Coding);
+- (void)testSavedASCIIPreferenceFromEarlierVersionsDecodesUTF8 {
+    [[NSUserDefaults standardUserDefaults] setObject:@"ASCII" forKey:kPrefStringEncoding];
+    expect(sut.currentStringEncoding).to.equal(utf8Coding);
+}
+
+- (void)testChosenNonUTF8EncodingIsKept {
+    SSStringEncoding *latin1 = [SSStringCoder encodingFromLocalizedEncodingName:@"Latin 1 (ISO-8859)"];
+    [[NSUserDefaults standardUserDefaults] setObject:latin1.localizedName forKey:kPrefStringEncoding];
+    expect(sut.currentStringEncoding).to.equal(latin1);
+    expect(sut.currentStringEncoding.isUTF8).to.beFalsy();
 }
 
 - (void)testUnknownEncodingNameResolvesToUTF8 {
