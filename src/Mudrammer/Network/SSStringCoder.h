@@ -16,9 +16,15 @@
 + (NSArray *) availableStringEncodings;
 
 /**
- * Given a localized name, return an SSStringEncoding object matching the name or nil if not found.
+ * Given a localized name, return the matching SSStringEncoding, or the default encoding when no
+ * encoding has that name (including the retired "ASCII" preference value).
  */
 + (SSStringEncoding *) encodingFromLocalizedEncodingName:(NSString *)name;
+
+/**
+ * UTF-8, used when no preference is saved or the saved name no longer matches an encoding.
+ */
++ (SSStringEncoding *) defaultStringEncoding;
 
 /**
  * Read our preference key in NSUserDefaults and return an SSStringEncoding object.
@@ -70,6 +76,11 @@ typedef NS_ENUM(NSUInteger, kStringEncodingType) {
 @property (nonatomic, copy, readonly) NSString * localizedName;
 @property (nonatomic, assign, readonly) NSUInteger encoding;
 @property (nonatomic, assign, readonly) kStringEncodingType encodingType;
+
+/**
+ * YES for UTF-8, the only encoding Wammer reports to servers as UTF-8 capable.
+ */
+@property (nonatomic, readonly) BOOL isUTF8;
 
 - (instancetype) initWithName:(NSString *)name
                      encoding:(NSUInteger)encoding

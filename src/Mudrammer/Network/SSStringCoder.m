@@ -36,7 +36,6 @@
 
         // Custom NSStringEncodings
         NSDictionary *NSEncodings = @{
-          @"ASCII" : @(NSASCIIStringEncoding),
           @"CP1251 (Cyrillic)" : @(NSWindowsCP1251StringEncoding),
           @"ISO 2022 (Japanese)" : @(NSISO2022JPStringEncoding),
         };
@@ -90,11 +89,18 @@
             return encoding;
     }
 
-    if ([name isEqualToString:@"ASCII"]) {
-        return nil;
+    return [self defaultStringEncoding];
+}
+
++ (SSStringEncoding *)defaultStringEncoding {
+    for (SSStringEncoding *encoding in [self availableStringEncodings]) {
+        if (encoding.isUTF8)
+            return encoding;
     }
 
-    return [self encodingFromLocalizedEncodingName:@"ASCII"];
+    return [[SSStringEncoding alloc] initWithName:[NSString localizedNameOfStringEncoding:NSUTF8StringEncoding]
+                                         encoding:NSUTF8StringEncoding
+                                             type:kStringEncodingTypeNSStringEncoding];
 }
 
 - (SSStringEncoding *)currentStringEncoding {
@@ -242,6 +248,11 @@
     }
 
     return self;
+}
+
+- (BOOL)isUTF8 {
+    return self.encodingType == kStringEncodingTypeNSStringEncoding
+        && self.encoding == NSUTF8StringEncoding;
 }
 
 + (NSComparator) encodingComparator {

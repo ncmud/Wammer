@@ -45,6 +45,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    SSStringCoder *coder = self.coder;
+
     _dataSource = [[SSArrayDataSource alloc] initWithItems:[SSStringCoder availableStringEncodings]];
     _dataSource.cellClass = [SSBaseTableCell class];
     _dataSource.tableActionBlock = ^BOOL(SSCellActionType action,
@@ -60,8 +62,7 @@
 
         cell.textLabel.text = encoding.localizedName;
 
-        cell.accessoryType = ([encoding.localizedName isEqualToString:[[NSUserDefaults standardUserDefaults]
-                                                                       stringForKey:kPrefStringEncoding]]
+        cell.accessoryType = ([encoding isEqual:[coder currentStringEncoding]]
                               ? UITableViewCellAccessoryCheckmark
                               : UITableViewCellAccessoryNone);
     };

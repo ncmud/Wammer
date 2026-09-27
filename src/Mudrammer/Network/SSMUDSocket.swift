@@ -12,9 +12,14 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
     private let stringCoder = SSStringCoder()
     private let ansiEngine = SSANSIEngine()
     private var dataCache = ""
+    private var utf8Reassembler = UTF8ReadReassembler()
     private let parsingQueue = OperationQueue.ss_serial()!
 
     @objc var isSecure = false
+
+    /// MTTS bits for ANSI, VT100, 256 colors and truecolor.
+    private static let baseMTTSFlags = 1 | 2 | 8 | 256
+    private static let utf8MTTSFlag = 4
 
     private var dedup = NAWSDeduplicator()
     private let dedupLock = NSLock()
@@ -153,13 +158,14 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
     func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) {
         let initialWidth = max(1, Int(pendingInitialCharSize.width))
         let initialHeight = max(1, Int(pendingInitialCharSize.height))
+        let decodesUTF8 = stringCoder.currentStringEncoding.isUTF8
 
         telnetSession = TelnetClientSession(
             delegate: self,
             terminalType: "Wammer",
             windowWidth: initialWidth,
             windowHeight: initialHeight,
-            mttsFlags: 271
+            mttsFlags: decodesUTF8 ? Self.baseMTTSFlags | Self.utf8MTTSFlag : Self.baseMTTSFlags
         )
 
         // Seed the dedup so a redundant sendNAWS from the first viewDidLayoutSubviews
@@ -195,6 +201,7 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
         parsingQueue.ss_addBlockOperation { [weak self] _ in
             guard let self else { return }
             self.telnetSession = nil
+            self.utf8Reassembler.reset()
             self.resetDedup()
             let del = self.delegate
             if del?.responds(to: #selector(SSMUDSocketDelegate.mudsocket(_:didDisconnectWithError:))) == true {
@@ -215,8 +222,12 @@ final class SSMUDSocket: NSObject, GCDAsyncSocketDelegate {
             let cleanBytes = session.processInput(bytes)
 
             if !cleanBytes.isEmpty {
-                let cleanData = Data(cleanBytes)
-                let string = self.stringCoder.stringByDecodingData(withCurrentEncoding: cleanData) ?? ""
+                let decodable = self.utf8Reassembler.decodableBytes(
+                    cleanBytes,
+                    holdIncompleteTail: self.stringCoder.currentStringEncoding.isUTF8
+                )
+                guard !decodable.isEmpty else { return }
+                let string = self.stringCoder.stringByDecodingData(withCurrentEncoding: Data(decodable)) ?? ""
                 self.processReceivedString(string, operation: operation)
             }
         }
