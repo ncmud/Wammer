@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add Swift model classes for World, Alias, Trigger, Gag, Ticker (#76)
 
 ### Fixed
+- Decode server text as UTF-8 by default so box-drawing and bullet characters no longer show as `â` mojibake
 - Fix MSSP Server Status button not receiving taps in title view (#35)
 - Fix world select button on iPhone (toggleSidebar collapsed) (#33)
 - Fix crash in itemWithAttributedString: on empty string (#57)

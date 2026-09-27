@@ -12,6 +12,7 @@
 #import "SSWorldDisplayController.h"
 #import "Wammer-Swift.h"
 #import "SPLNotificationManager.h"
+#import "SSStringCoder.h"
 
 
 @implementation SSAppDelegate
@@ -23,7 +24,7 @@
         kPrefAutocorrect           : @NO,
         kPrefMoveControl           : @(SSRadialControlPositionRight),
         kPrefConnectOnStartup      : @YES,
-        kPrefStringEncoding        : @"ASCII",
+        kPrefStringEncoding        : [SSStringCoder defaultStringEncoding].localizedName,
         kPrefKeyboardStyle         : @YES,
         kPrefRadialControl         : @(SSRadialControlPositionLeft),
         kPrefRadialCommands        : @[ @"up", @"in", @"down", @"out", @"look" ],
